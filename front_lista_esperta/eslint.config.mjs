@@ -5,6 +5,25 @@ import nextTs from "eslint-config-next/typescript";
 const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
+  {
+    // Neutralidade do ranking (docs/03-monetizacao-b2b.md, Seção 3.6).
+    files: ["lib/verdict/**/*.ts"],
+    // Os testes importam anúncios de propósito, para provar que eles não alteram o veredito.
+    ignores: ["**/*.test.ts"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: ["**/ads/**", "**/ads", "**/cashback/**"],
+              message: "O motor de veredito é neutro: não pode depender de anúncios.",
+            },
+          ],
+        },
+      ],
+    },
+  },
   // Override default ignores of eslint-config-next.
   globalIgnores([
     // Default ignores of eslint-config-next:
