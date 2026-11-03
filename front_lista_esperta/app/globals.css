@@ -1,26 +1,182 @@
 @import "tailwindcss";
 
+/* Lista Esperta: papel frio, tinta, amarelo de etiqueta de gôndola, verde de economia. */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --paper: #f4f6f1;
+  --surface: #ffffff;
+  --ink: #17212b;
+  --ink-soft: #4b5763;
+  --line: #d5dbd2;
+  --tag: #ffd23f;
+  --tag-ink: #17212b;
+  --save: #1e7a4c;
+  --save-soft: #dcefe2;
+  --amber: #8f5600;
+  --amber-soft: #fbecd2;
+  --orange: #a8471a;
+  --orange-soft: #fbe3d6;
+  --muted: #6b7480;
+  --muted-soft: #e8ebe6;
+  --danger: #b3261e;
+  --focus: #2457c5;
+  /* Rampa sequencial de um tom (verde), claro → escuro = pouco → muito. */
+  --seq-1: #dcefe2;
+  --seq-2: #a9d8b9;
+  --seq-3: #6fbb8e;
+  --seq-4: #35975f;
+  --seq-5: #1b6b42;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --paper: #11181e;
+    --surface: #1a232b;
+    --ink: #e9eef0;
+    --ink-soft: #a9b4bd;
+    --line: #2d3a45;
+    --tag: #f7c933;
+    --save: #5cc994;
+    --save-soft: #163527;
+    --amber: #e9ad55;
+    --amber-soft: #392a12;
+    --orange: #f29466;
+    --orange-soft: #3b2216;
+    --muted: #939ca6;
+    --muted-soft: #222c34;
+    --danger: #f2a49e;
+    --focus: #8eb0ff;
+    /* No escuro, mais intensidade = mais claro. */
+    --seq-1: #1b3a2a;
+    --seq-2: #245a3d;
+    --seq-3: #2f7d53;
+    --seq-4: #49a573;
+    --seq-5: #7fd3a2;
   }
 }
 
+/* Textura para células suprimidas pelo k-anonimato (não depende de cor). */
+.heat-hidden {
+  background: repeating-linear-gradient(45deg, var(--muted-soft) 0 4px, transparent 4px 8px);
+  outline: 1px solid var(--line);
+}
+
+@theme inline {
+  --color-paper: var(--paper);
+  --color-surface: var(--surface);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-line: var(--line);
+  --color-tag: var(--tag);
+  --color-tag-ink: var(--tag-ink);
+  --color-save: var(--save);
+  --color-save-soft: var(--save-soft);
+  --color-amber: var(--amber);
+  --color-amber-soft: var(--amber-soft);
+  --color-orange: var(--orange);
+  --color-orange-soft: var(--orange-soft);
+  --color-muted: var(--muted);
+  --color-muted-soft: var(--muted-soft);
+  --color-danger: var(--danger);
+  --font-sans: var(--font-barlow);
+  --font-display: var(--font-barlow-condensed);
+}
+
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-barlow), system-ui, sans-serif;
+  font-size: 1.0625rem;
+  line-height: 1.5;
+  -webkit-tap-highlight-color: transparent;
+}
+
+:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Etiqueta de gôndola: o único elemento "alto" da interface. */
+.price-tag {
+  position: relative;
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 0.15em;
+  padding: 0.12em 0.32em 0.08em 0.9em;
+  background: var(--tag);
+  color: var(--tag-ink);
+  font-family: var(--font-barlow-condensed), sans-serif;
+  font-weight: 800;
+  line-height: 0.9;
+  border-radius: 0.14em 0.1em 0.1em 0.14em;
+  transform: rotate(-1.5deg);
+  box-shadow: 0 0.06em 0 rgb(0 0 0 / 0.18);
+}
+.price-tag::before {
+  /* furo do gancho da gôndola */
+  content: "";
+  position: absolute;
+  left: 0.3em;
+  top: 50%;
+  width: 0.2em;
+  height: 0.2em;
+  margin-top: -0.1em;
+  border-radius: 50%;
+  background: var(--paper);
+  box-shadow: inset 0 0.02em 0.03em rgb(0 0 0 / 0.35);
+}
+.price-tag .currency {
+  font-size: 0.28em;
+  font-weight: 700;
+  margin-top: 0.35em;
+}
+.price-tag .cents {
+  font-size: 0.42em;
+  margin-top: 0.08em;
+  text-decoration: underline;
+  text-decoration-thickness: 0.06em;
+  text-underline-offset: 0.08em;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .price-tag-land {
+    animation: tag-land 520ms cubic-bezier(0.2, 0.9, 0.25, 1.15) both;
+    animation-delay: 120ms;
+  }
+}
+@keyframes tag-land {
+  from {
+    opacity: 0;
+    transform: translateY(-0.35em) rotate(-6deg);
+  }
+  to {
+    opacity: 1;
+    transform: rotate(-1.5deg);
+  }
+}
+
+/* Folha pautada para digitar a lista. */
+.ruled {
+  background-color: var(--surface);
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent calc(2rem - 1px),
+    var(--line) calc(2rem - 1px),
+    var(--line) 2rem
+  );
+  background-attachment: local;
+  background-position: 0 0.75rem;
+  line-height: 2rem;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .skeleton-pulse {
+    animation: pulse 1.4s ease-in-out infinite;
+  }
+}
+@keyframes pulse {
+  50% {
+    opacity: 0.45;
+  }
 }
