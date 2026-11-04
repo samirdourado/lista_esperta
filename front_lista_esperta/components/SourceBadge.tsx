@@ -11,7 +11,9 @@ const TONE: Record<BadgeTone, { className: string; mark: string }> = {
 export function SourceBadge({ badge }: { badge: Badge }) {
   const tone = TONE[badge.tone];
   return (
-    <span className={`inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[0.8rem] leading-tight ${tone.className}`}>
+    <span
+      className={`inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[0.8rem] leading-tight ${tone.className}`}
+    >
       <span aria-hidden="true" className="text-[0.6rem]">
         {tone.mark}
       </span>

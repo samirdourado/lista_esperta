@@ -17,7 +17,7 @@ export const metadata: Metadata = { title: "Como calculamos" };
 
 const pct = (n: number) => `${Math.round(n * 100)} %`;
 
-export default function TransparenciaPage() {
+export default function HowItWorksPage() {
   const params: Array<[string, string]> = [
     ["Custo por km de carro", `${brl(COST_PER_KM.DRIVE)} (combustível e desgaste)`],
     ["Ônibus ou metrô", `${brl(TRANSIT_FARE)} por trecho, ida e volta`],
@@ -30,8 +30,10 @@ export default function TransparenciaPage() {
   ];
 
   return (
-    <main className="mx-auto w-full max-w-2xl flex-1 px-4 pb-20 pt-8">
-      <h1 className="font-display text-[clamp(2.4rem,10vw,3.4rem)] font-bold leading-[0.95] tracking-tight">Como calculamos</h1>
+    <div className="mx-auto w-full max-w-2xl flex-1 px-4 pt-8 pb-20">
+      <h1 className="font-display text-[clamp(2.4rem,10vw,3.4rem)] leading-[0.95] font-bold tracking-tight">
+        Como calculamos
+      </h1>
       <p className="mt-3 text-ink-soft">
         O veredito escolhe o plano de menor custo total. A conta é pública e a mesma para todo mundo.
       </p>
@@ -66,7 +68,9 @@ export default function TransparenciaPage() {
             ))}
           </tbody>
         </table>
-        <p className="mt-2 text-[0.9rem] text-muted">Versão do algoritmo: {ALGO_VERSION}. Valores iniciais, revisados com dados reais.</p>
+        <p className="mt-2 text-[0.9rem] text-muted">
+          Versão do algoritmo: {ALGO_VERSION}. Valores iniciais, revisados com dados reais.
+        </p>
       </section>
 
       <section className="mt-10" aria-labelledby="origem">
@@ -75,12 +79,12 @@ export default function TransparenciaPage() {
         </h2>
         <ul className="mt-3 space-y-3">
           <li>
-            <strong>Confirmado:</strong> veio de uma nota fiscal escaneada ou foi visto por 3 ou mais pessoas nas últimas 24
-            horas.
+            <strong>Confirmado:</strong> veio de uma nota fiscal escaneada ou foi visto por 3 ou mais pessoas nas
+            últimas 24 horas.
           </li>
           <li>
-            <strong>Encarte:</strong> anunciado pela loja no folheto da semana. Pode exigir quantidade mínima ou cartão da
-            loja.
+            <strong>Encarte:</strong> anunciado pela loja no folheto da semana. Pode exigir quantidade mínima ou cartão
+            da loja.
           </li>
           <li>
             <strong>Comunidade:</strong> uma ou duas pessoas fotografaram a etiqueta recentemente.
@@ -89,7 +93,10 @@ export default function TransparenciaPage() {
             <strong>Estimativa:</strong> não temos o preço nessa loja e usamos o da região, com acréscimo.
           </li>
         </ul>
-        <p className="mt-3">Preços mais antigos valem menos: a confiança cai pela metade a cada 3 dias para notas fiscais e a cada dia para relatos da comunidade.</p>
+        <p className="mt-3">
+          Preços mais antigos valem menos: a confiança cai pela metade a cada 3 dias para notas fiscais e a cada dia
+          para relatos da comunidade.
+        </p>
       </section>
 
       <section className="mt-10" aria-labelledby="anuncios">
@@ -97,8 +104,14 @@ export default function TransparenciaPage() {
           Por que anúncios não compram o ranking
         </h2>
         <ol className="mt-3 list-decimal space-y-3 pl-5">
-          <li>O cálculo do veredito não tem acesso aos dados de anúncios. O projeto não compila se alguém tentar ligar os dois.</li>
-          <li>O veredito fica pronto antes de qualquer anúncio ser escolhido. Anúncios só aparecem na área marcada como Patrocinado.</li>
+          <li>
+            O cálculo do veredito não tem acesso aos dados de anúncios. O projeto não compila se alguém tentar ligar os
+            dois.
+          </li>
+          <li>
+            O veredito fica pronto antes de qualquer anúncio ser escolhido. Anúncios só aparecem na área marcada como
+            Patrocinado.
+          </li>
           <li>Testes automáticos conferem que anúncios não mudam nenhum veredito.</li>
           <li>
             Cada veredito tem um código de verificação calculado só com a lista, o local e os preços. Use &ldquo;Ver sem
@@ -106,6 +119,6 @@ export default function TransparenciaPage() {
           </li>
         </ol>
       </section>
-    </main>
+    </div>
   );
 }

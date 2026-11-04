@@ -71,11 +71,8 @@ interface Candidate {
 function better(a: Candidate, b: Candidate | null): boolean {
   if (!b) return true;
   return (
-    a.confidence - b.confidence ||
-    a.hits - b.hits ||
-    b.position - a.position ||
-    a.specificity - b.specificity
-  ) > 0;
+    (a.confidence - b.confidence || a.hits - b.hits || b.position - a.position || a.specificity - b.specificity) > 0
+  );
 }
 
 function bestGroup(words: string[]): { group: ProductGroup; confidence: number } | null {
@@ -127,8 +124,7 @@ export function parseLine(raw: string): ParsedLine {
   // A peso, "500 g de carne" vira 0,5 kg; em itens embalados o peso descreve a embalagem.
   if (group.unit === "kg" && weightKg !== null && !leading) qty = weightKg;
 
-  const product =
-    group.products.find((p) => p.brand && termMatches(normalize(p.brand).split(" ")[0], words)) ?? null;
+  const product = group.products.find((p) => p.brand && termMatches(normalize(p.brand).split(" ")[0], words)) ?? null;
 
   return { raw, qty: qty > 0 ? qty : 1, group, product, brandLocked: product !== null, confidence };
 }

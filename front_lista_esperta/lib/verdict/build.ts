@@ -210,7 +210,10 @@ export function buildVerdict(input: VerdictInput): Verdict {
 
   // Pré-filtro (Seção 2.2): as K lojas que mais cobrem a lista.
   const candidates = [...inRadius]
-    .sort((a, b) => matrix.get(b.id)!.size - matrix.get(a.id)!.size || distanceM(input.origin, a) - distanceM(input.origin, b))
+    .sort(
+      (a, b) =>
+        matrix.get(b.id)!.size - matrix.get(a.id)!.size || distanceM(input.origin, a) - distanceM(input.origin, b),
+    )
     .slice(0, MAX_CANDIDATES)
     .map((s) => s.id);
 

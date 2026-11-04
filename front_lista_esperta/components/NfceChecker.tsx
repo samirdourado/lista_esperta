@@ -3,7 +3,20 @@
 import { useId, useRef, useState } from "react";
 import { formatCnpj, parseChave, type ChaveResult } from "@/lib/nfce";
 
-const MONTHS = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"];
+const MONTHS = [
+  "janeiro",
+  "fevereiro",
+  "março",
+  "abril",
+  "maio",
+  "junho",
+  "julho",
+  "agosto",
+  "setembro",
+  "outubro",
+  "novembro",
+  "dezembro",
+];
 
 interface BarcodeDetectorLike {
   detect(source: ImageBitmapSource): Promise<Array<{ rawValue: string }>>;
@@ -90,7 +103,10 @@ export function NfceChecker() {
             autoComplete="off"
             className="min-w-0 flex-1 rounded-lg border border-line bg-surface px-3 py-2.5 focus:border-brand focus:outline-none"
           />
-          <button type="submit" className="shrink-0 rounded-lg border border-brand px-4 font-medium text-brand hover:bg-brand-soft">
+          <button
+            type="submit"
+            className="shrink-0 rounded-lg border border-brand px-4 font-medium text-brand hover:bg-brand-soft"
+          >
             Conferir nota
           </button>
         </div>
@@ -121,8 +137,8 @@ export function NfceChecker() {
               </p>
             )}
             <p className="mt-3 text-[0.95rem] text-ink-soft">
-              Conferimos a chave aqui no aparelho. A leitura dos itens na Sefaz ainda não está ligada nesta versão, então
-              esta nota não entra na base de preços.
+              Conferimos a chave aqui no aparelho. A leitura dos itens na Sefaz ainda não está ligada nesta versão,
+              então esta nota não entra na base de preços.
             </p>
           </section>
         )}

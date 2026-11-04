@@ -42,7 +42,8 @@ export function confidenceOf(source: PriceSource, ageHours: number, observations
 
 function simulateOffer(store: Store, product: Product, category: Category, multiBrand: boolean): Offer | null {
   const r = (salt: string) => seeded(`${store.id}|${product.id}|${salt}`);
-  if (seeded(`${store.id}|${category}|${product.id.split(":")[0]}`) >= pick(CARRIES[store.format], category)) return null;
+  if (seeded(`${store.id}|${category}|${product.id.split(":")[0]}`) >= pick(CARRIES[store.format], category))
+    return null;
   if (multiBrand && r("brand") >= BRAND_CARRIED) return null;
   if (r("observed") >= OBSERVED) return null;
 
@@ -57,7 +58,13 @@ function simulateOffer(store: Store, product: Product, category: Category, multi
   const ageHours = source === "nfce" ? 1 + age * 30 : source === "encarte" ? 6 + age * 60 : 0.5 + age * 12;
   const obs = r("obs");
   const observations24h =
-    source === "nfce" ? (ageHours < 24 ? 1 + Math.floor(obs * 5) : 0) : source === "crowd" ? 1 + Math.floor(obs * 2) : 0;
+    source === "nfce"
+      ? ageHours < 24
+        ? 1 + Math.floor(obs * 5)
+        : 0
+      : source === "crowd"
+        ? 1 + Math.floor(obs * 2)
+        : 0;
 
   return {
     productId: product.id,

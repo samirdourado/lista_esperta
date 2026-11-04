@@ -1,6 +1,6 @@
 import type { TravelMode } from "@/lib/types";
 
-// Parâmetros públicos do algoritmo (exibidos em /transparencia). Hipóteses iniciais da
+// Parâmetros públicos do algoritmo (exibidos em /how-it-works). Hipóteses iniciais da
 // Seção 2.1 do relatório; calibrar com dados reais.
 
 export const ALGO_VERSION = "2026.11.0";

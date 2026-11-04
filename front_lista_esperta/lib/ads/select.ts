@@ -14,10 +14,34 @@ interface Campaign {
 }
 
 const CAMPAIGNS: Campaign[] = [
-  { id: "cmp-cafe-tavora", storeId: "mer-tavora", groupKey: "cafe", maxCpc: 0.9, offer: "Café 3 Corações 500 g por R$ 17,90" },
-  { id: "cmp-arroz-anarosa", storeId: "sup-ana-rosa", groupKey: "arroz", maxCpc: 1.2, offer: "Arroz Camil 5 kg por R$ 25,90" },
-  { id: "cmp-sabao-anarosa", storeId: "sup-ana-rosa", groupKey: "sabao-po", maxCpc: 0.7, offer: "Sabão em pó Tixan 800 g por R$ 10,49" },
-  { id: "cmp-leite-sena", storeId: "mer-sena", groupKey: "leite-integral", maxCpc: 0.5, offer: "Leite integral Italac 1 L por R$ 4,99" },
+  {
+    id: "cmp-cafe-tavora",
+    storeId: "mer-tavora",
+    groupKey: "cafe",
+    maxCpc: 0.9,
+    offer: "Café 3 Corações 500 g por R$ 17,90",
+  },
+  {
+    id: "cmp-arroz-anarosa",
+    storeId: "sup-ana-rosa",
+    groupKey: "arroz",
+    maxCpc: 1.2,
+    offer: "Arroz Camil 5 kg por R$ 25,90",
+  },
+  {
+    id: "cmp-sabao-anarosa",
+    storeId: "sup-ana-rosa",
+    groupKey: "sabao-po",
+    maxCpc: 0.7,
+    offer: "Sabão em pó Tixan 800 g por R$ 10,49",
+  },
+  {
+    id: "cmp-leite-sena",
+    storeId: "mer-sena",
+    groupKey: "leite-integral",
+    maxCpc: 0.5,
+    offer: "Leite integral Italac 1 L por R$ 4,99",
+  },
   { id: "cmp-carne-boi", storeId: "acg-boi", groupKey: "contrafile", maxCpc: 1.5, offer: "Contrafilé a R$ 54,90 o kg" },
 ];
 

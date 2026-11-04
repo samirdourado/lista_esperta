@@ -1,12 +1,5 @@
 export type Category =
-  | "hortifruti"
-  | "acougue"
-  | "laticinios"
-  | "mercearia"
-  | "bebidas"
-  | "limpeza"
-  | "higiene"
-  | "padaria";
+  "hortifruti" | "acougue" | "laticinios" | "mercearia" | "bebidas" | "limpeza" | "higiene" | "padaria";
 
 export type StoreFormat = "atacarejo" | "supermercado" | "varejo_bairro" | "hortifruti" | "acougue";
 

@@ -56,7 +56,8 @@ Nesse modo, `back_lista_esperta/.env` usa `localhost:5433`, que é o valor do `.
 | Script | O que faz |
 |---|---|
 | `npm run lint` | ESLint |
-| `npm run typecheck` | `tsc --noEmit` |
+| `npm run typecheck` | `tsc --noEmit` (no front, antes roda `next typegen`) |
+| `npm run format` | Prettier |
 | `npm test` | testes unitários (Vitest) |
 | `npm run test:e2e` | só no back: e2e com Supertest contra `lista_esperta_test` |
 
@@ -67,8 +68,17 @@ Nesse modo, `back_lista_esperta/.env` usa `localhost:5433`, que é o valor do `.
 - `docker-compose.yml` com PostGIS 16-3.4 (porta 5433, healthcheck, volume nomeado, banco de teste), api e web com hot reload.
 - Esqueleto NestJS: prefixo `/api/v1`, `ValidationPipe` global, CORS restrito ao front, validação de env na inicialização, Swagger em `/api/docs` e `GET /api/v1/health`.
 
-O front ainda é o protótipo do hackathon (dados simulados em `lib/demo/`). Ele será reescrito a partir da fase 2.
+**Fase 2 — base do front** ✅
+- Design tokens medidos no logo, modo claro/escuro com botão no cabeçalho, contraste AA.
+- Shell PWA: cabeçalho com "Tenho uma loja", barra de abas no celular, rodapé, link para pular ao conteúdo, aviso de sem internet.
+- Manifest com ícones gerados a partir do logo, service worker com página `/offline` (só em produção).
+- Componentes base em `components/ui/` e testes com Testing Library.
+- Rotas em inglês (`/verdict`, `/receipts/import`, `/how-it-works`, `/merchant`); as antigas redirecionam.
 
-Próximas fases: 2 · base do front → 3 · banco + auth → 4 · lojas → 5 · dashboard do lojista → 6 · NFC-e → 7 · lista + veredito → 8 · opcionais.
+As telas de lista, veredito, NFC-e e lojista ainda são o protótipo do hackathon (dados simulados em `lib/demo/`), agora sobre a base nova. Elas serão reescritas nas fases 3 a 7.
+
+Para ver o PWA (service worker, offline, instalação): `cd front_lista_esperta && npm run build && npm start`.
+
+Próximas fases: 3 · banco + auth → 4 · lojas → 5 · dashboard do lojista → 6 · NFC-e → 7 · lista + veredito → 8 · opcionais.
 
 A documentação do protótipo (arquitetura, motor de decisão, monetização) continua em [front_lista_esperta/docs/](front_lista_esperta/docs/README.md).

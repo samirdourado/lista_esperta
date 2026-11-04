@@ -16,7 +16,8 @@ export async function POST(request: Request) {
   const form = await request.formData().catch(() => null);
   const image = form?.get("image");
   if (!(image instanceof Blob)) return Response.json({ error: "Envie a foto no campo image." }, { status: 400 });
-  if (image.size > MAX_IMAGE_BYTES) return Response.json({ error: "A foto passou de 6 MB. Tente uma foto menor." }, { status: 413 });
+  if (image.size > MAX_IMAGE_BYTES)
+    return Response.json({ error: "A foto passou de 6 MB. Tente uma foto menor." }, { status: 413 });
 
   try {
     return Response.json({ lines: await readListPhoto(image), source: "gemini" });

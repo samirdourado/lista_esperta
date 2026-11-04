@@ -53,7 +53,10 @@ function toLine(i: GeminiItem): string {
 
 export async function readListPhoto(image: Blob): Promise<string[]> {
   const key = process.env.GEMINI_API_KEY;
-  if (!key) throw new GeminiUnavailableError("A leitura de foto precisa da chave GEMINI_API_KEY no servidor. Digite ou cole a lista por enquanto.");
+  if (!key)
+    throw new GeminiUnavailableError(
+      "A leitura de foto precisa da chave GEMINI_API_KEY no servidor. Digite ou cole a lista por enquanto.",
+    );
   const model = process.env.GEMINI_MODEL_FAST || "gemini-flash-latest";
   const data = Buffer.from(await image.arrayBuffer()).toString("base64");
 
@@ -65,7 +68,10 @@ export async function readListPhoto(image: Blob): Promise<string[]> {
       contents: [
         {
           role: "user",
-          parts: [{ inline_data: { mime_type: image.type || "image/jpeg", data } }, { text: "Extraia os itens desta lista." }],
+          parts: [
+            { inline_data: { mime_type: image.type || "image/jpeg", data } },
+            { text: "Extraia os itens desta lista." },
+          ],
         },
       ],
       generationConfig: { responseMimeType: "application/json", responseSchema: RESPONSE_SCHEMA, temperature: 0 },

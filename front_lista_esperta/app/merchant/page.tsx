@@ -2,7 +2,14 @@ import type { Metadata } from "next";
 import { cacheLife } from "next/cache";
 import Link from "next/link";
 import { Suspense } from "react";
-import { HEATMAP, K_ANONYMITY, NEARBY_M, SIMULATED_LISTS, storeInsights, type StoreInsights } from "@/lib/demo/insights";
+import {
+  HEATMAP,
+  K_ANONYMITY,
+  NEARBY_M,
+  SIMULATED_LISTS,
+  storeInsights,
+  type StoreInsights,
+} from "@/lib/demo/insights";
 import { FORMAT_LABEL, STORES } from "@/lib/demo/stores";
 import { brl } from "@/lib/format";
 
@@ -16,20 +23,20 @@ async function getInsights(storeId: string) {
   return storeInsights(storeId);
 }
 
-export default function LojistaPage({ searchParams }: PageProps<"/lojista">) {
+export default function MerchantPage({ searchParams }: PageProps<"/merchant">) {
   return (
-    <main className="mx-auto w-full max-w-5xl flex-1 px-4 pb-20 pt-8">
+    <div className="mx-auto w-full max-w-5xl flex-1 px-4 pt-8 pb-20">
       <p className="rounded-lg bg-muted-soft px-3 py-2 text-[0.95rem]">
         Demonstração com {SIMULATED_LISTS} listas simuladas do bairro-piloto. Nenhum dado pessoal aparece neste painel.
       </p>
       <Suspense fallback={<p className="mt-8 text-ink-soft">Carregando o painel…</p>}>
         <Dashboard searchParams={searchParams} />
       </Suspense>
-    </main>
+    </div>
   );
 }
 
-async function Dashboard({ searchParams }: { searchParams: PageProps<"/lojista">["searchParams"] }) {
+async function Dashboard({ searchParams }: { searchParams: PageProps<"/merchant">["searchParams"] }) {
   const sp = await searchParams;
   const requested = typeof sp.loja === "string" ? sp.loja : DEFAULT_STORE;
   const storeId = STORES.some((s) => s.id === requested) ? requested : DEFAULT_STORE;
@@ -41,10 +48,12 @@ async function Dashboard({ searchParams }: { searchParams: PageProps<"/lojista">
     <>
       <header className="mt-8 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="font-display text-[clamp(2.4rem,8vw,3.6rem)] font-bold leading-none tracking-tight">{data.storeName}</h1>
+          <h1 className="font-display text-[clamp(2.4rem,8vw,3.6rem)] leading-none font-bold tracking-tight">
+            {data.storeName}
+          </h1>
           <p className="mt-2 text-ink-soft">Esta semana, num raio de {NEARBY_M / 1000} km da sua loja.</p>
         </div>
-        <form className="flex items-center gap-2" action="/lojista">
+        <form className="flex items-center gap-2" action="/merchant">
           <label htmlFor="loja" className="sr-only">
             Loja
           </label>
@@ -60,7 +69,10 @@ async function Dashboard({ searchParams }: { searchParams: PageProps<"/lojista">
               </option>
             ))}
           </select>
-          <button type="submit" className="rounded-lg border border-brand px-3 py-2 font-medium text-brand hover:bg-brand-soft">
+          <button
+            type="submit"
+            className="rounded-lg border border-brand px-3 py-2 font-medium text-brand hover:bg-brand-soft"
+          >
             Ver loja
           </button>
         </form>
@@ -68,10 +80,17 @@ async function Dashboard({ searchParams }: { searchParams: PageProps<"/lojista">
 
       <dl className="mt-8 grid gap-6 border-y border-line py-6 sm:grid-cols-3">
         <Stat value={data.listsNearby.toLocaleString("pt-BR")} label="listas feitas perto da sua loja" />
-        <Stat value={`${Math.round(winRate * 100)} %`} label={`dos vereditos indicaram sua loja (${data.wins} ${data.wins === 1 ? "lista" : "listas"})`} />
+        <Stat
+          value={`${Math.round(winRate * 100)} %`}
+          label={`dos vereditos indicaram sua loja (${data.wins} ${data.wins === 1 ? "lista" : "listas"})`}
+        />
         <Stat
           value={topLoss ? brl(topLoss.mine - topLoss.best) : "Nenhuma"}
-          label={topLoss ? `de diferença no item em que você mais perde: ${topLoss.label}` : "diferença: você tem o menor preço por perto"}
+          label={
+            topLoss
+              ? `de diferença no item em que você mais perde: ${topLoss.label}`
+              : "diferença: você tem o menor preço por perto"
+          }
         />
       </dl>
 
@@ -85,7 +104,7 @@ async function Dashboard({ searchParams }: { searchParams: PageProps<"/lojista">
       <p className="mt-12 max-w-160 text-ink-soft">
         O veredito só muda quando o preço muda: anúncios não entram no cálculo. Para ganhar mais vereditos, reduza a
         diferença nos itens acima.{" "}
-        <Link href="/transparencia" className="underline underline-offset-4">
+        <Link href="/how-it-works" className="underline underline-offset-4">
           Veja como o cálculo funciona
         </Link>
         .
@@ -111,7 +130,9 @@ function Losses({ data }: { data: StoreInsights }) {
         Onde você perde para quem está perto
       </h2>
       {data.losses.length === 0 ? (
-        <p className="mt-3 text-ink-soft">Nenhum concorrente a até {NEARBY_M / 1000} km cobra menos nos itens que você vende.</p>
+        <p className="mt-3 text-ink-soft">
+          Nenhum concorrente a até {NEARBY_M / 1000} km cobra menos nos itens que você vende.
+        </p>
       ) : (
         <table className="mt-4 w-full text-left">
           <thead className="text-[0.9rem] text-ink-soft">
@@ -158,7 +179,11 @@ function Demand({ data }: { data: StoreInsights }) {
       <p className="mt-1 text-[0.95rem] text-ink-soft">Listas perto da sua loja com pelo menos um item da categoria.</p>
       <ul className="mt-4 space-y-2.5">
         {data.demand.map((d) => (
-          <li key={d.category} className="grid grid-cols-[6.5rem_1fr_3rem] items-center gap-3" title={`${d.label}: ${d.lists} listas`}>
+          <li
+            key={d.category}
+            className="grid grid-cols-[6.5rem_1fr_3rem] items-center gap-3"
+            title={`${d.label}: ${d.lists} listas`}
+          >
             <span className="text-[0.95rem]">{d.label}</span>
             <span className="h-3 rounded-r bg-line" aria-hidden="true">
               <span className="block h-3 rounded-r bg-save" style={{ width: `${(d.lists / max) * 100}%` }} />
@@ -177,7 +202,8 @@ function Heatmap({ data }: { data: StoreInsights }) {
   const visible = data.cells.filter((c) => c.lists >= K_ANONYMITY).map((c) => c.lists);
   const max = Math.max(...visible, K_ANONYMITY);
   const center = Math.floor(HEATMAP.grid / 2);
-  const step = (n: number) => Math.min(SEQ_STEPS, 1 + Math.floor(((n - K_ANONYMITY) / Math.max(max - K_ANONYMITY, 1)) * SEQ_STEPS));
+  const step = (n: number) =>
+    Math.min(SEQ_STEPS, 1 + Math.floor(((n - K_ANONYMITY) / Math.max(max - K_ANONYMITY, 1)) * SEQ_STEPS));
 
   return (
     <section aria-labelledby="mapa" className="mt-14">
@@ -185,8 +211,8 @@ function Heatmap({ data }: { data: StoreInsights }) {
         De onde vêm as listas
       </h2>
       <p className="mt-1 max-w-160 text-[0.95rem] text-ink-soft">
-        Cada quadrado tem {HEATMAP.cellM} m de lado, com a sua loja no centro. Quadrados com menos de {K_ANONYMITY} pessoas
-        ficam ocultos para proteger a privacidade.
+        Cada quadrado tem {HEATMAP.cellM} m de lado, com a sua loja no centro. Quadrados com menos de {K_ANONYMITY}{" "}
+        pessoas ficam ocultos para proteger a privacidade.
       </p>
       <div className="mt-5 flex flex-wrap items-start gap-8">
         <div
@@ -206,7 +232,14 @@ function Heatmap({ data }: { data: StoreInsights }) {
                 title={text}
                 aria-label={`${isStore ? "Sua loja, " : ""}${text}`}
                 className={`relative grid aspect-square place-items-center rounded-sm text-[0.8rem] tabular-nums ${hidden ? "heat-hidden text-muted" : ""}`}
-                style={hidden ? undefined : { background: `var(--seq-${step(c.lists)})`, color: step(c.lists) >= 4 ? "var(--paper)" : "var(--ink)" }}
+                style={
+                  hidden
+                    ? undefined
+                    : {
+                        background: `var(--seq-${step(c.lists)})`,
+                        color: step(c.lists) >= 4 ? "var(--paper)" : "var(--ink)",
+                      }
+                }
               >
                 {hidden ? "" : c.lists}
                 {isStore && <span aria-hidden="true" className="absolute inset-1 rounded-sm border-2 border-ink" />}

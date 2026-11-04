@@ -9,24 +9,29 @@ import { buildVerdict } from "@/lib/verdict/build";
 
 export const metadata: Metadata = { title: "Veredito" };
 
-export default function VerdictPage({ searchParams }: PageProps<"/veredito">) {
+export default function VerdictPage({ searchParams }: PageProps<"/verdict">) {
   return (
-    <main className="mx-auto w-full max-w-xl flex-1 px-4 pb-20 pt-6">
+    <div className="mx-auto w-full max-w-xl flex-1 px-4 pt-6 pb-20">
       <Suspense fallback={<VerdictSkeleton />}>
         <VerdictContent searchParams={searchParams} />
       </Suspense>
-    </main>
+    </div>
   );
 }
 
-async function VerdictContent({ searchParams }: { searchParams: PageProps<"/veredito">["searchParams"] }) {
+async function VerdictContent({ searchParams }: { searchParams: PageProps<"/verdict">["searchParams"] }) {
   const query = fromSearchParams(await searchParams);
   if (!query) {
     return (
       <div className="pt-10">
         <h1 className="font-display text-4xl font-bold">Falta a lista</h1>
-        <p className="mt-2 text-ink-soft">Este link não tem itens. Escreva ou fotografe sua lista para ver o veredito.</p>
-        <Link href="/" className="mt-6 inline-block rounded-full bg-brand px-6 py-3 font-semibold text-on-brand hover:bg-brand-strong">
+        <p className="mt-2 text-ink-soft">
+          Este link não tem itens. Escreva ou fotografe sua lista para ver o veredito.
+        </p>
+        <Link
+          href="/"
+          className="mt-6 inline-block rounded-full bg-brand px-6 py-3 font-semibold text-on-brand hover:bg-brand-strong"
+        >
           Escrever minha lista
         </Link>
       </div>

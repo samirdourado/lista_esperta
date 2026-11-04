@@ -2,11 +2,33 @@
 // consulta à Sefaz e descarta QR adulterado ou de outro tipo de documento.
 
 const UF_BY_CODE: Record<string, string> = {
-  "11": "RO", "12": "AC", "13": "AM", "14": "RR", "15": "PA", "16": "AP", "17": "TO",
-  "21": "MA", "22": "PI", "23": "CE", "24": "RN", "25": "PB", "26": "PE", "27": "AL", "28": "SE", "29": "BA",
-  "31": "MG", "32": "ES", "33": "RJ", "35": "SP",
-  "41": "PR", "42": "SC", "43": "RS",
-  "50": "MS", "51": "MT", "52": "GO", "53": "DF",
+  "11": "RO",
+  "12": "AC",
+  "13": "AM",
+  "14": "RR",
+  "15": "PA",
+  "16": "AP",
+  "17": "TO",
+  "21": "MA",
+  "22": "PI",
+  "23": "CE",
+  "24": "RN",
+  "25": "PB",
+  "26": "PE",
+  "27": "AL",
+  "28": "SE",
+  "29": "BA",
+  "31": "MG",
+  "32": "ES",
+  "33": "RJ",
+  "35": "SP",
+  "41": "PR",
+  "42": "SC",
+  "43": "RS",
+  "50": "MS",
+  "51": "MT",
+  "52": "GO",
+  "53": "DF",
 };
 
 export interface ChaveNFCe {
@@ -45,8 +67,10 @@ export function parseChave(input: string): ChaveResult {
   }
   candidate = candidate.replace(/\D/g, "");
 
-  if (candidate.length !== 44) return { ok: false, error: "A chave de acesso tem 44 dígitos. Confira se o QR Code ou a chave estão completos." };
-  if (candidate.slice(20, 22) !== "65") return { ok: false, error: "Esta chave não é de uma NFC-e (cupom fiscal de consumidor)." };
+  if (candidate.length !== 44)
+    return { ok: false, error: "A chave de acesso tem 44 dígitos. Confira se o QR Code ou a chave estão completos." };
+  if (candidate.slice(20, 22) !== "65")
+    return { ok: false, error: "Esta chave não é de uma NFC-e (cupom fiscal de consumidor)." };
   if (dvModulo11(candidate.slice(0, 43)) !== Number(candidate[43])) {
     return { ok: false, error: "O dígito verificador não confere. A chave pode ter sido lida ou digitada errada." };
   }

@@ -33,7 +33,10 @@ export async function POST(request: Request) {
     .map((i) => {
       const qty = Number(i.quantity);
       const text = (i.text as string).trim();
-      return { raw: Number.isFinite(qty) && qty > 0 && qty !== 1 ? `${qty} ${text}` : text, brandUnlocked: i.brand_required === false };
+      return {
+        raw: Number.isFinite(qty) && qty > 0 && qty !== 1 ? `${qty} ${text}` : text,
+        brandUnlocked: i.brand_required === false,
+      };
     });
   const radius = Number(body?.radius_m);
   const mode = MODES.includes(body?.travel_mode as TravelMode) ? (body!.travel_mode as TravelMode) : "DRIVE";
@@ -44,5 +47,9 @@ export async function POST(request: Request) {
     radiusM: Number.isFinite(radius) && radius > 0 ? Math.min(radius, 10_000) : DEFAULT_RADIUS_M,
     mode,
   });
-  return Response.json({ ...verdict, generated_at: new Date().toISOString(), sponsored: selectSponsored(verdict, lines) });
+  return Response.json({
+    ...verdict,
+    generated_at: new Date().toISOString(),
+    sponsored: selectSponsored(verdict, lines),
+  });
 }

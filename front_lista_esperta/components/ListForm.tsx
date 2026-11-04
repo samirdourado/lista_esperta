@@ -53,7 +53,8 @@ export function ListForm() {
       const res = await fetch("/api/lists/parse", { method: "POST", body });
       const data = (await res.json()) as { lines?: string[]; error?: string };
       if (!res.ok || !data.lines) throw new Error(data.error ?? "Não foi possível ler a foto.");
-      if (data.lines.length === 0) throw new Error("Nenhum item encontrado na foto. Tente com mais luz ou digite a lista.");
+      if (data.lines.length === 0)
+        throw new Error("Nenhum item encontrado na foto. Tente com mais luz ou digite a lista.");
       setText((prev) => [prev.trim(), ...data.lines!].filter(Boolean).join("\n"));
       setStatus({ kind: "idle" });
     } catch (e) {
@@ -124,7 +125,11 @@ export function ListForm() {
           }}
         />
         {lines.length === 0 && (
-          <button type="button" onClick={() => setText(EXAMPLE_LIST)} className="px-2 py-2 font-medium underline underline-offset-4">
+          <button
+            type="button"
+            onClick={() => setText(EXAMPLE_LIST)}
+            className="px-2 py-2 font-medium underline underline-offset-4"
+          >
             Usar uma lista de exemplo
           </button>
         )}
@@ -133,8 +138,8 @@ export function ListForm() {
       {parsed.length > 0 && (
         <section aria-label="Itens entendidos" className="mt-6">
           <p className="text-[0.95rem] text-ink-soft">
-            Entendemos {recognized} de {parsed.length} {parsed.length === 1 ? "item" : "itens"}. Toque em um item com marca
-            para aceitar outra marca mais barata.
+            Entendemos {recognized} de {parsed.length} {parsed.length === 1 ? "item" : "itens"}. Toque em um item com
+            marca para aceitar outra marca mais barata.
           </p>
           <ul className="mt-3 flex flex-wrap gap-2">
             {parsed.map((p, i) => (
@@ -179,7 +184,11 @@ export function ListForm() {
       >
         Ver onde comprar
       </button>
-      <p role="status" aria-live="polite" className={`mt-3 min-h-6 text-[0.95rem] ${status.kind === "error" ? "text-danger" : "text-ink-soft"}`}>
+      <p
+        role="status"
+        aria-live="polite"
+        className={`mt-3 min-h-6 text-[0.95rem] ${status.kind === "error" ? "text-danger" : "text-ink-soft"}`}
+      >
         {status.kind === "idle" ? "Sua localização só serve para calcular a distância até os mercados." : status.text}
       </p>
     </form>
@@ -206,10 +215,14 @@ function Chip({
   return (
     <li
       className={`flex items-center rounded-lg border text-[0.95rem] ${
-        known ? (guess ? "border-dashed border-ink-soft bg-surface" : "border-line bg-surface") : "border-dashed border-danger"
+        known
+          ? guess
+            ? "border-dashed border-ink-soft bg-surface"
+            : "border-line bg-surface"
+          : "border-dashed border-danger"
       }`}
     >
-      <span className="py-1.5 pl-3 pr-1">
+      <span className="py-1.5 pr-1 pl-3">
         {qty && <span className="mr-1 font-semibold">{qty}</span>}
         {label}
         {guess && <span className="ml-1 text-muted">(palpite)</span>}
@@ -263,7 +276,15 @@ function Segment({
 
 function CameraIcon() {
   return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      aria-hidden="true"
+    >
       <path d="M4 8h3l2-3h6l2 3h3v11H4z" strokeLinejoin="round" />
       <circle cx="12" cy="13" r="3.5" />
     </svg>

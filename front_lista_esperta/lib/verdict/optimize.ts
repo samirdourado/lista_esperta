@@ -49,13 +49,25 @@ export function evaluate(stores: string[], items: EngineItem[], m: Matrix, trave
   let missing = 0;
   const assignments: Assignment[] = [];
   for (const item of items) {
-    let best: Assignment & { covered: boolean } = { itemId: item.id, storeId: null, cost: Infinity, offer: null, covered: false };
+    let best: Assignment & { covered: boolean } = {
+      itemId: item.id,
+      storeId: null,
+      cost: Infinity,
+      offer: null,
+      covered: false,
+    };
     for (const s of stores) {
       const offer = m.get(s)?.get(item.id);
       const c = itemCost(item, offer);
       // Item coberto vence item estimado; entre iguais, o mais barato (empate: ordem das lojas).
       if ((c.covered && !best.covered) || (c.covered === best.covered && c.cost < best.cost)) {
-        best = { itemId: item.id, storeId: c.covered ? s : null, cost: c.cost, offer: offer ?? null, covered: c.covered };
+        best = {
+          itemId: item.id,
+          storeId: c.covered ? s : null,
+          cost: c.cost,
+          offer: offer ?? null,
+          covered: c.covered,
+        };
       }
     }
     basket += best.cost;

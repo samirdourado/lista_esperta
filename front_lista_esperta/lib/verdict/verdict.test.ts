@@ -58,7 +58,14 @@ describe("otimizador", () => {
     ["b", { lat: -23.59, lng: -46.635 }],
   ]);
   const travel = makeTravel(PILOT_CENTER, stores, "DRIVE");
-  const offer = (price: number) => ({ productId: "p", price, source: "nfce" as const, ageHours: 1, observations24h: 2, confidence: 0.95 });
+  const offer = (price: number) => ({
+    productId: "p",
+    price,
+    source: "nfce" as const,
+    ageHours: 1,
+    observations24h: 2,
+    confidence: 0.95,
+  });
   const items = [{ id: "x", qty: 1, fallbackPrice: 50 }];
 
   test("monotonicidade: baixar um preço não piora o total da loja", () => {
@@ -68,7 +75,15 @@ describe("otimizador", () => {
 
   test("histerese: economia abaixo do limiar mantém uma loja", () => {
     const plan = (total: number, stores: string[]): Plan =>
-      ({ stores, assignments: [], basket: 200, trip: { order: stores, km: 0, minutes: 0, cost: 0 }, timeCost: 0, missing: 0, total }) as Plan;
+      ({
+        stores,
+        assignments: [],
+        basket: 200,
+        trip: { order: stores, km: 0, minutes: 0, cost: 0 },
+        timeCost: 0,
+        missing: 0,
+        total,
+      }) as Plan;
     expect(chooseVerdict(plan(200, ["a"]), plan(195, ["a", "b"])).primary.stores).toEqual(["a"]);
     expect(chooseVerdict(plan(200, ["a"]), plan(185, ["a", "b"])).primary.stores).toEqual(["a", "b"]);
   });

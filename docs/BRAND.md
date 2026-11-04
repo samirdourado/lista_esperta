@@ -17,7 +17,7 @@ Média dos pixels opacos de cada região do logo:
 | Neutro | miolo do pin, papel | `#F5F8FE` | `--paper` |
 | Tinta | (não está no logo) marinho derivado da primária | `#10224A` | `--ink` |
 
-Os tokens atuais de `globals.css` (`#1a5fe0`, `#ffb400`…) foram ajustados a olho. Na fase 2 eles passam a usar os valores medidos acima.
+Desde a fase 2, `front_lista_esperta/app/globals.css` usa estes valores medidos. Antes, o protótipo usava `#1a5fe0` e `#ffb400`, ajustados a olho.
 
 ## Contraste (WCAG 2.x)
 
@@ -52,9 +52,12 @@ Os tokens atuais de `globals.css` (`#1a5fe0`, `#ffb400`…) foram ajustados a ol
 | `--ink` | `#10224A` | `#E8EEFC` |
 | `--ink-soft` | `#46567C` | `#A9B7D8` |
 | `--line` | `#D3DDF1` | `#26375F` |
+| `--muted` | `#5F6C8A` (4.94 no papel) | `#8F9BBB` (5.98) |
+| `--success` | `#1D7A46` | `#6FD39B` |
+| `--warning` | `#8A5800` | `#FFC95A` |
 | `--danger` | `#B3261E` | `#F2A49E` |
 
-Regras: o modo escuro segue `prefers-color-scheme`, com override manual por `data-theme="light|dark"` em `<html>`. Todos os tokens são expostos ao Tailwind v4 via `@theme inline` (`bg-brand`, `text-ink` etc.).
+Regras: cada token é declarado uma vez com `light-dark(claro, escuro)`. O modo segue `prefers-color-scheme`, com override manual por `data-theme="light|dark"` em `<html>` (botão no cabeçalho). O amarelo `--accent` é reservado à etiqueta de preço. Todos os tokens são expostos ao Tailwind v4 via `@theme inline` (`bg-brand`, `text-ink` etc.).
 
 ## Tipografia
 

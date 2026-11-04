@@ -38,7 +38,11 @@ export function VerdictView({ verdict, query, sponsored, tip }: Props) {
         </p>
       )}
 
-      {plan ? <Decision verdict={verdict} plan={plan} query={query} tip={tip} /> : <NoStores verdict={verdict} query={query} />}
+      {plan ? (
+        <Decision verdict={verdict} plan={plan} query={query} tip={tip} />
+      ) : (
+        <NoStores verdict={verdict} query={query} />
+      )}
 
       {verdict.unmatched.length > 0 && (
         <p className="mt-8 text-[0.95rem] text-ink-soft">
@@ -51,16 +55,30 @@ export function VerdictView({ verdict, query, sponsored, tip }: Props) {
   );
 }
 
-function Decision({ verdict, plan, query, tip }: { verdict: Verdict; plan: PlanView; query: VerdictQuery; tip: Tip | null }) {
+function Decision({
+  verdict,
+  plan,
+  query,
+  tip,
+}: {
+  verdict: Verdict;
+  plan: PlanView;
+  query: VerdictQuery;
+  tip: Tip | null;
+}) {
   const low = verdict.confidence.level === "baixa";
-  const intro = low ? "Provavelmente mais barato em" : plan.type === "split" ? "Divida a compra entre" : "Compre tudo em";
+  const intro = low
+    ? "Provavelmente mais barato em"
+    : plan.type === "split"
+      ? "Divida a compra entre"
+      : "Compre tudo em";
   const alt = verdict.alternative;
 
   return (
     <>
       <header className="mt-8">
         <p className="text-lg text-ink-soft">{intro}</p>
-        <h1 className="mt-1 font-display text-[clamp(2.2rem,9vw,3.2rem)] font-bold leading-none tracking-tight text-balance">
+        <h1 className="mt-1 font-display text-[clamp(2.2rem,9vw,3.2rem)] leading-none font-bold tracking-tight text-balance">
           {plan.stores.map((s, i) => (
             <span key={s.id} className="block">
               {i > 0 && <span className="font-semibold text-ink-soft">e </span>}
@@ -82,8 +100,8 @@ function Decision({ verdict, plan, query, tip }: { verdict: Verdict; plan: PlanV
       )}
       {plan.type === "single" && alt && verdict.splitSaving !== null && verdict.splitSaving > 0 && (
         <p className="mt-3 text-lg">
-          Dividir com {alt.stores.find((s) => s.id !== plan.stores[0].id)?.name} economizaria só {brl(verdict.splitSaving)}.
-          Não compensa a parada extra.
+          Dividir com {alt.stores.find((s) => s.id !== plan.stores[0].id)?.name} economizaria só{" "}
+          {brl(verdict.splitSaving)}. Não compensa a parada extra.
         </p>
       )}
 
@@ -99,9 +117,9 @@ function Decision({ verdict, plan, query, tip }: { verdict: Verdict; plan: PlanV
           <dd className="font-display text-2xl font-semibold capitalize">{verdict.confidence.level}</dd>
         </div>
         <p className="col-span-2 text-[0.95rem] text-ink-soft">
-          {verdict.confidence.confirmed} de {verdict.confidence.priced} itens com preço confirmado por nota fiscal ou por
-          várias pessoas nas últimas horas.{" "}
-          <Link href="/transparencia" className="underline underline-offset-4">
+          {verdict.confidence.confirmed} de {verdict.confidence.priced} itens com preço confirmado por nota fiscal ou
+          por várias pessoas nas últimas horas.{" "}
+          <Link href="/how-it-works" className="underline underline-offset-4">
             Como calculamos
           </Link>
         </p>
@@ -119,7 +137,7 @@ function Decision({ verdict, plan, query, tip }: { verdict: Verdict; plan: PlanV
       {low && (
         <p className="mt-4 rounded-lg border border-dashed border-ink-soft px-4 py-3 text-[0.95rem]">
           Ainda temos poucos preços confirmados aqui.{" "}
-          <Link href="/nota" className="font-semibold underline underline-offset-4">
+          <Link href="/receipts/import" className="font-semibold underline underline-offset-4">
             Envie sua nota fiscal depois da compra
           </Link>{" "}
           e o próximo veredito fica mais preciso para todo mundo do bairro.
@@ -155,7 +173,10 @@ function TipNote({ tip, query }: { tip: Tip; query: VerdictQuery }) {
         Previsão a partir de {tip.source.toLowerCase()}, confiança de {Math.round(tip.confidence * 100)} %.
       </p>
       {remaining.length > 0 && (
-        <Link href={verdictHref({ ...query, lines: remaining })} className="mt-2 inline-block font-medium underline underline-offset-4">
+        <Link
+          href={verdictHref({ ...query, lines: remaining })}
+          className="mt-2 inline-block font-medium underline underline-offset-4"
+        >
           Deixar para {tip.day} e recalcular
         </Link>
       )}
@@ -217,7 +238,15 @@ function EstimatedBlock({ items }: { items: ItemView[] }) {
   );
 }
 
-function Breakdown({ plan, alternative, query }: { plan: PlanView; alternative: PlanView | null; query: VerdictQuery }) {
+function Breakdown({
+  plan,
+  alternative,
+  query,
+}: {
+  plan: PlanView;
+  alternative: PlanView | null;
+  query: VerdictQuery;
+}) {
   const stops = plan.stores.length;
   return (
     <section aria-labelledby="conta" className="mt-12">
@@ -253,7 +282,7 @@ function Breakdown({ plan, alternative, query }: { plan: PlanView; alternative: 
             <th scope="row" className="py-2 pr-4 font-display text-xl">
               Total
             </th>
-            <td className="whitespace-nowrap py-2 text-right font-display text-xl tabular-nums">{brl(plan.total)}</td>
+            <td className="py-2 text-right font-display text-xl whitespace-nowrap tabular-nums">{brl(plan.total)}</td>
           </tr>
         </tbody>
       </table>
@@ -273,7 +302,7 @@ function Row({ label, value }: { label: string; value: number }) {
       <th scope="row" className="py-2 pr-4 font-normal">
         {label}
       </th>
-      <td className="whitespace-nowrap py-2 align-top text-right tabular-nums">{brl(value)}</td>
+      <td className="py-2 text-right align-top whitespace-nowrap tabular-nums">{brl(value)}</td>
     </tr>
   );
 }
@@ -283,7 +312,7 @@ function NoStores({ verdict, query }: { verdict: Verdict; query: VerdictQuery })
   const noItems = verdict.storesInRadius > 0;
   return (
     <div className="mt-8">
-      <h1 className="font-display text-4xl font-bold leading-tight">
+      <h1 className="font-display text-4xl leading-tight font-bold">
         {noItems ? "Nenhum item reconhecido" : `Nenhum mercado com preço até ${query.radiusM / 1000} km`}
       </h1>
       <p className="mt-2 text-ink-soft">
@@ -294,11 +323,18 @@ function NoStores({ verdict, query }: { verdict: Verdict; query: VerdictQuery })
       <div className="mt-6 flex flex-wrap gap-2">
         {!noItems &&
           bigger.map((r) => (
-            <Link key={r} href={verdictHref({ ...query, radiusM: r })} className="rounded-full border border-brand px-4 py-2 font-medium text-brand hover:bg-brand-soft">
+            <Link
+              key={r}
+              href={verdictHref({ ...query, radiusM: r })}
+              className="rounded-full border border-brand px-4 py-2 font-medium text-brand hover:bg-brand-soft"
+            >
               Tentar com {r / 1000} km
             </Link>
           ))}
-        <Link href={editHref(query)} className="rounded-full bg-brand px-4 py-2 font-medium text-on-brand hover:bg-brand-strong">
+        <Link
+          href={editHref(query)}
+          className="rounded-full bg-brand px-4 py-2 font-medium text-on-brand hover:bg-brand-strong"
+        >
           Editar lista
         </Link>
       </div>
@@ -306,14 +342,25 @@ function NoStores({ verdict, query }: { verdict: Verdict; query: VerdictQuery })
   );
 }
 
-function SponsoredSlot({ verdict, query, sponsored }: { verdict: Verdict; query: VerdictQuery; sponsored: Sponsored[] }) {
+function SponsoredSlot({
+  verdict,
+  query,
+  sponsored,
+}: {
+  verdict: Verdict;
+  query: VerdictQuery;
+  sponsored: Sponsored[];
+}) {
   return (
     <section aria-labelledby="patrocinado" className="mt-14 border-t border-dashed border-ink-soft pt-5">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h2 id="patrocinado" className="font-display text-xl font-semibold text-ink-soft">
           Patrocinado
         </h2>
-        <Link href={verdictHref({ ...query, ads: !query.ads })} className="text-[0.95rem] font-medium underline underline-offset-4">
+        <Link
+          href={verdictHref({ ...query, ads: !query.ads })}
+          className="text-[0.95rem] font-medium underline underline-offset-4"
+        >
           {query.ads ? "Ver sem anúncios" : "Mostrar anúncios"}
         </Link>
       </div>
@@ -338,7 +385,7 @@ function SponsoredSlot({ verdict, query, sponsored }: { verdict: Verdict; query:
       <p className="mt-4 text-[0.9rem] text-ink-soft">
         Anúncios aparecem só aqui e não entram no cálculo. O código de verificação abaixo é o mesmo com ou sem anúncios:
       </p>
-      <p className="mt-1 break-all text-[0.85rem]">
+      <p className="mt-1 text-[0.85rem] break-all">
         <code>{verdict.rankingHash}</code>
       </p>
       <p className="mt-1 text-[0.85rem] text-muted">Algoritmo {verdict.algoVersion}</p>

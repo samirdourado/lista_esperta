@@ -39,7 +39,10 @@ const all = (v: string | string[] | undefined) => (v === undefined ? [] : Array.
 const one = (v: string | string[] | undefined) => all(v)[0];
 
 export function fromSearchParams(sp: RawParams): VerdictQuery | null {
-  const raws = all(sp.i).map((s) => s.trim()).filter(Boolean).slice(0, 80);
+  const raws = all(sp.i)
+    .map((s) => s.trim())
+    .filter(Boolean)
+    .slice(0, 80);
   if (raws.length === 0) return null;
   const unlocked = new Set((one(sp.sm) ?? "").split(",").filter(Boolean).map(Number));
   const lat = Number(one(sp.lat));
@@ -58,7 +61,7 @@ export function fromSearchParams(sp: RawParams): VerdictQuery | null {
 }
 
 export function verdictHref(q: VerdictQuery): string {
-  return `/veredito?${toSearchParams(q)}`;
+  return `/verdict?${toSearchParams(q)}`;
 }
 
 export function editHref(q: VerdictQuery): string {
