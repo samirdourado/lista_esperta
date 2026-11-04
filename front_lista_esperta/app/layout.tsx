@@ -20,12 +20,17 @@ export const metadata: Metadata = {
   description: "Descubra onde sua lista de compras inteira sai mais barata perto de você, contando o deslocamento.",
   applicationName: "Lista Esperta",
   appleWebApp: { capable: true, title: "Lista Esperta", statusBarStyle: "default" },
+  icons: {
+    icon: [{ url: "/icon_lista_esperta.ico", sizes: "256x256", type: "image/x-icon" }],
+    shortcut: "/icon_lista_esperta.ico",
+    apple: "/icon_lista_esperta.ico",
+  },
 };
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f4f6f1" },
-    { media: "(prefers-color-scheme: dark)", color: "#11181e" },
+    { media: "(prefers-color-scheme: light)", color: "#f5f8fe" },
+    { media: "(prefers-color-scheme: dark)", color: "#0a1430" },
   ],
 };
 

@@ -111,7 +111,7 @@ function Decision({ verdict, plan, query, tip }: { verdict: Verdict; plan: PlanV
         href={plan.routeUrl}
         target="_blank"
         rel="noopener noreferrer"
-        className="mt-6 block rounded-full bg-ink px-6 py-4 text-center font-display text-2xl font-semibold text-paper hover:opacity-90"
+        className="mt-6 block rounded-full bg-brand px-6 py-4 text-center font-display text-2xl font-semibold text-on-brand hover:bg-brand-strong"
       >
         Abrir rota no Google Maps
       </a>
@@ -147,7 +147,7 @@ function TipNote({ tip, query }: { tip: Tip; query: VerdictQuery }) {
   const waiting = new Set(tip.lines);
   const remaining = query.lines.filter((_, i) => !waiting.has(i));
   return (
-    <aside className="mt-6 border-l-4 border-tag bg-surface px-4 py-3">
+    <aside className="mt-6 border-l-4 border-accent bg-surface px-4 py-3">
       <p className="font-semibold">
         {tip.message}. Esperar deve economizar cerca de {brl(tip.saving)}.
       </p>
@@ -294,11 +294,11 @@ function NoStores({ verdict, query }: { verdict: Verdict; query: VerdictQuery })
       <div className="mt-6 flex flex-wrap gap-2">
         {!noItems &&
           bigger.map((r) => (
-            <Link key={r} href={verdictHref({ ...query, radiusM: r })} className="rounded-full border border-ink px-4 py-2 font-medium">
+            <Link key={r} href={verdictHref({ ...query, radiusM: r })} className="rounded-full border border-brand px-4 py-2 font-medium text-brand hover:bg-brand-soft">
               Tentar com {r / 1000} km
             </Link>
           ))}
-        <Link href={editHref(query)} className="rounded-full bg-ink px-4 py-2 font-medium text-paper">
+        <Link href={editHref(query)} className="rounded-full bg-brand px-4 py-2 font-medium text-on-brand hover:bg-brand-strong">
           Editar lista
         </Link>
       </div>

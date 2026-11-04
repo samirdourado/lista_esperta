@@ -97,7 +97,7 @@ export function ListForm() {
         onChange={(e) => setText(e.target.value)}
         rows={7}
         placeholder={"arroz 5kg\n2 leite integral\ncafé pilão\n1kg contrafilé"}
-        className="ruled block w-full resize-y rounded-lg border border-line px-4 py-3 text-lg placeholder:text-muted focus:border-ink focus:outline-none"
+        className="ruled block w-full resize-y rounded-lg border border-line px-4 py-3 text-lg placeholder:text-muted focus:border-brand focus:outline-none"
       />
 
       <div className="mt-3 flex flex-wrap items-center gap-2">
@@ -105,7 +105,7 @@ export function ListForm() {
           type="button"
           onClick={() => fileRef.current?.click()}
           disabled={busy}
-          className="inline-flex items-center gap-2 rounded-full border border-ink px-4 py-2 font-medium hover:bg-surface disabled:opacity-50"
+          className="inline-flex items-center gap-2 rounded-full border border-brand px-4 py-2 font-medium text-brand hover:bg-brand-soft disabled:opacity-50"
         >
           <CameraIcon />
           Foto da lista
@@ -175,7 +175,7 @@ export function ListForm() {
       <button
         type="submit"
         disabled={recognized === 0 || busy}
-        className="mt-8 w-full rounded-full bg-ink px-6 py-4 font-display text-2xl font-semibold text-paper hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+        className="mt-8 w-full rounded-full bg-brand px-6 py-4 font-display text-2xl font-semibold text-on-brand hover:bg-brand-strong disabled:cursor-not-allowed disabled:opacity-40"
       >
         Ver onde comprar
       </button>
@@ -252,7 +252,7 @@ function Segment({
   return (
     <label
       className={`cursor-pointer rounded-lg border px-3.5 py-2 font-medium has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-[var(--focus)] ${
-        checked ? "border-ink bg-ink text-paper" : "border-line bg-surface hover:border-ink-soft"
+        checked ? "border-brand bg-brand text-on-brand" : "border-line bg-surface hover:border-brand-line"
       }`}
     >
       <input type="radio" name={name} checked={checked} onChange={onChange} className="sr-only" />
