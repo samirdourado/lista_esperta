@@ -1,6 +1,9 @@
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import cookieParser from 'cookie-parser';
+import { ACCESS_COOKIE } from './auth/auth.cookies.js';
+import { GUEST_ID_HEADER } from './auth/decorators.js';
 import type { Env } from './config/env.schema.js';
 
 export const API_PREFIX = 'api/v1';
@@ -10,6 +13,7 @@ export function configureApp(app: INestApplication): void {
   const config = app.get(ConfigService<Env, true>);
 
   app.setGlobalPrefix(API_PREFIX);
+  app.use(cookieParser());
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -20,6 +24,7 @@ export function configureApp(app: INestApplication): void {
   app.enableCors({
     origin: config.get('FRONTEND_URL', { infer: true }),
     credentials: true,
+    allowedHeaders: ['Content-Type', GUEST_ID_HEADER],
   });
 
   const document = SwaggerModule.createDocument(
@@ -27,9 +32,14 @@ export function configureApp(app: INestApplication): void {
     new DocumentBuilder()
       .setTitle('Lista Esperta API')
       .setVersion('0.1.0')
+      .setDescription(
+        'Sign in with POST /auth/login: the browser stores the session in httpOnly cookies.',
+      )
+      .addCookieAuth(ACCESS_COOKIE)
       .build(),
   );
   SwaggerModule.setup('api/docs', app, document, {
     jsonDocumentUrl: 'api/docs-json',
+    swaggerOptions: { withCredentials: true },
   });
 }

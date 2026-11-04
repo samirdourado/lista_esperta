@@ -6,6 +6,7 @@ import { OfflineBanner } from "@/components/pwa/OfflineBanner";
 import { ServiceWorkerRegister } from "@/components/pwa/ServiceWorkerRegister";
 import { THEME_BOOT_SCRIPT } from "@/components/theme/theme";
 import "./globals.css";
+import { Providers } from "./providers";
 
 const barlow = Barlow({
   variable: "--font-barlow",
@@ -58,7 +59,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="flex min-h-full flex-col">
         <SkipLink />
         <OfflineBanner />
-        {children}
+        <Providers>{children}</Providers>
         <ServiceWorkerRegister />
       </body>
     </html>

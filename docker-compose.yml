@@ -27,9 +27,10 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    # JWT secrets and API keys come from here (see back_lista_esperta/.env.example).
     env_file:
       - path: ./back_lista_esperta/.env
-        required: false
+        required: true
     environment:
       PORT: 3333
       DATABASE_URL: postgresql://${POSTGRES_USER:-lista}:${POSTGRES_PASSWORD:-lista}@db:5432/${POSTGRES_DB:-lista_esperta}?schema=public
@@ -56,6 +57,8 @@ services:
     environment:
       # The browser calls the API through the host port.
       NEXT_PUBLIC_API_URL: http://localhost:3333/api/v1
+      # Server-side calls (proxy.ts) reach the API inside the Docker network.
+      API_INTERNAL_URL: http://api:3333/api/v1
       WATCHPACK_POLLING: "true"
     ports:
       - "3000:3000"

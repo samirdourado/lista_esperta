@@ -89,3 +89,10 @@ export const OfflineIcon = (p: IconProps) => (
     <path d="M2 8.5a15 15 0 0 1 4.5-2.8M10.5 5A15 15 0 0 1 22 8.5M5 12a10 10 0 0 1 3.4-2M15 10.2A10 10 0 0 1 19 12M8.5 15.5a5 5 0 0 1 7 0M12 19h.01M3 3l18 18" />
   </Icon>
 );
+
+export const UserIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <circle cx="12" cy="8" r="4" />
+    <path d="M4 21a8 8 0 0 1 16 0" />
+  </Icon>
+);

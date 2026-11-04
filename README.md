@@ -12,7 +12,7 @@ PWA que compara o custo total de uma lista de compras entre lojas físicas próx
 ├── .env.example           ← variáveis do compose
 ├── docker/db/init/        ← script que cria o banco de teste
 ├── docs/                  ← AUDIT, BRAND, DECISIONS
-├── back_lista_esperta/    ← API NestJS 12 (+ Prisma a partir da fase 3)
+├── back_lista_esperta/    ← API NestJS 12 + Prisma 7 (PostGIS)
 └── front_lista_esperta/   ← PWA Next.js 16
 ```
 
@@ -23,6 +23,12 @@ Pré-requisitos: Docker Desktop e, para rodar fora do Docker, Node.js 24 e npm 1
 ```bash
 cp .env.example .env
 cp back_lista_esperta/.env.example back_lista_esperta/.env
+```
+
+Preencha `JWT_ACCESS_SECRET` e `JWT_REFRESH_SECRET` em `back_lista_esperta/.env` com dois valores diferentes e aleatórios. **A API não sobe sem eles.** Para gerar cada um:
+
+```bash
+node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"
 ```
 
 ### Opção A — tudo em Docker
@@ -38,6 +44,8 @@ docker compose up --build
 | Swagger | http://localhost:3333/api/docs |
 | PostgreSQL + PostGIS | `localhost:5433` (usuário/senha `lista`/`lista`) |
 
+A API aplica as migrations sozinha ao subir (`prisma migrate deploy`). Para criar os dados de demonstração, rode uma vez `docker compose exec api npm run db:seed`.
+
 O hot reload funciona pelo bind mount, com polling habilitado para o Windows. O compose sobrescreve `DATABASE_URL` para usar o host `db:5432` dentro da rede do Docker. Para reinstalar dependências depois de mudar um `package.json`, rode `docker compose up --build -V`.
 
 ### Opção B — só o banco em Docker
@@ -45,11 +53,24 @@ O hot reload funciona pelo bind mount, com polling habilitado para o Windows. O 
 ```bash
 docker compose up -d db
 
-cd back_lista_esperta && npm install && npm run start:dev    # http://localhost:3333
-cd front_lista_esperta && npm install && npm run dev         # http://localhost:3000
+cd back_lista_esperta && npm install
+npm run db:deploy && npm run db:seed     # migrations + dados demo
+npm run start:dev                        # http://localhost:3333
+
+# em outro terminal
+cd front_lista_esperta && npm install && npm run dev   # http://localhost:3000
 ```
 
 Nesse modo, `back_lista_esperta/.env` usa `localhost:5433`, que é o valor do `.env.example`.
+
+## Contas de demonstração (`npm run db:seed`)
+
+| Conta | Senha | O que vê |
+|---|---|---|
+| `lojista@listaesperta.dev` | `lista-esperta-dev` | Lojista dono das duas lojas demo em São Paulo; entra em `/merchant` |
+| `admin@listaesperta.dev` | `lista-esperta-dev` | Admin (o painel `/admin` chega na fase 8) |
+
+A senha pode ser trocada com `SEED_PASSWORD`. Contas de cliente são criadas pela tela `/register`.
 
 ## Scripts (nos dois projetos)
 
@@ -59,7 +80,9 @@ Nesse modo, `back_lista_esperta/.env` usa `localhost:5433`, que é o valor do `.
 | `npm run typecheck` | `tsc --noEmit` (no front, antes roda `next typegen`) |
 | `npm run format` | Prettier |
 | `npm test` | testes unitários (Vitest) |
-| `npm run test:e2e` | só no back: e2e com Supertest contra `lista_esperta_test` |
+| `npm run test:e2e` | só no back: aplica as migrations em `lista_esperta_test` e roda o e2e com Supertest |
+| `npm run db:migrate` / `db:seed` / `db:studio` | só no back: Prisma |
+| `npm run api:types` | só no front: regenera `lib/api/schema.d.ts` a partir do Swagger da API rodando |
 
 ## Status
 
@@ -75,10 +98,19 @@ Nesse modo, `back_lista_esperta/.env` usa `localhost:5433`, que é o valor do `.
 - Componentes base em `components/ui/` e testes com Testing Library.
 - Rotas em inglês (`/verdict`, `/receipts/import`, `/how-it-works`, `/merchant`); as antigas redirecionam.
 
-As telas de lista, veredito, NFC-e e lojista ainda são o protótipo do hackathon (dados simulados em `lib/demo/`), agora sobre a base nova. Elas serão reescritas nas fases 3 a 7.
+As telas de lista, veredito, NFC-e e lojista ainda são o protótipo do hackathon (dados simulados em `lib/demo/`), agora sobre a base nova. Elas serão reescritas nas fases 4 a 7.
 
 Para ver o PWA (service worker, offline, instalação): `cd front_lista_esperta && npm run build && npm start`.
 
-Próximas fases: 3 · banco + auth → 4 · lojas → 5 · dashboard do lojista → 6 · NFC-e → 7 · lista + veredito → 8 · opcionais.
+**Fase 3 — banco e autenticação** ✅
+- Schema Prisma com PostGIS (`geography(Point,4326)` + índice GIST) e `pg_trgm`, migration inicial e seed idempotente (categorias genéricas, admin, lojista com 2 lojas, 10 produtos com preços).
+- Auth no Nest: cadastro e login (argon2id), access de 15 min e refresh de 7 dias em cookies httpOnly, rotação com detecção de reuso, logout que revoga.
+- Guards: `JwtAuthGuard` global com `@Public()`, `RolesGuard`, `StoreMemberGuard`, `OptionalJwtAuthGuard` + `X-Guest-Id` para visitantes. Rate limit por IP e por IP + guestId.
+- Listas no servidor só para quem tem conta, com filtro por dono, e `POST /shopping-lists/import` para a migração guest → conta.
+- Front: login, cadastro ("Quero economizar" / "Tenho uma loja"), minha conta (nome e custo de deslocamento), onboarding do lojista, `proxy.ts` protegendo `/merchant`, `/admin` e `/account`, client tipado pelo OpenAPI com TanStack Query, listas do visitante no IndexedDB e convite discreto para criar conta depois do veredito.
+
+Ainda simulado: os preços e as lojas do veredito (`lib/demo/`) e a localização, que cai no centro da Vila Mariana. Isso muda nas fases 4 (lojas reais e geolocalização) e 7 (veredito pela API).
+
+Próximas fases: 4 · lojas → 5 · dashboard do lojista → 6 · NFC-e → 7 · lista + veredito → 8 · opcionais.
 
 A documentação do protótipo (arquitetura, motor de decisão, monetização) continua em [front_lista_esperta/docs/](front_lista_esperta/docs/README.md).

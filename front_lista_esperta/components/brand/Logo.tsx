@@ -11,7 +11,7 @@ export function Logo({ href = "/", suffix }: { href?: string; suffix?: string })
       <Image src="/logo_lista_esperta.webp" alt="" width={999} height={903} priority className="h-8 w-auto sm:h-9" />
       <span>
         Lista Esperta
-        {suffix && <span className="font-semibold text-ink-soft"> {suffix}</span>}
+        {suffix && <span className="hidden font-semibold text-ink-soft sm:inline"> {suffix}</span>}
       </span>
     </Link>
   );

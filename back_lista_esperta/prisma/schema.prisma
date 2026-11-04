@@ -1,0 +1,280 @@
+// Lista Esperta — data model. camelCase in Prisma, snake_case in Postgres.
+// Geography columns use Unsupported(...) and are read/written only through
+// StoresGeoRepository with tagged-template raw SQL (see docs/DECISIONS.md).
+
+generator client {
+  provider               = "prisma-client"
+  output                 = "../src/generated/prisma"
+  moduleFormat           = "esm"
+  importFileExtension    = "js"
+  generatedFileExtension = "ts"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  SHOPPER
+  MERCHANT
+  ADMIN
+}
+
+enum StoreSource {
+  GOOGLE_PLACES
+  MERCHANT_REGISTERED
+  NFCE
+}
+
+enum VerificationStatus {
+  UNVERIFIED
+  PENDING
+  VERIFIED
+}
+
+enum StoreMemberRole {
+  OWNER
+  STAFF
+}
+
+enum ClaimStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum AliasStatus {
+  PENDING
+  APPROVED
+}
+
+enum PriceSource {
+  NFCE
+  MERCHANT
+  FLYER
+  COMMUNITY
+}
+
+/// Unit a product is sold in. Products are only compared within the same unit.
+enum MeasureUnit {
+  UN
+  G
+  KG
+  ML
+  L
+  M
+  M2
+}
+
+model User {
+  id              String   @id @default(uuid()) @db.Uuid
+  email           String   @unique
+  passwordHash    String   @map("password_hash")
+  role            Role     @default(SHOPPER)
+  displayName     String   @map("display_name")
+  costPerKm       Decimal  @default(1.00) @map("cost_per_km") @db.Decimal(6, 2)
+  valuePerHour    Decimal  @default(0) @map("value_per_hour") @db.Decimal(8, 2)
+  defaultRadiusKm Decimal  @default(5) @map("default_radius_km") @db.Decimal(4, 1)
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  refreshTokens     RefreshToken[]
+  storeMemberships  StoreMember[]
+  storeClaims       StoreClaim[]
+  shoppingLists     ShoppingList[]
+  receipts          Receipt[]
+  priceObservations PriceObservation[]
+
+  @@map("users")
+}
+
+model RefreshToken {
+  id        String    @id @default(uuid()) @db.Uuid
+  userId    String    @map("user_id") @db.Uuid
+  /// SHA-256 of the signed token; the token itself is never stored.
+  tokenHash String    @map("token_hash")
+  expiresAt DateTime  @map("expires_at")
+  revokedAt DateTime? @map("revoked_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("refresh_tokens")
+}
+
+model Store {
+  id                 String                               @id @default(uuid()) @db.Uuid
+  name               String
+  cnpj               String?                              @unique @db.Char(14)
+  googlePlaceId      String?                              @unique @map("google_place_id")
+  source             StoreSource
+  verificationStatus VerificationStatus                   @default(UNVERIFIED) @map("verification_status")
+  location           Unsupported("geography(Point,4326)")
+  address            Json?
+  openingHours       Json?                                @map("opening_hours")
+  createdAt          DateTime                             @default(now()) @map("created_at")
+
+  members     StoreMember[]
+  claims      StoreClaim[]
+  prices      PriceObservation[]
+  receipts    Receipt[]
+  aliases     ProductAlias[]
+
+  @@index([location], map: "stores_location_gix", type: Gist)
+  @@index([name(ops: raw("gin_trgm_ops"))], map: "stores_name_trgm_idx", type: Gin)
+  @@map("stores")
+}
+
+model StoreMember {
+  storeId    String          @map("store_id") @db.Uuid
+  userId     String          @map("user_id") @db.Uuid
+  memberRole StoreMemberRole @map("member_role")
+  createdAt  DateTime        @default(now()) @map("created_at")
+
+  store Store @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([storeId, userId])
+  @@index([userId])
+  @@map("store_members")
+}
+
+model StoreClaim {
+  id        String      @id @default(uuid()) @db.Uuid
+  storeId   String      @map("store_id") @db.Uuid
+  userId    String      @map("user_id") @db.Uuid
+  status    ClaimStatus @default(PENDING)
+  createdAt DateTime    @default(now()) @map("created_at")
+  decidedAt DateTime?   @map("decided_at")
+
+  store Store @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([storeId, status])
+  @@map("store_claims")
+}
+
+model Category {
+  id       String  @id @default(uuid()) @db.Uuid
+  parentId String? @map("parent_id") @db.Uuid
+  slug     String  @unique
+  name     String
+
+  parent   Category?  @relation("CategoryTree", fields: [parentId], references: [id], onDelete: Restrict)
+  children Category[] @relation("CategoryTree")
+  products Product[]
+
+  @@index([parentId])
+  @@map("categories")
+}
+
+model Product {
+  id            String      @id @default(uuid()) @db.Uuid
+  gtin          String?     @unique @db.VarChar(14)
+  canonicalName String      @map("canonical_name")
+  brand         String?
+  categoryId    String      @map("category_id") @db.Uuid
+  unit          MeasureUnit
+  unitQuantity  Decimal     @map("unit_quantity") @db.Decimal(10, 3)
+  createdAt     DateTime    @default(now()) @map("created_at")
+
+  category      Category           @relation(fields: [categoryId], references: [id])
+  aliases       ProductAlias[]
+  prices        PriceObservation[]
+  shoppingItems ShoppingListItem[]
+
+  @@index([categoryId])
+  @@index([canonicalName(ops: raw("gin_trgm_ops"))], map: "products_name_trgm_idx", type: Gin)
+  @@map("products")
+}
+
+model ProductAlias {
+  id        String      @id @default(uuid()) @db.Uuid
+  productId String      @map("product_id") @db.Uuid
+  rawText   String      @map("raw_text")
+  storeId   String?     @map("store_id") @db.Uuid
+  status    AliasStatus @default(PENDING)
+  createdAt DateTime    @default(now()) @map("created_at")
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  store   Store?  @relation(fields: [storeId], references: [id], onDelete: Cascade)
+
+  @@unique([rawText, storeId])
+  @@map("product_aliases")
+}
+
+model PriceObservation {
+  id           BigInt      @id @default(autoincrement())
+  productId    String      @map("product_id") @db.Uuid
+  storeId      String      @map("store_id") @db.Uuid
+  price        Decimal     @db.Decimal(10, 2)
+  source       PriceSource
+  observedAt   DateTime    @default(now()) @map("observed_at")
+  validUntil   DateTime?   @map("valid_until")
+  receiptId    String?     @map("receipt_id") @db.Uuid
+  reportedById String?     @map("reported_by_id") @db.Uuid
+  guestId      String?     @map("guest_id") @db.Uuid
+
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  store      Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  receipt    Receipt? @relation(fields: [receiptId], references: [id], onDelete: Cascade)
+  reportedBy User?    @relation(fields: [reportedById], references: [id], onDelete: SetNull)
+
+  @@index([productId, storeId, observedAt(sort: Desc)])
+  @@index([guestId])
+  @@map("price_observations")
+}
+
+model Receipt {
+  id           String   @id @default(uuid()) @db.Uuid
+  /// NFC-e access key. Unique so the same receipt is never counted twice.
+  accessKey    String   @unique @map("access_key") @db.Char(44)
+  storeId      String   @map("store_id") @db.Uuid
+  issuedAt     DateTime @map("issued_at")
+  total        Decimal  @db.Decimal(10, 2)
+  uploadedById String?  @map("uploaded_by_id") @db.Uuid
+  guestId      String?  @map("guest_id") @db.Uuid
+  raw          Json
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  store      Store              @relation(fields: [storeId], references: [id])
+  uploadedBy User?              @relation(fields: [uploadedById], references: [id], onDelete: SetNull)
+  prices     PriceObservation[]
+
+  @@index([uploadedById])
+  @@index([guestId])
+  @@map("receipts")
+}
+
+/// Server-side lists exist only for signed-in shoppers; guest lists live on the device.
+model ShoppingList {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  /// Id the list had on the device, so importing the same guest list twice is a no-op.
+  clientId  String?  @map("client_id")
+  name      String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user  User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items ShoppingListItem[]
+
+  @@unique([userId, clientId])
+  @@map("shopping_lists")
+}
+
+model ShoppingListItem {
+  id        String   @id @default(uuid()) @db.Uuid
+  listId    String   @map("list_id") @db.Uuid
+  productId String?  @map("product_id") @db.Uuid
+  freeText  String   @map("free_text")
+  quantity  Decimal  @default(1) @db.Decimal(10, 3)
+  position  Int      @default(0)
+
+  list    ShoppingList @relation(fields: [listId], references: [id], onDelete: Cascade)
+  product Product?     @relation(fields: [productId], references: [id], onDelete: SetNull)
+
+  @@index([listId])
+  @@map("shopping_list_items")
+}

@@ -13,7 +13,14 @@ PWA da **Lista Esperta** em Next.js 16 (App Router, Cache Components, Tailwind v
 | `/receipts/import` | `(shopper)` | Validação da chave da NFC-e no aparelho (protótipo) |
 | `/how-it-works` | `(shopper)` | Fórmula, parâmetros e neutralidade |
 | `/offline` | `(shopper)` | Página servida pelo service worker sem conexão |
-| `/merchant` | `merchant/` | Painel do lojista (protótipo; protegido por login a partir da fase 3) |
+| `/login`, `/register` | `(auth)` | Entrar e criar conta ("Quero economizar" / "Tenho uma loja") |
+| `/account` | `(shopper)` | Minha conta: nome, custo por km, valor da hora, raio padrão, sair. Exige login |
+| `/merchant` | `merchant/` | Painel do lojista (protótipo). Exige conta de lojista ou admin |
+| `/merchant/onboarding` | `merchant/` | Onde o lojista sem loja cai; o cadastro da loja chega na fase 4 |
+
+O `proxy.ts` protege `/merchant`, `/admin` e `/account` consultando `GET /api/v1/auth/me` (ver `docs/DECISIONS.md`, D-023).
+
+**Dados:** o front só fala com a API pelo client tipado em `lib/api/` (`openapi-fetch` + tipos gerados com `npm run api:types`), sempre com `credentials: "include"` e com renovação automática da sessão em caso de 401. As listas passam pelo `ShoppingListRepository`: IndexedDB para visitantes e API para quem tem conta. Ao entrar ou criar conta, as listas do aparelho vão para a conta (`lib/shopping-lists/migrate.ts`).
 
 As rotas antigas (`/veredito`, `/nota`, `/lojista`, `/transparencia`) redirecionam para as novas (`next.config.ts`).
 

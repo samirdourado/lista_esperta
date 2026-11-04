@@ -5,7 +5,16 @@ import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
-  { ignores: ['dist/**', 'coverage/**', 'uploads/**', 'eslint.config.mjs'] },
+  {
+    ignores: [
+      'dist/**',
+      'coverage/**',
+      'uploads/**',
+      'src/generated/**',
+      'eslint.config.mjs',
+      'prisma.config.ts',
+    ],
+  },
   eslint.configs.recommended,
   ...tseslint.configs.recommendedTypeChecked,
   prettierRecommended,
@@ -28,6 +37,7 @@ export default tseslint.config(
     rules: {
       '@typescript-eslint/no-unsafe-member-access': 'off',
       '@typescript-eslint/no-unsafe-argument': 'off',
+      '@typescript-eslint/no-unsafe-call': 'off',
     },
   },
 );

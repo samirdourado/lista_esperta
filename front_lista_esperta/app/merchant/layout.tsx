@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { Logo } from "@/components/brand/Logo";
+import { SignOutLink } from "@/components/auth/SessionNav";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 
-/** Merchant dashboard shell. Login protection arrives in phase 3 (proxy.ts). */
+/** Merchant dashboard shell. proxy.ts only lets merchants and admins in. */
 export default function MerchantLayout({ children }: LayoutProps<"/merchant">) {
   return (
     <>
@@ -14,8 +15,10 @@ export default function MerchantLayout({ children }: LayoutProps<"/merchant">) {
               href="/"
               className="inline-flex min-h-tap items-center rounded-full px-3 text-[0.95rem] font-medium text-ink-soft hover:text-ink"
             >
-              Ir para a lista de compras
+              <span className="hidden sm:inline">Ir para a lista de compras</span>
+              <span className="sm:hidden">Lista</span>
             </Link>
+            <SignOutLink />
             <ThemeToggle />
           </div>
         </div>

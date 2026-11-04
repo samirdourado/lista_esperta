@@ -2,6 +2,73 @@
 
 Registro de decisões tomadas onde a especificação era ambígua ou conflitava com o ambiente. A mais recente fica no topo de cada fase.
 
+## Fase 3
+
+### D-019 · Migration inicial editada à mão
+Criada com `prisma migrate dev --create-only`, com três ajustes à mão:
+- as extensões `postgis` e `pg_trgm` no topo;
+- `NULLS NOT DISTINCT` no único `(raw_text, store_id)` de `product_aliases`. Sem isso, aliases globais (`store_id` nulo) poderiam se repetir.
+- os índices GIST (`stores_location_gix`) e GIN de trigram ficam declarados no próprio `schema.prisma` (`@@index(..., type: Gist)` / `ops: raw("gin_trgm_ops")`), gerando o mesmo SQL da especificação. Assim, o `prisma migrate diff` não acusa drift (verificado: "empty migration").
+
+### D-020 · Prisma 7
+O Prisma 7 mudou a configuração:
+- a conexão fica em `prisma.config.ts`;
+- o client exige driver adapter (`@prisma/adapter-pg`);
+- o gerador `prisma-client` escreve em `src/generated/prisma`, que fica fora do git e é gerado no `postinstall`.
+
+O config usa `process.env.DATABASE_URL` em vez de `env()`, porque `env()` faz o `prisma generate` falhar durante o `npm ci` do Docker, onde ainda não existe banco. Usei a versão 7.10.1: a `latest` do npm aponta para uma RC da 8.
+
+### D-021 · Scripts de instalação do npm 11
+O npm 11 bloqueia scripts de instalação por padrão. Aprovei os do Prisma (que baixa o schema engine), do esbuild e do argon2 em `allowScripts`. Neguei o `@scarf/scarf`, que é só telemetria.
+
+### D-022 · Sessão
+- **Access token:** JWT HS256 de 15 min, no cookie `le_access` (`Path=/`).
+- **Refresh token:** JWT de 7 dias no cookie `le_refresh`, com `Path=/api/v1/auth`, para viajar só às rotas de auth. O banco guarda só o SHA-256, e o `jti` é o id da linha.
+- **Rotação:** cada `/auth/refresh` revoga o token usado. Reapresentar um token já revogado é tratado como vazamento: todas as sessões do usuário são revogadas. Duas rotações simultâneas do mesmo token não passam juntas (`updateMany ... revokedAt: null`).
+- **Login:** quando o e-mail não existe, o login ainda roda um `argon2.verify` falso, para o tempo de resposta não revelar quem tem conta.
+- **Cadastro:** os e-mails são normalizados para minúsculas. O auto-cadastro só cria `SHOPPER` ou `MERCHANT`, nunca `ADMIN`.
+- **Hash de senha:** argon2id com os parâmetros recomendados pela OWASP (19 MiB, t=2).
+
+### D-023 · Proteção de rotas no front (`proxy.ts`)
+`/merchant`, `/admin` e `/account` passam pelo `proxy.ts`, que consulta `GET /auth/me` repassando o cookie:
+- **Sem sessão:** vai para `/login?next=…`. Como o cookie de refresh não chega ao front (ver D-022), é a tela de login que tenta renovar a sessão em silêncio pelo navegador. Se conseguir, volta direto para a página pedida.
+- **API fora do ar:** falha fechada (`/login?error=unavailable`).
+- **Papel errado:** volta para `/account?denied=…`.
+- **Lojista sem loja:** vai para `/merchant/onboarding`.
+
+Dentro do Docker, o servidor do Next chama a API por `API_INTERNAL_URL=http://api:3333/api/v1`.
+
+**Produção:** front e API precisam ser do mesmo *site*, por exemplo `app.exemplo.com` e `api.exemplo.com`, para que cookies `SameSite=Lax` funcionem. Em localhost isso já vale, porque cookies ignoram a porta.
+
+### D-024 · Admin passa no `StoreMemberGuard`
+Para moderar, o admin acessa qualquer `:storeId`. O `RolesGuard` não dá passe livre implícito: cada rota lista os papéis aceitos.
+
+### D-025 · Dois baldes de rate limit
+- `ip`: 300/min por IP.
+- `default`: 120/min por IP + `X-Guest-Id`.
+
+Trocar de `guestId` não escapa do limite por IP. As rotas `/auth` apertam os dois (20/min por IP e 10/min por cliente). Os e2e desligam o limite com `THROTTLE_DISABLED=true`, exceto `throttling.e2e-spec.ts`, que testa o 429.
+
+### D-026 · Migração guest → conta
+`POST /shopping-lists/import` é idempotente pelo id local da lista (`clientId`, único por usuário). Se a lista já foi importada, vale a cópia do servidor, que passa a ser a fonte de verdade. Notas e preços enviados com aquele `guestId` passam para a conta, mas só os que ainda não têm dono. No front, as listas locais são apagadas depois da importação. Se a importação falhar, elas ficam no aparelho e são enviadas de novo no próximo login.
+
+Quem conhece o `guestId` de um aparelho pode reivindicar as notas daquele aparelho. O risco é aceito: é um UUID aleatório que nunca sai do aparelho, a não ser no header das gravações.
+
+### D-027 · Escopo antecipado e adiado
+- **Antecipado:** `GET /stores/:storeId/members` (equipe da loja, que seria da fase 5) já existe, para exercitar `RolesGuard` + `StoreMemberGuard` nos testes.
+- **Adiado:** o onboarding do lojista por enquanto só explica os passos. O cadastro e a reivindicação da loja são da fase 4.
+- **Rota de teste:** o `OptionalJwtAuthGuard` é testado por uma rota que só existe nos testes, porque as rotas públicas que gravam dados chegam nas fases 6 e 7.
+
+### D-028 · Dados do catálogo
+- **Slugs das categorias:** são dados, não código, e ficam em português (`laticinios`, `construcao`), como no exemplo de saída do Gemini da especificação.
+- **Unidades:** `MeasureUnit` é um enum (`UN, G, KG, ML, L, M, M2`), para a regra de nunca comparar unidades diferentes ser garantida pelo banco.
+
+### D-029 · `/account` dentro do grupo `(shopper)`
+A rota é `/account`, como pede a especificação. Fica no grupo `(shopper)` para reaproveitar o cabeçalho e a barra de abas.
+
+### D-030 · Painel do protótipo atrás do login
+`/merchant` agora exige conta de lojista. Para ver o painel de demonstração, entre com `lojista@listaesperta.dev` (criado pelo seed).
+
 ## Fase 2
 
 ### D-011 · Tokens com `light-dark()`

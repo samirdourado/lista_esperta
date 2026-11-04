@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
+import { SaveListsInvite } from "@/components/auth/SaveListsInvite";
 import { VerdictView } from "@/components/verdict/VerdictView";
 import { selectSponsored } from "@/lib/ads/select";
 import { pickTip } from "@/lib/forecast/heuristic";
@@ -43,7 +44,12 @@ async function VerdictContent({ searchParams }: { searchParams: PageProps<"/verd
   const sponsored = query.ads ? selectSponsored(verdict, query.lines) : [];
   const tip = pickTip(verdict.primary, new Date());
 
-  return <VerdictView verdict={verdict} query={query} sponsored={sponsored} tip={tip} />;
+  return (
+    <>
+      <VerdictView verdict={verdict} query={query} sponsored={sponsored} tip={tip} />
+      <SaveListsInvite />
+    </>
+  );
 }
 
 function VerdictSkeleton() {

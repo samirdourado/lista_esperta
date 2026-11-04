@@ -1,9 +1,10 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useId, useMemo, useRef, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { PILOT_CENTER, PILOT_COVERAGE_M } from "@/lib/demo/stores";
 import { qtyLabel } from "@/lib/format";
+import { useCurrentList } from "@/lib/shopping-lists/current";
 import { distanceM } from "@/lib/geo";
 import { EXAMPLE_LIST, parseLine, splitLines, type ParsedLine } from "@/lib/list/parse";
 import { DEFAULT_RADIUS_M, RADIUS_OPTIONS_M, verdictHref } from "@/lib/list/query";
@@ -21,6 +22,24 @@ export function ListForm() {
   const fileRef = useRef<HTMLInputElement>(null);
 
   const [text, setText] = useState(() => params.getAll("i").join("\n"));
+  const currentList = useCurrentList();
+
+  // Without a list in the URL, reopen the last saved list (works offline for guests).
+  const { load: loadCurrentList } = currentList;
+  const fromUrl = params.has("i");
+  useEffect(() => {
+    if (fromUrl) return;
+    let cancelled = false;
+    loadCurrentList()
+      .then((list) => {
+        if (cancelled || !list || list.items.length === 0) return;
+        setText((typed) => typed || list.items.map((item) => item.freeText).join("\n"));
+      })
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
+  }, [fromUrl, loadCurrentList]);
   const [radiusM, setRadiusM] = useState(() => {
     const r = Number(params.get("r"));
     return RADIUS_OPTIONS_M.includes(r) ? r : DEFAULT_RADIUS_M;
@@ -63,6 +82,8 @@ export function ListForm() {
   }
 
   async function submit() {
+    // Remember the list (device for guests, account when signed in); never block the verdict on it.
+    void currentList.save(lines).catch(() => undefined);
     setStatus({ kind: "busy", text: "Pegando sua localização…" });
     const here = await locate();
     const pilot = !here || distanceM(here, PILOT_CENTER) > PILOT_COVERAGE_M;
