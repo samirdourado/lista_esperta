@@ -26,7 +26,7 @@ async function VerdictContent({ searchParams }: { searchParams: PageProps<"/vere
       <div className="pt-10">
         <h1 className="font-display text-4xl font-bold">Falta a lista</h1>
         <p className="mt-2 text-ink-soft">Este link não tem itens. Escreva ou fotografe sua lista para ver o veredito.</p>
-        <Link href="/" className="mt-6 inline-block rounded-full bg-ink px-6 py-3 font-semibold text-paper">
+        <Link href="/" className="mt-6 inline-block rounded-full bg-brand px-6 py-3 font-semibold text-on-brand hover:bg-brand-strong">
           Escrever minha lista
         </Link>
       </div>

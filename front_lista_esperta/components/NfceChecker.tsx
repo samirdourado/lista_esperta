@@ -48,7 +48,7 @@ export function NfceChecker() {
       <button
         type="button"
         onClick={() => fileRef.current?.click()}
-        className="w-full rounded-full bg-ink px-6 py-4 font-display text-2xl font-semibold text-paper hover:opacity-90"
+        className="w-full rounded-full bg-brand px-6 py-4 font-display text-2xl font-semibold text-on-brand hover:bg-brand-strong"
       >
         Fotografar o QR Code
       </button>
@@ -88,9 +88,9 @@ export function NfceChecker() {
             onChange={(e) => setValue(e.target.value)}
             inputMode="url"
             autoComplete="off"
-            className="min-w-0 flex-1 rounded-lg border border-line bg-surface px-3 py-2.5 focus:border-ink focus:outline-none"
+            className="min-w-0 flex-1 rounded-lg border border-line bg-surface px-3 py-2.5 focus:border-brand focus:outline-none"
           />
-          <button type="submit" className="shrink-0 rounded-lg border border-ink px-4 font-medium">
+          <button type="submit" className="shrink-0 rounded-lg border border-brand px-4 font-medium text-brand hover:bg-brand-soft">
             Conferir nota
           </button>
         </div>

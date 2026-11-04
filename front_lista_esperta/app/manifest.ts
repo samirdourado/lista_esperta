@@ -8,11 +8,11 @@ export default function manifest(): MetadataRoute.Manifest {
     lang: "pt-BR",
     start_url: "/",
     display: "standalone",
-    background_color: "#f4f6f1",
-    theme_color: "#f4f6f1",
+    background_color: "#f5f8fe",
+    theme_color: "#1a5fe0",
     icons: [
-      { src: "/icon.svg", sizes: "any", type: "image/svg+xml", purpose: "any" },
-      { src: "/icon-maskable.svg", sizes: "any", type: "image/svg+xml", purpose: "maskable" },
+      { src: "/icon_lista_esperta.ico", sizes: "256x256", type: "image/x-icon", purpose: "any" },
+      { src: "/logo_lista_esperta.webp", sizes: "999x903", type: "image/webp", purpose: "any" },
     ],
   };
 }

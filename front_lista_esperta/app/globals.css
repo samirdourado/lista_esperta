@@ -1,56 +1,86 @@
 @import "tailwindcss";
 
-/* Lista Esperta: papel frio, tinta, amarelo de etiqueta de gôndola, verde de economia. */
+/*
+ * Lista Esperta — paleta derivada do logo (public/logo_lista_esperta.webp):
+ *   azul do carrinho  #1a5fe0 / #0a47c4 (sombra) / #2f7bff (brilho)
+ *   azul da lista     #9bb5ea (borda) / #c5d5f5 (linhas)
+ *   amarelo do pin    #ffb400
+ *   marinho (tinta)   #10224a
+ */
 :root {
-  --paper: #f4f6f1;
+  /* Cores de marca (logo) */
+  --brand: #1a5fe0;
+  --brand-strong: #0a47c4;
+  --brand-bright: #2f7bff;
+  --brand-soft: #e4ecfd;
+  --brand-line: #c5d5f5;
+  --on-brand: #ffffff;
+  --accent: #ffb400;
+  --accent-soft: #fff3d1;
+
+  /* Superfícies e texto */
+  --paper: #f5f8fe;
   --surface: #ffffff;
-  --ink: #17212b;
-  --ink-soft: #4b5763;
-  --line: #d5dbd2;
-  --tag: #ffd23f;
-  --tag-ink: #17212b;
-  --save: #1e7a4c;
-  --save-soft: #dcefe2;
-  --amber: #8f5600;
-  --amber-soft: #fbecd2;
+  --ink: #10224a;
+  --ink-soft: #46567c;
+  --line: #d3ddf1;
+  --muted: #67738f;
+  --muted-soft: #e9eef8;
+
+  /* Etiqueta de preço = amarelo do pin */
+  --tag: var(--accent);
+  --tag-ink: #10224a;
+
+  /* Estados (economia usa o azul da marca; alertas puxam do amarelo) */
+  --save: var(--brand);
+  --save-soft: var(--brand-soft);
+  --amber: #8a5800;
+  --amber-soft: var(--accent-soft);
   --orange: #a8471a;
-  --orange-soft: #fbe3d6;
-  --muted: #6b7480;
-  --muted-soft: #e8ebe6;
+  --orange-soft: #fde6d8;
   --danger: #b3261e;
-  --focus: #2457c5;
-  /* Rampa sequencial de um tom (verde), claro → escuro = pouco → muito. */
-  --seq-1: #dcefe2;
-  --seq-2: #a9d8b9;
-  --seq-3: #6fbb8e;
-  --seq-4: #35975f;
-  --seq-5: #1b6b42;
+  --focus: var(--brand-bright);
+
+  /* Rampa sequencial em azul da marca, claro → escuro = pouco → muito. */
+  --seq-1: #e4ecfd;
+  --seq-2: #b4cbf6;
+  --seq-3: #7ea4ef;
+  --seq-4: #3f78e6;
+  --seq-5: #0a47c4;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --paper: #11181e;
-    --surface: #1a232b;
-    --ink: #e9eef0;
-    --ink-soft: #a9b4bd;
-    --line: #2d3a45;
-    --tag: #f7c933;
-    --save: #5cc994;
-    --save-soft: #163527;
-    --amber: #e9ad55;
-    --amber-soft: #392a12;
+    --brand: #5b93ff;
+    --brand-strong: #7fabff;
+    --brand-bright: #8eb6ff;
+    --brand-soft: #16284d;
+    --brand-line: #2a3f6e;
+    --on-brand: #0a1430;
+    --accent: #ffbe2e;
+    --accent-soft: #3a2c0c;
+
+    --paper: #0a1430;
+    --surface: #111d3d;
+    --ink: #e8eefc;
+    --ink-soft: #a9b7d8;
+    --line: #26375f;
+    --muted: #8f9bbb;
+    --muted-soft: #1a2747;
+
+    --tag-ink: #10224a;
+
+    --amber: #ffc95a;
     --orange: #f29466;
     --orange-soft: #3b2216;
-    --muted: #939ca6;
-    --muted-soft: #222c34;
     --danger: #f2a49e;
-    --focus: #8eb0ff;
+
     /* No escuro, mais intensidade = mais claro. */
-    --seq-1: #1b3a2a;
-    --seq-2: #245a3d;
-    --seq-3: #2f7d53;
-    --seq-4: #49a573;
-    --seq-5: #7fd3a2;
+    --seq-1: #16284d;
+    --seq-2: #1f3d78;
+    --seq-3: #2d5bb0;
+    --seq-4: #4d86ec;
+    --seq-5: #9dc0ff;
   }
 }
 
@@ -61,6 +91,14 @@
 }
 
 @theme inline {
+  --color-brand: var(--brand);
+  --color-brand-strong: var(--brand-strong);
+  --color-brand-bright: var(--brand-bright);
+  --color-brand-soft: var(--brand-soft);
+  --color-brand-line: var(--brand-line);
+  --color-on-brand: var(--on-brand);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
   --color-paper: var(--paper);
   --color-surface: var(--surface);
   --color-ink: var(--ink);

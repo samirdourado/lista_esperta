@@ -60,7 +60,7 @@ async function Dashboard({ searchParams }: { searchParams: PageProps<"/lojista">
               </option>
             ))}
           </select>
-          <button type="submit" className="rounded-lg border border-ink px-3 py-2 font-medium">
+          <button type="submit" className="rounded-lg border border-brand px-3 py-2 font-medium text-brand hover:bg-brand-soft">
             Ver loja
           </button>
         </form>
