@@ -68,7 +68,7 @@ Nesse modo, `back_lista_esperta/.env` usa `localhost:5433`, que é o valor do `.
 | Conta | Senha | O que vê |
 |---|---|---|
 | `lojista@listaesperta.dev` | `lista-esperta-dev` | Lojista dono das duas lojas demo em São Paulo; entra em `/merchant` |
-| `admin@listaesperta.dev` | `lista-esperta-dev` | Admin (o painel `/admin` chega na fase 8) |
+| `admin@listaesperta.dev` | `lista-esperta-dev` | Admin; entra em `/admin` |
 
 A senha pode ser trocada com `SEED_PASSWORD`. Contas de cliente são criadas pela tela `/register`.
 
@@ -137,6 +137,11 @@ A primeira vez que uma região é aberta, as lojas levam até um minuto para apa
 
 As distâncias são estimadas (linha reta × 1,3) até você colocar uma `ORS_API_KEY` gratuita no `.env` (D-054).
 
-Próxima fase: 8 · opcionais (encartes, alertas de preço, painel do admin).
+**Fase 8 — opcionais** ✅
+- **Encartes:** no painel da loja, aba Encartes. O lojista cola o link (página ou PDF); o Firecrawl lê, o Gemini extrai produtos e preços, e eles entram como "Encarte da loja" até o fim das ofertas (D-064).
+- **Alertas de preço** (`/alerts`, para quem tem conta): "avise quando custar até R$ X perto de mim", com notificação pelo navegador (Web Push com chaves próprias, sem serviço pago) e o menor preço atual de cada alerta. Atalho "Avisar quando baixar" em cada item do veredito (D-065).
+- **Painel do admin** (`/admin`): reivindicações, lojas com CNPJ para conferir (com o registro da Receita lado a lado), produtos de notas e encartes para confirmar (aprovar já cria os preços que esperavam) e mesclagem de produtos duplicados, sem nunca misturar tamanhos ou marcas (D-066).
+
+Para testar as notificações no computador: `cd front_lista_esperta && npm run build && npm start`, entre com uma conta, abra `/alerts` e toque em "Ligar notificações".
 
 A documentação do protótipo (arquitetura, motor de decisão, monetização) continua em [front_lista_esperta/docs/](front_lista_esperta/docs/README.md).

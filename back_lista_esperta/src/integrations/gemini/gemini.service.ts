@@ -5,8 +5,10 @@ import { validate } from 'class-validator';
 import type { Env } from '../../config/env.schema.js';
 import { ExternalServiceError } from '../http.js';
 import {
+  ExtractedFlyerDto,
   ExtractedListDto,
   ExtractedReceiptDto,
+  FLYER_SCHEMA,
   LIST_SCHEMA,
   NORMALIZE_SCHEMA,
   NormalizedBatchDto,
@@ -37,6 +39,16 @@ export interface ListReader {
   readList(image: Buffer, mimeType: string): Promise<ExtractedListDto>;
 }
 export const LIST_READER = Symbol('LIST_READER');
+
+/** Reads the products and prices of a store flyer (text from Firecrawl). */
+export interface FlyerReader {
+  readonly enabled: boolean;
+  readFlyer(text: string, today: string): Promise<ExtractedFlyerDto>;
+}
+export const FLYER_READER = Symbol('FLYER_READER');
+
+/** Flyers can be long; the model only needs the product part. */
+const FLYER_MAX_CHARS = 40_000;
 
 export class AiOutputError extends Error {
   constructor(message: string) {
@@ -93,9 +105,22 @@ const RECEIPT_PROMPT = `Leia este cupom fiscal brasileiro (NFC-e) e devolva os d
 - lines: um item por linha do cupom, com quantidade, unidade (UN, KG, L…), valor unitário e total.
 - Valores em reais como número (12,90 → 12.9). Não invente itens que não estão na imagem.`;
 
+const FLYER_PROMPT = (
+  text: string,
+  today: string,
+) => `Este é o texto de um encarte (folheto de ofertas) de uma loja brasileira. Hoje é ${today}.
+Devolva cada produto com preço que o encarte anuncia.
+- description: o produto como está escrito, com marca e tamanho (ex.: "Leite UHT Integral Itambé 1 L").
+- price: o preço por unidade anunciada, em reais (12,90 → 12.9). Em "leve 3 pague 2" ou preço de atacado, use o preço de uma unidade avulsa se ele estiver escrito; senão, pule o item.
+- gtin só se o código de barras estiver escrito; senão null.
+- valid_until: o último dia das ofertas (AAAA-MM-DD), se o encarte disser; senão null.
+- Ignore textos que não sejam produtos com preço. Não invente produtos nem preços.
+Texto do encarte:
+${text.slice(0, FLYER_MAX_CHARS)}`;
+
 @Injectable()
 export class GeminiService
-  implements ProductNormalizer, ReceiptReader, ListReader
+  implements ProductNormalizer, ReceiptReader, ListReader, FlyerReader
 {
   private readonly logger = new Logger(GeminiService.name);
 
@@ -146,6 +171,14 @@ export class GeminiService
       LIST_SCHEMA,
     );
     return validated(ExtractedListDto, json);
+  }
+
+  async readFlyer(text: string, today: string): Promise<ExtractedFlyerDto> {
+    const json = await this.generate(
+      [{ text: FLYER_PROMPT(text, today) }],
+      FLYER_SCHEMA,
+    );
+    return validated(ExtractedFlyerDto, json);
   }
 
   private async generate(parts: Part[], schema: object): Promise<unknown> {

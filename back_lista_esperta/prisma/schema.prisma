@@ -54,6 +54,13 @@ enum ClaimStatus {
 enum AliasStatus {
   PENDING
   APPROVED
+  /// An admin said the text is not that product: never ask the model again.
+  REJECTED
+}
+
+enum FlyerImportStatus {
+  DONE
+  FAILED
 }
 
 enum PriceSource {
@@ -92,6 +99,9 @@ model User {
   shoppingLists     ShoppingList[]
   receipts          Receipt[]
   priceObservations PriceObservation[]
+  pushSubscriptions PushSubscription[]
+  priceAlerts       PriceAlert[]
+  flyerImports      FlyerImport[]
 
   @@map("users")
 }
@@ -134,6 +144,7 @@ model Store {
   receipts    Receipt[]
   aliases     ProductAlias[]
   storePhotos StorePhoto[]
+  flyers      FlyerImport[]
 
   @@unique([source, externalId])
   @@index([location], map: "stores_location_gix", type: Gist)
@@ -254,6 +265,7 @@ model Product {
   prices        PriceObservation[]
   shoppingItems ShoppingListItem[]
   demand        DemandSignal[]
+  alerts        PriceAlert[]
 
   @@index([categoryId])
   @@index([canonicalName(ops: raw("gin_trgm_ops"))], map: "products_name_trgm_idx", type: Gin)
@@ -286,13 +298,15 @@ model PriceObservation {
   /// Set when the merchant withdraws the price (product no longer sold, offer ended early).
   retractedAt  DateTime?   @map("retracted_at")
   receiptId    String?     @map("receipt_id") @db.Uuid
+  flyerId      String?     @map("flyer_id") @db.Uuid
   reportedById String?     @map("reported_by_id") @db.Uuid
   guestId      String?     @map("guest_id") @db.Uuid
 
-  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  store      Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
-  receipt    Receipt? @relation(fields: [receiptId], references: [id], onDelete: Cascade)
-  reportedBy User?    @relation(fields: [reportedById], references: [id], onDelete: SetNull)
+  product    Product      @relation(fields: [productId], references: [id], onDelete: Cascade)
+  store      Store        @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  receipt    Receipt?     @relation(fields: [receiptId], references: [id], onDelete: Cascade)
+  flyer      FlyerImport? @relation(fields: [flyerId], references: [id], onDelete: Cascade)
+  reportedBy User?        @relation(fields: [reportedById], references: [id], onDelete: SetNull)
 
   @@index([productId, storeId, observedAt(sort: Desc)])
   @@index([guestId])
@@ -350,4 +364,65 @@ model ShoppingListItem {
 
   @@index([listId])
   @@map("shopping_list_items")
+}
+
+/// Browser push endpoint of a signed-in user (Web Push, VAPID keys of our own).
+model PushSubscription {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("push_subscriptions")
+}
+
+/// "Tell me when this product costs at most R$ X near this place."
+model PriceAlert {
+  id            String    @id @default(uuid()) @db.Uuid
+  userId        String    @map("user_id") @db.Uuid
+  productId     String    @map("product_id") @db.Uuid
+  targetPrice   Decimal   @map("target_price") @db.Decimal(10, 2)
+  lat           Float
+  lng           Float
+  radiusKm      Decimal   @default(5) @map("radius_km") @db.Decimal(4, 1)
+  active        Boolean   @default(true)
+  /// The price we last told the user about; a new push needs a lower one.
+  notifiedPrice Decimal?  @map("notified_price") @db.Decimal(10, 2)
+  notifiedAt    DateTime? @map("notified_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId])
+  @@index([active])
+  @@map("price_alerts")
+}
+
+/// A store flyer read through Firecrawl: what was found, for audit and for
+/// pricing pending aliases once an admin approves them.
+model FlyerImport {
+  id          String            @id @default(uuid()) @db.Uuid
+  storeId     String            @map("store_id") @db.Uuid
+  url         String
+  status      FlyerImportStatus
+  validUntil  DateTime?         @map("valid_until")
+  itemsFound  Int               @default(0) @map("items_found")
+  pricesAdded Int               @default(0) @map("prices_added")
+  error       String?
+  raw         Json
+  createdById String?           @map("created_by_id") @db.Uuid
+  createdAt   DateTime          @default(now()) @map("created_at")
+
+  store     Store              @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  createdBy User?              @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  prices    PriceObservation[]
+
+  @@index([storeId, createdAt(sort: Desc)])
+  @@map("flyer_imports")
 }

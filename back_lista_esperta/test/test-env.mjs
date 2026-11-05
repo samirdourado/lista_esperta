@@ -14,4 +14,6 @@ export const TEST_ENV = {
   DISCOVERY_ENABLED: 'false',
   // Uploads from e2e tests go to a throwaway folder (gitignored).
   UPLOADS_DIR: 'test-uploads',
+  // Tests call AlertsService.checkAll() themselves.
+  ALERTS_CHECK_MINUTES: '0',
 };

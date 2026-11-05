@@ -188,3 +188,23 @@ export function useDeletePhoto(storeId: string) {
     onSuccess: invalidate,
   });
 }
+
+export type FlyerImport = Schemas["FlyerImportDto"];
+
+export function useFlyers(storeId: string) {
+  return useQuery({
+    queryKey: key(storeId, "flyers"),
+    queryFn: async () => unwrap(await api.GET("/api/v1/stores/{storeId}/flyers", path(storeId))),
+  });
+}
+
+/** Firecrawl + Gemini read the link; takes from a few seconds to a minute. */
+export function useImportFlyer(storeId: string) {
+  const invalidate = useInvalidateStore(storeId);
+  return useMutation({
+    mutationFn: async (url: string) =>
+      unwrap(await api.POST("/api/v1/stores/{storeId}/flyers", { ...path(storeId), body: { url } })),
+    // Failed attempts are listed too.
+    onSettled: invalidate,
+  });
+}

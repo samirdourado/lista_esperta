@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { PriceTag } from "@/components/PriceTag";
 import { VerificationNote, addressLine } from "@/components/stores/StoreSummary";
 import { brl } from "@/lib/format";
@@ -81,6 +82,14 @@ export function ItemLines({
                   ? evidenceLabel(line.evidence)
                   : `Sem preço aqui: conta a mediana da região (${brl(resolved.regionalMedian ?? 0)})`}
               </span>
+              {resolved.productId && (
+                <Link
+                  href={`/alerts?product=${resolved.productId}&name=${encodeURIComponent(resolved.productName ?? resolved.text)}`}
+                  className="block text-[0.85rem] font-medium text-brand underline-offset-4 hover:underline"
+                >
+                  Avisar quando baixar
+                </Link>
+              )}
             </span>
             <span className={line.subtotal === null ? "shrink-0 text-muted tabular-nums" : "shrink-0 tabular-nums"}>
               {line.subtotal === null ? "—" : brl(line.subtotal)}

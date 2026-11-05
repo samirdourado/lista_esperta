@@ -75,7 +75,16 @@ export class NormalizationService {
         orderBy: { storeId: { sort: 'asc', nulls: 'last' } },
         include: { product: { select: { canonicalName: true } } },
       });
-      if (alias) {
+      if (alias?.status === 'REJECTED') {
+        // An admin said this text is not that product: no price, no new guess.
+        results[index] = {
+          status: 'UNMATCHED',
+          productId: null,
+          productName: null,
+          aliasId: alias.id,
+          via: 'ALIAS',
+        };
+      } else if (alias) {
         results[index] = {
           status: alias.status === 'APPROVED' ? 'MATCHED' : 'PENDING',
           productId: alias.productId,

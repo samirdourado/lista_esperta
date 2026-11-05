@@ -64,9 +64,12 @@ export class AdminClaimQueryDto {
   status: ClaimStatus = 'PENDING';
 }
 
+export class ClaimUserDto {
+  @ApiProperty() id: string;
+  @ApiProperty({ example: 'loja@example.com' }) email: string;
+  @ApiProperty() displayName: string;
+}
+
 export class AdminStoreClaimResponseDto extends StoreClaimResponseDto {
-  @ApiProperty({
-    example: { id: 'uuid', email: 'loja@example.com', displayName: 'Loja' },
-  })
-  user: { id: string; email: string; displayName: string };
+  @ApiProperty({ type: ClaimUserDto }) user: ClaimUserDto;
 }

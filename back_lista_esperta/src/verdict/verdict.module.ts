@@ -21,5 +21,7 @@ import { VerdictService } from './verdict.service.js';
     GeminiService,
     { provide: LIST_READER, useExisting: GeminiService },
   ],
+  // Price alerts read prices with the same rule as the verdict.
+  exports: [VerdictRepository],
 })
 export class VerdictModule {}

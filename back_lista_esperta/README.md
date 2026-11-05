@@ -19,13 +19,16 @@ src/
   stores/                  lojas: busca por perto, cadastro, verificação de CNPJ, descoberta em segundo plano,
                            StoreMemberGuard e StoresGeoRepository (único acesso a `location`)
   store-claims/            "esta loja é minha": reivindicação, aprovada na hora com CNPJ que bate
-  admin/                   moderação de reivindicações e verificações (só ADMIN)
+  admin/                   moderação: reivindicações, verificações, aliases pendentes e duplicados (só ADMIN)
   geocoding/               endereço ↔ coordenada para quem não libera a localização
   products/                catálogo público, busca por código de barras (Open Food Facts), categorias
   prices/                  catálogo da loja, preços e ofertas, importação CSV, visão geral (mediana, NFC-e, procura)
   verdict/                 veredito: engine.ts (puro, testado), preço vigente por loja, horário de funcionamento,
                            procura anônima; POST /verdict e POST /lists/parse-photo
   integrations/routes/     distância e tempo: OpenRouteService com ORS_API_KEY, senão estimativa (linha reta × 1,3)
+  flyers/                  encartes: Firecrawl → Gemini → normalização → preços FLYER (POST /stores/:id/flyers)
+  alerts/                  alertas de preço e Web Push (VAPID próprio); checagem periódica
+  integrations/firecrawl/  cliente do Firecrawl (POST /v2/scrape)
   sponsored/               conteúdo patrocinado, fora do motor (regra de lint + teste e2e de neutralidade)
   storage/                 StorageService (disco local hoje) para fotos de loja e de nota
   receipts/                NFC-e: chave de acesso, parsers por UF (parsers/sp.parser.ts), foto via Gemini, normalização

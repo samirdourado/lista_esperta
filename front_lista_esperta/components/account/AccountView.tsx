@@ -1,6 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/Button";
@@ -48,6 +49,15 @@ export function AccountView() {
         <dd className="font-medium">{ROLE_LABEL[user.role]}</dd>
       </dl>
       <PreferencesForm user={user} />
+      <section aria-labelledby="alerts-link" className="flex flex-col gap-2">
+        <h2 id="alerts-link" className="text-2xl font-bold">
+          Alertas de preço
+        </h2>
+        <p className="text-ink-soft">Receba um aviso quando um produto baixar de preço perto de você.</p>
+        <Link href="/alerts" className="self-start font-semibold text-brand underline underline-offset-4">
+          Ver meus alertas
+        </Link>
+      </section>
       <MyReceipts />
       <SignOut />
     </div>

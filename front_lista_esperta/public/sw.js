@@ -77,3 +77,35 @@ self.addEventListener("fetch", (event) => {
     event.respondWith(cacheFirst(request));
   }
 });
+
+// Price alerts (Web Push). The API sends { title, body, url, tag }.
+self.addEventListener("push", (event) => {
+  let message = { title: "Lista Esperta", body: "", url: "/alerts" };
+  try {
+    message = { ...message, ...event.data.json() };
+  } catch {
+    // A push without JSON still shows something useful.
+  }
+  event.waitUntil(
+    self.registration.showNotification(message.title, {
+      body: message.body,
+      tag: message.tag,
+      icon: "/icons/icon-192.png",
+      badge: "/icons/icon-192.png",
+      data: { url: message.url },
+    }),
+  );
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const target = new URL(event.notification.data?.url ?? "/alerts", self.location.origin).href;
+  event.waitUntil(
+    (async () => {
+      const windows = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
+      const open = windows.find((client) => client.url === target);
+      if (open) return open.focus();
+      return self.clients.openWindow(target);
+    })(),
+  );
+});

@@ -340,6 +340,102 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/overview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminController_overview"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/aliases/pending": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminController_pendingAliases"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/aliases/{aliasId}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminController_approveAlias"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/aliases/{aliasId}/reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminController_rejectAlias"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/products/duplicates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminController_duplicates"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/products/merge": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminController_merge"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/store-claims": {
         parameters: {
             query?: never;
@@ -724,6 +820,118 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/stores/{storeId}/flyers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["FlyersController_list"];
+        put?: never;
+        post: operations["FlyersController_import"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/push/public-key": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AlertsController_publicKey"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/push/subscriptions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AlertsController_subscribe"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/push/subscriptions/remove": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AlertsController_unsubscribe"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/push/test": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AlertsController_test"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/alerts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AlertsController_list"];
+        put?: never;
+        post: operations["AlertsController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/alerts/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["AlertsController_remove"];
+        options?: never;
+        head?: never;
+        patch: operations["AlertsController_update"];
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1028,6 +1236,80 @@ export interface components {
             lng: number;
             address: components["schemas"]["AddressDto"];
         };
+        AdminOverviewDto: {
+            pendingClaims: number;
+            pendingVerifications: number;
+            pendingAliases: number;
+        };
+        AliasStoreDto: {
+            id: string;
+            name: string;
+        };
+        AdminProductDto: {
+            id: string;
+            canonicalName: string;
+            brand: string | null;
+            gtin: string | null;
+            unit: string;
+            unitQuantity: number;
+            /** @description Price observations of this product */
+            prices: number;
+        };
+        PendingAliasDto: {
+            id: string;
+            /** @description Text as printed on receipts or flyers */
+            rawText: string;
+            store: components["schemas"]["AliasStoreDto"] | null;
+            /** @description What the model suggested */
+            product: components["schemas"]["AdminProductDto"];
+            /** @description Receipt lines and flyer items with this text */
+            occurrences: number;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        ApproveAliasDto: {
+            /**
+             * Format: uuid
+             * @description Another product, when the suggestion was wrong
+             */
+            productId?: string;
+        };
+        AliasDecisionDto: {
+            id: string;
+            /** @enum {string} */
+            status: "APPROVED" | "REJECTED";
+            /** @description Prices created from past receipts and flyers */
+            pricesAdded: number;
+        };
+        DuplicatePairDto: {
+            a: components["schemas"]["AdminProductDto"];
+            b: components["schemas"]["AdminProductDto"];
+            /** @description Name similarity, 0 to 1 */
+            score: number;
+        };
+        MergeProductsDto: {
+            /**
+             * Format: uuid
+             * @description Product that stays
+             */
+            keepId: string;
+            /**
+             * Format: uuid
+             * @description Product folded into it
+             */
+            mergeId: string;
+        };
+        MergeResultDto: {
+            product: components["schemas"]["AdminProductDto"];
+            pricesMoved: number;
+            aliasesMoved: number;
+        };
+        ClaimUserDto: {
+            id: string;
+            /** @example loja@example.com */
+            email: string;
+            displayName: string;
+        };
         AdminStoreClaimResponseDto: {
             /** Format: uuid */
             id: string;
@@ -1036,14 +1318,19 @@ export interface components {
             /** Format: date-time */
             createdAt: string;
             store: components["schemas"]["StoreResponseDto"];
-            /**
-             * @example {
-             *       "id": "uuid",
-             *       "email": "loja@example.com",
-             *       "displayName": "Loja"
-             *     }
-             */
-            user: Record<string, never>;
+            user: components["schemas"]["ClaimUserDto"];
+        };
+        CompanySnapshotDto: {
+            legalName: string;
+            tradeName: string | null;
+            /** @example ATIVA */
+            registrationStatus: string;
+            address: components["schemas"]["AddressDto"];
+            checks: components["schemas"]["VerificationChecksDto"];
+        };
+        PendingStoreDto: {
+            store: components["schemas"]["StoreResponseDto"];
+            company: components["schemas"]["CompanySnapshotDto"] | null;
         };
         SetVerificationDto: {
             /** @enum {string} */
@@ -1460,6 +1747,98 @@ export interface components {
             /** @example Compras da semana */
             name: string;
             items: components["schemas"]["ShoppingListItemInputDto"][];
+        };
+        FlyerItemResultDto: {
+            description: string;
+            price: number;
+            /** @enum {string} */
+            status: "MATCHED" | "PENDING" | "UNMATCHED";
+            productName: string | null;
+        };
+        FlyerImportDto: {
+            id: string;
+            url: string;
+            title: string | null;
+            /** @enum {string} */
+            status: "DONE" | "FAILED";
+            /** Format: date-time */
+            validUntil: string | null;
+            itemsFound: number;
+            pricesAdded: number;
+            /** @description Items waiting for an admin to confirm the product */
+            pending: number;
+            error: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            items: components["schemas"]["FlyerItemResultDto"][];
+        };
+        ImportFlyerDto: {
+            /**
+             * @description Public link of the store flyer (page or PDF)
+             * @example https://www.mercado.com.br/encarte-da-semana.pdf
+             */
+            url: string;
+        };
+        PushPublicKeyDto: {
+            /** @description VAPID public key; null when push is not configured */
+            publicKey: string | null;
+        };
+        PushKeysDto: {
+            p256dh: string;
+            auth: string;
+        };
+        PushSubscriptionDto: {
+            endpoint: string;
+            keys: components["schemas"]["PushKeysDto"];
+        };
+        PushEndpointDto: {
+            endpoint: string;
+        };
+        PushTestResultDto: {
+            sent: number;
+        };
+        AlertProductDto: {
+            id: string;
+            canonicalName: string;
+        };
+        AlertBestPriceDto: {
+            price: number;
+            storeId: string;
+            storeName: string;
+            distanceKm: number;
+            /** @enum {string} */
+            source: "NFCE" | "MERCHANT" | "FLYER" | "COMMUNITY";
+        };
+        PriceAlertDto: {
+            id: string;
+            product: components["schemas"]["AlertProductDto"];
+            targetPrice: number;
+            radiusKm: number;
+            origin: components["schemas"]["PointDto"];
+            active: boolean;
+            /** @description Lowest current price in the area */
+            best: components["schemas"]["AlertBestPriceDto"] | null;
+            /** Format: date-time */
+            notifiedAt: string | null;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        CreateAlertDto: {
+            /** Format: uuid */
+            productId: string;
+            /**
+             * @description Notify at this price or less
+             * @example 4.99
+             */
+            targetPrice: number;
+            origin: components["schemas"]["PointDto"];
+            /** @default 5 */
+            radiusKm: number;
+        };
+        UpdateAlertDto: {
+            active?: boolean;
+            targetPrice?: number;
+            radiusKm?: number;
         };
     };
     responses: never;
@@ -2100,6 +2479,132 @@ export interface operations {
             };
         };
     };
+    AdminController_overview: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminOverviewDto"];
+                };
+            };
+        };
+    };
+    AdminController_pendingAliases: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PendingAliasDto"][];
+                };
+            };
+        };
+    };
+    AdminController_approveAlias: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                aliasId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ApproveAliasDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AliasDecisionDto"];
+                };
+            };
+        };
+    };
+    AdminController_rejectAlias: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                aliasId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AliasDecisionDto"];
+                };
+            };
+        };
+    };
+    AdminController_duplicates: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DuplicatePairDto"][];
+                };
+            };
+        };
+    };
+    AdminController_merge: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MergeProductsDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MergeResultDto"];
+                };
+            };
+        };
+    };
     AdminController_listClaims: {
         parameters: {
             query?: {
@@ -2177,7 +2682,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["StoreResponseDto"][];
+                    "application/json": components["schemas"]["PendingStoreDto"][];
                 };
             };
         };
@@ -2799,6 +3304,218 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    FlyersController_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                storeId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FlyerImportDto"][];
+                };
+            };
+        };
+    };
+    FlyersController_import: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                storeId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ImportFlyerDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FlyerImportDto"];
+                };
+            };
+        };
+    };
+    AlertsController_publicKey: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PushPublicKeyDto"];
+                };
+            };
+        };
+    };
+    AlertsController_subscribe: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PushSubscriptionDto"];
+            };
+        };
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AlertsController_unsubscribe: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PushEndpointDto"];
+            };
+        };
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AlertsController_test: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PushTestResultDto"];
+                };
+            };
+        };
+    };
+    AlertsController_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PriceAlertDto"][];
+                };
+            };
+        };
+    };
+    AlertsController_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateAlertDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PriceAlertDto"];
+                };
+            };
+        };
+    };
+    AlertsController_remove: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AlertsController_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateAlertDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PriceAlertDto"];
+                };
             };
         };
     };

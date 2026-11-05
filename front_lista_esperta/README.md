@@ -15,9 +15,12 @@ PWA da **Lista Esperta** em Next.js 16 (App Router, Cache Components, Tailwind v
 | `/how-it-works` | `(shopper)` | Fórmula, parâmetros e neutralidade |
 | `/offline` | `(shopper)` | Página servida pelo service worker sem conexão |
 | `/login`, `/register` | `(auth)` | Entrar e criar conta ("Quero economizar" / "Tenho uma loja") |
+| `/alerts` | `(shopper)` | Alertas de preço: produto, preço-alvo, raio, menor preço agora e notificações no aparelho. Para quem tem conta |
 | `/account` | `(shopper)` | Minha conta: nome, custo por km, valor da hora, raio padrão, sair. Exige login |
 | `/merchant` | `merchant/` | Lojas do lojista. Exige conta de lojista ou admin |
 | `/merchant/stores/[storeId]` | `merchant/` | Painel da loja: visão geral, produtos e preços, importar planilha, equipe, fotos e CNPJ |
+| `/merchant/stores/[storeId]/flyers` | `merchant/` | Encartes: colar o link (página ou PDF) e ver o que entrou, o que está em revisão e o histórico |
+| `/admin` | `admin/` | Moderação: visão geral, reivindicações, verificações de CNPJ e catálogo (produtos para confirmar, duplicados). Só admin |
 | `/merchant/onboarding` | `merchant/` | Encontrar a loja no mapa e pedir para administrá-la, ou cadastrá-la (pin, horários, categorias, CNPJ) |
 
 O `proxy.ts` protege `/merchant`, `/admin` e `/account` consultando `GET /api/v1/auth/me` (ver `docs/DECISIONS.md`, D-023).
@@ -51,6 +54,7 @@ MapLibre GL 6 com tiles gratuitos do OpenFreeMap (sem chave). O worker do MapLib
 ## PWA
 
 - `app/manifest.ts`, com ícones gerados a partir do logo em `public/icons/` (192, 512, maskable e apple-touch). Os arquivos de logo originais não são alterados.
+- `public/sw.js`: mostra as notificações dos alertas de preço (`push`) e abre a página certa ao tocar (`notificationclick`).
 - `public/sw.js`: páginas com *network first* e fallback para o cache e depois para `/offline`; `/_next/static` com *cache first*. A API (outra origem) nunca passa pelo cache.
 - O service worker **só é registrado no build de produção**. Para testar: `npm run build && npm start`, e veja em DevTools → Application. Para registrar em dev, use `NEXT_PUBLIC_ENABLE_SW_IN_DEV=true`.
 - `experimental.useOffline` mostra o aviso "Sem internet" e repete as navegações quando a conexão volta.

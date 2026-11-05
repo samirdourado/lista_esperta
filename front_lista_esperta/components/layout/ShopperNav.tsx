@@ -27,7 +27,7 @@ export function HeaderNav() {
                 href={item.href}
                 aria-current={current ? "page" : undefined}
                 className={cx(
-                  "inline-flex min-h-tap items-center rounded-full px-3.5 font-medium",
+                  "inline-flex min-h-tap items-center rounded-full px-3.5 font-medium whitespace-nowrap",
                   current ? "bg-brand-soft text-brand" : "text-ink-soft hover:text-ink",
                 )}
               >

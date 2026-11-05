@@ -2,6 +2,43 @@
 
 Registro de decisões tomadas onde a especificação era ambígua ou conflitava com o ambiente. A mais recente fica no topo de cada fase.
 
+## Fase 8
+
+### D-067 · Aviso de navegação instantânea no dev (pendência pequena)
+Com Cache Components, o `next dev` mostra "Could not validate that a segment in your UI has instant navigation" nas páginas de uma loja do painel (`/merchant/stores/[storeId]/*`), desde a fase 5. É um aviso de desenvolvimento (nível `warning`) sobre o layout que lê o `storeId` da URL. Não muda o comportamento nem aparece no build. Fica para quando o projeto adotar o Partial Prefetching.
+
+### D-066 · Painel do admin
+`/admin` tem quatro abas, com o número de pendências em cada uma:
+- visão geral;
+- reivindicações de loja;
+- lojas com CNPJ para conferir;
+- catálogo.
+
+Nas lojas, o registro da Receita Federal (`companyData`) aparece lado a lado com o cadastro, com cada conferência (ativo, estado, cidade, CEP, nome). No catálogo:
+- **Produtos para confirmar:** aliases com confiança < 0,8, com o texto da nota ou do encarte, a loja, quantas vezes apareceu e a sugestão do modelo. "É esse produto", "É outro produto" (busca no catálogo) ou "Recusar". Aprovar cria na hora os preços das notas e dos encartes que esperavam por aquele alias, uma vez só por nota ou encarte, e marca as linhas como reconhecidas.
+- **Recusar** guarda o alias como `REJECTED` (valor novo do enum) em vez de apagar. Assim o mesmo texto não vai de novo para o Gemini, nem gera um produto errado na próxima nota.
+- **Possíveis duplicados:** mesma unidade e tamanho, marcas compatíveis, sem códigos de barras diferentes e nome com similaridade ≥ 0,5. A mesclagem move preços, aliases, itens de listas, alertas e procura, completa marca e código de barras e apaga o duplicado. O servidor recusa tamanhos, marcas ou códigos diferentes, mesmo que alguém tente pela API.
+
+### D-065 · Alertas de preço com Web Push próprio
+Para quem tem conta (vantagem da conta, seção 3 da especificação). O alerta guarda produto, preço-alvo, ponto e raio. A cada `ALERTS_CHECK_MINUTES` (padrão 15), a API procura o menor preço atual na área com **a mesma regra do veredito** (`VerdictRepository.currentPrices`, D-055). Ela avisa quando o preço chega ao alvo e só de novo quando aparece um preço **ainda menor**. Se o preço sobe acima do alvo, o alerta se rearma.
+- O envio usa Web Push com chaves VAPID geradas localmente (`npx web-push generate-vapid-keys`): sem conta em serviço de terceiros e sem custo. As chaves foram colocadas no `.env` do back. Sem elas, os alertas continuam funcionando na página `/alerts`, só sem notificação.
+- Inscrições que o navegador descartou (404/410) são apagadas.
+- O checador roda num `setInterval` dentro da API, sem nova dependência. Com mais de uma instância, ele iria para uma fila ou cron único.
+- No aparelho, a notificação só funciona com o service worker ativo (build de produção ou `NEXT_PUBLIC_ENABLE_SW_IN_DEV=true`) e, no iPhone, com o app instalado na tela de início. A tela explica cada caso.
+
+### D-064 · Encartes via Firecrawl
+O lojista cola o link do encarte (página ou PDF) em **Encartes**, no painel da loja. O fluxo:
+1. O Firecrawl (`POST /v2/scrape`, só markdown do conteúdo principal; PDFs são lidos) traz o texto.
+2. O Gemini lista produto, preço e validade, com JSON validado.
+3. A mesma normalização das notas fiscais liga cada item ao catálogo.
+
+Só itens com confiança ≥ 0,8 viram preço `FLYER`, válido até o fim do último dia do encarte (horário de São Paulo), ou por 7 dias quando o encarte não diz. O resto espera o admin (D-066).
+
+Só membros da loja importam encartes, até 5 por minuto, porque cada leitura gasta cota do Firecrawl e do Gemini. Encarte vencido, página sem texto e link que não abre são recusados com mensagem clara, e a tentativa fica registrada. Encartes só em imagem, sem texto nem PDF, não são lidos. Testado com o Firecrawl e o Gemini reais (`example.com`, que responde "sem preços").
+
+### D-063 · Migração com nome em ordem
+O `prisma migrate dev` gerou `20261105070438_…`, que ficaria **antes** de `20261105100000_merchant_catalog` (nome escrito à mão na fase 5). Num banco novo, a ordem estaria errada. A pasta foi renomeada para `20261105200000_phase8_flyers_alerts_admin`, e a linha correspondente em `_prisma_migrations` do banco de dev também.
+
 ## Fase 7
 
 ### D-060 · Item digitado → produto do catálogo, sem trocar tamanho

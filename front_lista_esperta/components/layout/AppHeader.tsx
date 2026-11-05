@@ -14,7 +14,7 @@ export function AppHeader() {
           <HeaderNav />
           <Link
             href="/merchant"
-            className="inline-flex min-h-tap items-center gap-1.5 rounded-full px-3 text-[0.95rem] font-medium text-ink-soft hover:text-ink md:ml-2 md:border md:border-line"
+            className="inline-flex min-h-tap items-center gap-1.5 rounded-full px-3 text-[0.95rem] font-medium whitespace-nowrap text-ink-soft hover:text-ink md:ml-2 md:border md:border-line"
           >
             <StoreIcon />
             <span className="hidden min-[400px]:inline">Tenho uma loja</span>

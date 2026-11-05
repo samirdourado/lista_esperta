@@ -29,7 +29,7 @@ export function SessionNav() {
       aria-label={`Minha conta (${user.displayName})`}
     >
       <UserIcon />
-      <span className="hidden max-w-32 truncate sm:inline">{user.displayName}</span>
+      <span className="hidden max-w-32 truncate sm:inline lg:hidden xl:inline">{user.displayName}</span>
     </Link>
   );
 }

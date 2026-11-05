@@ -132,6 +132,43 @@ export const RECEIPT_SCHEMA = {
   required: ['store_name', 'issued_at', 'total', 'lines'],
 } as const;
 
+export class FlyerItemDto {
+  @IsString() @Length(2, 200) description: string;
+  @IsNumber() @Min(0.01) @Max(100000) price: number;
+  @IsOptional() @Matches(/^\d{8,14}$/) gtin?: string | null;
+}
+
+/** Gemini output for a store flyer read as text (Firecrawl markdown). */
+export class ExtractedFlyerDto {
+  /** Last day of the offers, YYYY-MM-DD, when the flyer says it. */
+  @IsOptional() @Matches(/^\d{4}-\d{2}-\d{2}$/) valid_until?: string | null;
+  @IsArray()
+  @ArrayMaxSize(300)
+  @ValidateNested({ each: true })
+  @Type(() => FlyerItemDto)
+  items: FlyerItemDto[];
+}
+
+export const FLYER_SCHEMA = {
+  type: 'OBJECT',
+  properties: {
+    valid_until: { type: 'STRING', nullable: true },
+    items: {
+      type: 'ARRAY',
+      items: {
+        type: 'OBJECT',
+        properties: {
+          description: { type: 'STRING' },
+          price: { type: 'NUMBER' },
+          gtin: { type: 'STRING', nullable: true },
+        },
+        required: ['description', 'price'],
+      },
+    },
+  },
+  required: ['items'],
+} as const;
+
 export class ListLineDto {
   @IsString() @Length(1, 200) text: string;
   @IsNumber() @Min(0.001) @Max(999) quantity: number;

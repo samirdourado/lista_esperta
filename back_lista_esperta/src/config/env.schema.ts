@@ -73,6 +73,14 @@ export const envSchema = z
       .url()
       .default('https://generativelanguage.googleapis.com/v1beta'),
     FIRECRAWL_API_KEY: z.string().optional(),
+    FIRECRAWL_URL: z.url().default('https://api.firecrawl.dev'),
+    /** Web Push (price alerts). Generate with `npx web-push generate-vapid-keys`. */
+    VAPID_PUBLIC_KEY: z.string().optional(),
+    VAPID_PRIVATE_KEY: z.string().optional(),
+    /** Contact for push services: a mailto: or https: URL of the project. */
+    VAPID_SUBJECT: z.string().default('https://listaesperta.app'),
+    /** How often price alerts are checked; 0 turns the check off (tests). */
+    ALERTS_CHECK_MINUTES: z.coerce.number().int().min(0).default(15),
     NFCE_PROVIDER_API_KEY: z.string().optional(),
   })
   .refine((env) => env.JWT_ACCESS_SECRET !== env.JWT_REFRESH_SECRET, {

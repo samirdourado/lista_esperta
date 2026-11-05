@@ -13,6 +13,7 @@ const TABS = [
   { href: "", label: "Visão geral" },
   { href: "/products", label: "Produtos e preços" },
   { href: "/import", label: "Importar planilha" },
+  { href: "/flyers", label: "Encartes" },
   { href: "/team", label: "Equipe" },
   { href: "/settings", label: "Loja" },
 ];
