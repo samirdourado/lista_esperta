@@ -221,8 +221,56 @@ export interface paths {
         };
         get: operations["StoresController_members"];
         put?: never;
-        post?: never;
+        post: operations["TeamAndPhotosController_addMember"];
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stores/{storeId}/photos": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["TeamAndPhotosController_photos"];
+        put?: never;
+        post: operations["TeamAndPhotosController_addPhoto"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stores/{storeId}/photos/{photoId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["TeamAndPhotosController_removePhoto"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stores/{storeId}/members/{userId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["TeamAndPhotosController_removeMember"];
         options?: never;
         head?: never;
         patch?: never;
@@ -366,6 +414,150 @@ export interface paths {
         get?: never;
         put?: never;
         post: operations["AdminController_setVerification"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/products": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ProductsController_search"];
+        put?: never;
+        post: operations["ProductsController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/products/lookup/{gtin}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ProductsController_lookup"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/categories": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ProductsController_categories"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stores/{storeId}/overview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PricesController_overview"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stores/{storeId}/products": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PricesController_catalog"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stores/{storeId}/prices": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["PricesController_setPrices"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stores/{storeId}/products/{productId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["PricesController_withdraw"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stores/{storeId}/offers/{offerId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["PricesController_endOffer"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stores/{storeId}/prices/import": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["PricesController_importCsv"];
         delete?: never;
         options?: never;
         head?: never;
@@ -677,6 +869,19 @@ export interface components {
             displayName: string;
             memberRole: components["schemas"]["StoreMemberRole"];
         };
+        StorePhotoDto: {
+            /** Format: uuid */
+            id: string;
+            /** @example http://localhost:3333/uploads/stores/abc.jpg */
+            url: string;
+        };
+        AddMemberDto: {
+            /**
+             * @description Must already have a merchant account
+             * @example equipe@example.com
+             */
+            email: string;
+        };
         CreateStoreClaimDto: {
             /** Format: uuid */
             storeId: string;
@@ -731,6 +936,137 @@ export interface components {
         SetVerificationDto: {
             /** @enum {string} */
             status: "VERIFIED" | "UNVERIFIED";
+        };
+        /** @enum {string} */
+        MeasureUnit: "UN" | "G" | "KG" | "ML" | "L" | "M" | "M2";
+        ProductResponseDto: {
+            /** Format: uuid */
+            id: string;
+            gtin: string | null;
+            canonicalName: string;
+            brand: string | null;
+            categorySlug: string;
+            unit: components["schemas"]["MeasureUnit"];
+            unitQuantity: number;
+        };
+        ProductSuggestionDto: {
+            gtin: string;
+            name: string;
+            brand: string | null;
+            /** @enum {string|null} */
+            unit: "UN" | "G" | "KG" | "ML" | "L" | "M" | "M2" | null;
+            unitQuantity: number | null;
+            categorySlug: string | null;
+            /** @enum {string} */
+            source: "OPEN_FOOD_FACTS";
+        };
+        ProductLookupResponseDto: {
+            /** @description Already in the catalog */
+            product?: components["schemas"]["ProductResponseDto"] | null;
+            /** @description Found in Open Food Facts; confirm to create */
+            suggestion?: components["schemas"]["ProductSuggestionDto"] | null;
+        };
+        CreateProductDto: {
+            /** @example 7891000100103 */
+            gtin?: string;
+            /** @example Leite condensado integral 395 g */
+            canonicalName: string;
+            /** @example Moça */
+            brand?: string;
+            /** @example laticinios */
+            categorySlug: string;
+            unit: components["schemas"]["MeasureUnit"];
+            /** @example 395 */
+            unitQuantity: number;
+        };
+        CategoryNodeDto: {
+            slug: string;
+            name: string;
+            children: components["schemas"]["CategoryNodeDto"][];
+        };
+        DivergenceDto: {
+            productId: string;
+            canonicalName: string;
+            merchantPrice: number;
+            receiptPrice: number;
+            /** Format: date-time */
+            receiptAt: string;
+            /** @description (receipt − merchant) / merchant */
+            difference: number;
+        };
+        DemandItemDto: {
+            productId: string;
+            canonicalName: string;
+            /** @description Lists in the area over 7 days (only shown when ≥ 10) */
+            lists: number;
+            /** @description The store sells it */
+            listed: boolean;
+        };
+        StoreOverviewDto: {
+            productsListed: number;
+            activeOffers: number;
+            /** @description Products cheaper than the regional median */
+            belowMedian: number;
+            /** @description Products pricier than the regional median */
+            aboveMedian: number;
+            divergences: components["schemas"]["DivergenceDto"][];
+            demand: components["schemas"]["DemandItemDto"][];
+        };
+        CatalogItemDto: {
+            /** Format: uuid */
+            productId: string;
+            gtin: string | null;
+            canonicalName: string;
+            brand: string | null;
+            categorySlug: string;
+            unit: components["schemas"]["MeasureUnit"];
+            unitQuantity: number;
+            regularPrice: number | null;
+            /** Format: date-time */
+            regularObservedAt: string | null;
+            offerId: string | null;
+            offerPrice: number | null;
+            /** Format: date-time */
+            offerValidUntil: string | null;
+            /** @description Median of other stores within 5 km */
+            regionMedian: number | null;
+            /** @description Stores behind the median */
+            regionStores: number;
+            /** @description Latest NFC-e price paid here (7 days) */
+            receiptPrice: number | null;
+            /** Format: date-time */
+            receiptAt: string | null;
+            /** @description Receipt differs more than 15 % from the regular price */
+            divergent: boolean;
+        };
+        PriceInputDto: {
+            /** Format: uuid */
+            productId: string;
+            /** @example 12.9 */
+            price: number;
+            /**
+             * Format: date-time
+             * @description Makes it an offer that ends at this moment (up to 90 days ahead)
+             */
+            validUntil?: string;
+        };
+        SetPricesDto: {
+            prices: components["schemas"]["PriceInputDto"][];
+        };
+        SavedDto: {
+            saved: number;
+        };
+        ImportRowErrorDto: {
+            /** @description Line in the file (1 = header) */
+            line: number;
+            /** @enum {string} */
+            code: "MISSING_PRICE" | "INVALID_GTIN" | "PRODUCT_NOT_FOUND" | "INVALID_DATE" | "UNKNOWN_CATEGORY" | "INVALID_UNIT" | "LOOKUP_LIMIT";
+        };
+        ImportReportDto: {
+            rowsRead: number;
+            pricesSaved: number;
+            productsCreated: number;
+            errors: components["schemas"]["ImportRowErrorDto"][];
         };
         ShoppingListItemResponseDto: {
             /** Format: uuid */
@@ -1202,6 +1538,132 @@ export interface operations {
             };
         };
     };
+    TeamAndPhotosController_addMember: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                storeId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AddMemberDto"];
+            };
+        };
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description ALREADY_MEMBER */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    TeamAndPhotosController_photos: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                storeId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StorePhotoDto"][];
+                };
+            };
+        };
+    };
+    TeamAndPhotosController_addPhoto: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                storeId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    /** Format: binary */
+                    file?: string;
+                };
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StorePhotoDto"];
+                };
+            };
+        };
+    };
+    TeamAndPhotosController_removePhoto: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                storeId: string;
+                photoId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    TeamAndPhotosController_removeMember: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                storeId: string;
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description LAST_OWNER */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     StoreClaimsController_create: {
         parameters: {
             query?: never;
@@ -1409,6 +1871,238 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["StoreResponseDto"];
+                };
+            };
+        };
+    };
+    ProductsController_search: {
+        parameters: {
+            query?: {
+                /** @description Name to search (similar names match too) */
+                q?: string;
+                gtin?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProductResponseDto"][];
+                };
+            };
+        };
+    };
+    ProductsController_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateProductDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProductResponseDto"];
+                };
+            };
+            /** @description GTIN_TAKEN */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ProductsController_lookup: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                gtin: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProductLookupResponseDto"];
+                };
+            };
+        };
+    };
+    ProductsController_categories: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CategoryNodeDto"][];
+                };
+            };
+        };
+    };
+    PricesController_overview: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                storeId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StoreOverviewDto"];
+                };
+            };
+        };
+    };
+    PricesController_catalog: {
+        parameters: {
+            query?: {
+                /** @description Name or barcode */
+                q?: string;
+            };
+            header?: never;
+            path: {
+                storeId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CatalogItemDto"][];
+                };
+            };
+        };
+    };
+    PricesController_setPrices: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                storeId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SetPricesDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SavedDto"];
+                };
+            };
+        };
+    };
+    PricesController_withdraw: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                storeId: string;
+                productId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PricesController_endOffer: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                storeId: string;
+                offerId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PricesController_importCsv: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                storeId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    /** Format: binary */
+                    file?: string;
+                };
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImportReportDto"];
                 };
             };
         };

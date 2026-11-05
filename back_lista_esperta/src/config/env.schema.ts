@@ -39,6 +39,11 @@ export const envSchema = z
     NOMINATIM_URL: z.url().default('https://nominatim.openstreetmap.org'),
     BRASILAPI_URL: z.url().default('https://brasilapi.com.br/api'),
     HTTP_USER_AGENT: z.string().min(3).default(DEFAULT_USER_AGENT),
+    OPEN_FOOD_FACTS_URL: z.url().default('https://world.openfoodfacts.org'),
+    /** Public base URL of this API, used to build links to uploaded files. */
+    PUBLIC_URL: z.url().default('http://localhost:3333'),
+    /** Folder for uploads (store photos, receipt photos). Mounted as a volume in Docker. */
+    UPLOADS_DIR: z.string().min(1).default('uploads'),
     /** Background import of shops from OpenStreetMap. Off in tests. */
     DISCOVERY_ENABLED: booleanString.default(true),
     DISCOVERY_TTL_DAYS: z.coerce.number().int().positive().default(30),

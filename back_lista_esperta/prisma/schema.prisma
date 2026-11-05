@@ -127,17 +127,46 @@ model Store {
   createdAt          DateTime                             @default(now()) @map("created_at")
   updatedAt          DateTime                             @default(now()) @updatedAt @map("updated_at")
 
-  categories StoreCategory[]
-  members    StoreMember[]
-  claims     StoreClaim[]
-  prices     PriceObservation[]
-  receipts   Receipt[]
-  aliases    ProductAlias[]
+  categories  StoreCategory[]
+  members     StoreMember[]
+  claims      StoreClaim[]
+  prices      PriceObservation[]
+  receipts    Receipt[]
+  aliases     ProductAlias[]
+  storePhotos StorePhoto[]
 
   @@unique([source, externalId])
   @@index([location], map: "stores_location_gix", type: Gist)
   @@index([name(ops: raw("gin_trgm_ops"))], map: "stores_name_trgm_idx", type: Gin)
   @@map("stores")
+}
+
+model StorePhoto {
+  id         String   @id @default(uuid()) @db.Uuid
+  storeId    String   @map("store_id") @db.Uuid
+  /// Key in the StorageService (local disk today, a bucket later).
+  storageKey String   @map("storage_key")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  store Store @relation(fields: [storeId], references: [id], onDelete: Cascade)
+
+  @@index([storeId])
+  @@map("store_photos")
+}
+
+/// Anonymous, aggregated demand: how many lists asked for a product in a ~1 km
+/// cell on a day. No user or device ids. Written by the verdict (phase 7).
+model DemandSignal {
+  productId String   @map("product_id") @db.Uuid
+  cellKey   String   @map("cell_key")
+  day       DateTime @db.Date
+  lists     Int      @default(0)
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@id([productId, cellKey, day])
+  @@index([cellKey, day])
+  @@map("demand_signals")
 }
 
 model StoreCategory {
@@ -224,6 +253,7 @@ model Product {
   aliases       ProductAlias[]
   prices        PriceObservation[]
   shoppingItems ShoppingListItem[]
+  demand        DemandSignal[]
 
   @@index([categoryId])
   @@index([canonicalName(ops: raw("gin_trgm_ops"))], map: "products_name_trgm_idx", type: Gin)
@@ -253,6 +283,8 @@ model PriceObservation {
   source       PriceSource
   observedAt   DateTime    @default(now()) @map("observed_at")
   validUntil   DateTime?   @map("valid_until")
+  /// Set when the merchant withdraws the price (product no longer sold, offer ended early).
+  retractedAt  DateTime?   @map("retracted_at")
   receiptId    String?     @map("receipt_id") @db.Uuid
   reportedById String?     @map("reported_by_id") @db.Uuid
   guestId      String?     @map("guest_id") @db.Uuid

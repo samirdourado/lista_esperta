@@ -12,4 +12,6 @@ export const TEST_ENV = {
   THROTTLE_DISABLED: 'true',
   // Store discovery calls OpenStreetMap; stores.e2e-spec.ts turns it on with a fake.
   DISCOVERY_ENABLED: 'false',
+  // Uploads from e2e tests go to a throwaway folder (gitignored).
+  UPLOADS_DIR: 'test-uploads',
 };

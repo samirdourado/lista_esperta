@@ -10,9 +10,12 @@ import { validateEnv } from './config/env.schema.js';
 import { GeocodingModule } from './geocoding/geocoding.module.js';
 import { HealthModule } from './health/health.module.js';
 import { IntegrationsModule } from './integrations/integrations.module.js';
+import { PricesModule } from './prices/prices.module.js';
 import { PrismaModule } from './prisma/prisma.module.js';
+import { ProductsModule } from './products/products.module.js';
 import { ShoppingListsModule } from './shopping-lists/shopping-lists.module.js';
 import { StoreClaimsModule } from './store-claims/store-claims.module.js';
+import { StorageModule } from './storage/storage.module.js';
 import { StoresModule } from './stores/stores.module.js';
 import { UsersModule } from './users/users.module.js';
 
@@ -26,6 +29,7 @@ import { UsersModule } from './users/users.module.js';
     ThrottlerModule.forRoot(THROTTLERS),
     PrismaModule,
     IntegrationsModule,
+    StorageModule,
     HealthModule,
     AuthModule,
     UsersModule,
@@ -33,6 +37,8 @@ import { UsersModule } from './users/users.module.js';
     StoreClaimsModule,
     GeocodingModule,
     AdminModule,
+    ProductsModule,
+    PricesModule,
     ShoppingListsModule,
   ],
   providers: [

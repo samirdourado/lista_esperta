@@ -21,6 +21,9 @@ src/
   store-claims/            "esta loja é minha": reivindicação, aprovada na hora com CNPJ que bate
   admin/                   moderação de reivindicações e verificações (só ADMIN)
   geocoding/               endereço ↔ coordenada para quem não libera a localização
+  products/                catálogo público, busca por código de barras (Open Food Facts), categorias
+  prices/                  catálogo da loja, preços e ofertas, importação CSV, visão geral (mediana, NFC-e, procura)
+  storage/                 StorageService (disco local hoje) para fotos de loja e de nota
   integrations/            OpenStreetMap (Overpass), Nominatim, BrasilAPI atrás de interfaces
   shopping-lists/          listas dos usuários logados + importação guest → conta
   common/throttling.ts     rate limit por IP e por IP + X-Guest-Id

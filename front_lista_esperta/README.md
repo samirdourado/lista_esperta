@@ -16,7 +16,8 @@ PWA da **Lista Esperta** em Next.js 16 (App Router, Cache Components, Tailwind v
 | `/offline` | `(shopper)` | Página servida pelo service worker sem conexão |
 | `/login`, `/register` | `(auth)` | Entrar e criar conta ("Quero economizar" / "Tenho uma loja") |
 | `/account` | `(shopper)` | Minha conta: nome, custo por km, valor da hora, raio padrão, sair. Exige login |
-| `/merchant` | `merchant/` | Painel do lojista (protótipo). Exige conta de lojista ou admin |
+| `/merchant` | `merchant/` | Lojas do lojista. Exige conta de lojista ou admin |
+| `/merchant/stores/[storeId]` | `merchant/` | Painel da loja: visão geral, produtos e preços, importar planilha, equipe, fotos e CNPJ |
 | `/merchant/onboarding` | `merchant/` | Encontrar a loja no mapa e pedir para administrá-la, ou cadastrá-la (pin, horários, categorias, CNPJ) |
 
 O `proxy.ts` protege `/merchant`, `/admin` e `/account` consultando `GET /api/v1/auth/me` (ver `docs/DECISIONS.md`, D-023).

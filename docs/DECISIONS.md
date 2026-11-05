@@ -2,6 +2,43 @@
 
 Registro de decisões tomadas onde a especificação era ambígua ou conflitava com o ambiente. A mais recente fica no topo de cada fase.
 
+## Fase 5
+
+### D-039 · Código de barras pelo Open Food Facts
+A busca por EAN consulta primeiro o catálogo e depois o Open Food Facts, que é gratuito e sem chave (`PRODUCT_LOOKUP`, trocável). O resultado é só uma **sugestão** (nome, marca, unidade, quantidade e categoria aproximada): o lojista confere antes de cadastrar. A cobertura é boa em alimentos, higiene e limpeza e fraca em eletrônicos e construção; nesses casos, o cadastro é manual. Se o serviço falhar, a busca nunca dá erro ao lojista; o formulário simplesmente fica vazio.
+
+### D-040 · Preço é histórico; "atual" é o último
+- **Edição:** cada alteração grava uma `PriceObservation` nova (`source = MERCHANT`). O preço atual é o mais recente sem `validUntil`.
+- **Oferta:** é uma observação com `validUntil`, entre agora e 90 dias à frente.
+- **Retirada:** "Não vendo mais" e "Encerrar oferta" preenchem `retractedAt`, em vez de apagar, e o histórico continua auditável.
+
+### D-041 · Mediana regional e divergência com NFC-e
+- **Mediana:** é calculada com o último preço de cada **outra** loja num raio de 5 km. Valem preços do lojista e de encartes com até 30 dias, e de notas e da comunidade com até 7 dias.
+- **Divergência:** uma nota de até 7 dias com valor mais de 15 % diferente do preço do lojista aparece na visão geral, como pede a especificação.
+
+Tudo é calculado numa só consulta SQL (`PricesRepository.catalog`).
+
+### D-042 · Procura na região: agregada, anônima, k ≥ 10
+"Quantos shoppers com aquele item na lista estão no raio da loja" exigiria saber onde cada pessoa está. Em vez disso, a tabela `demand_signals` guarda apenas **contagens por produto, célula de cerca de 1 km e dia**, sem id de usuário nem de aparelho. Ela é alimentada pelo veredito da fase 7. O painel soma a célula da loja e as 8 vizinhas (cerca de 3 km) nos últimos 7 dias e mostra só produtos com pelo menos 10 listas.
+
+### D-043 · Importação de planilha
+CSV com `;` ou `,` (o Excel em pt-BR salva com `;`), cabeçalhos em português ou inglês e preço no formato "12,90" ou "12.90".
+- **Cada linha é ligada ao produto** pelo código de barras (primeiro no catálogo, depois no Open Food Facts, até 50 consultas por arquivo) ou pelo nome exato.
+- **Produtos novos sem código** podem ser criados se vierem as colunas categoria, unidade e quantidade.
+- **Linhas com erro não bloqueiam as boas:** o relatório lista a linha e o motivo.
+
+O limite é de 2.000 linhas e 1 MB por arquivo, com 10 importações por minuto.
+
+### D-044 · Equipe e fotos
+- **Equipe:** só o OWNER adiciona pessoas, por e-mail de uma conta de lojista existente (entra como STAFF), ou remove. A loja nunca fica sem dono. O STAFF edita preços, mas não mexe na equipe nem no CNPJ.
+- **Fotos:** ficam no disco local (`uploads/`), atrás do `StorageService`, que pode ser trocado por um bucket. O tipo é conferido pelos primeiros bytes do arquivo (JPEG, PNG ou WebP), não pelo nome. Limites: 5 MB e 10 fotos por loja. Os arquivos são servidos em `/uploads/…` com `nosniff`.
+- **Leitura pública:** `GET /stores/:storeId/photos` não passa pelo `StoreMemberGuard`, porque o guard protege rotas que **alteram** a loja (ver D-038).
+
+### D-045 · Painel real no lugar do protótipo
+`/merchant` lista as lojas, e `/merchant/stores/[storeId]` tem as abas Visão geral, Produtos e preços, Importar planilha, Equipe e Loja (CNPJ e fotos). O painel simulado do hackathon e `lib/demo/insights.ts` foram removidos.
+
+**Não entrou nesta fase:** editar endereço, horário e categorias pela aba "Loja". A API já aceita (`PATCH /stores/:storeId`); falta só a tela.
+
 ## Fase 4
 
 ### D-031 · Mapas gratuitos no lugar do Google (decisão sua)

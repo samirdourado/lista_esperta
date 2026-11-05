@@ -121,6 +121,10 @@ A primeira vez que uma região é aberta, as lojas levam até um minuto para apa
 
 Ainda simulado: os preços e o veredito (`lib/demo/`). A tela da lista ainda usa o centro da Vila Mariana quando você está fora de lá. Isso muda na fase 7, com o veredito real pela API.
 
-Próximas fases: 5 · dashboard do lojista → 6 · NFC-e → 7 · lista + veredito → 8 · opcionais.
+**Fase 5 — painel do lojista** ✅
+- `/merchant/stores/[id]`: visão geral (produtos com preço, ofertas, posição frente à mediana da região, notas fiscais com preço diferente, procura anônima na região com k ≥ 10), produtos e preços com edição em massa, ofertas com validade, "não vendo mais", busca por código de barras (catálogo e Open Food Facts), importação de planilha CSV com relatório por linha, equipe (dono adiciona e remove) e fotos da loja.
+- API: `/products` (busca pública), `/products/lookup/:gtin`, `/categories`, `/stores/:id/{overview,products,prices,prices/import,offers,members,photos}`.
+
+Próximas fases: 6 · NFC-e → 7 · lista + veredito → 8 · opcionais.
 
 A documentação do protótipo (arquitetura, motor de decisão, monetização) continua em [front_lista_esperta/docs/](front_lista_esperta/docs/README.md).

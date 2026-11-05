@@ -47,7 +47,12 @@ export function MyStoresPanel() {
       <ul className="grid gap-3 md:grid-cols-2">
         {(stores.data ?? []).map((store) => (
           <li key={store.id} className="rounded-md border border-line bg-surface p-4">
-            <p className="font-semibold">{store.name}</p>
+            <Link
+              href={`/merchant/stores/${store.id}`}
+              className="text-lg font-semibold text-brand underline-offset-4 hover:underline"
+            >
+              {store.name}
+            </Link>
             <p className="text-[0.9rem] text-ink-soft">{addressLine(store.address) ?? "Endereço não informado"}</p>
             <div className="mt-1 flex flex-wrap items-center gap-x-3">
               <VerificationNote status={store.verificationStatus} />
@@ -58,7 +63,12 @@ export function MyStoresPanel() {
                 {store.memberRole === "OWNER" ? "Você é dono(a)" : "Você é da equipe"}
               </span>
             </div>
-            {store.memberRole === "OWNER" && store.verificationStatus === "UNVERIFIED" && <VerifyCnpj store={store} />}
+            <Link
+              href={`/merchant/stores/${store.id}`}
+              className="mt-3 inline-flex min-h-tap items-center rounded-full bg-brand px-4 font-semibold text-on-brand hover:bg-brand-strong"
+            >
+              Abrir painel da loja
+            </Link>
           </li>
         ))}
       </ul>
@@ -66,7 +76,7 @@ export function MyStoresPanel() {
   );
 }
 
-function VerifyCnpj({ store }: { store: MyStore }) {
+export function VerifyCnpj({ store }: { store: MyStore }) {
   const [cnpj, setCnpj] = useState("");
   const [error, setError] = useState<string>();
   const verify = useVerifyStore();
