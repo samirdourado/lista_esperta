@@ -125,6 +125,13 @@ Ainda simulado: os preços e o veredito (`lib/demo/`). A tela da lista ainda usa
 - `/merchant/stores/[id]`: visão geral (produtos com preço, ofertas, posição frente à mediana da região, notas fiscais com preço diferente, procura anônima na região com k ≥ 10), produtos e preços com edição em massa, ofertas com validade, "não vendo mais", busca por código de barras (catálogo e Open Food Facts), importação de planilha CSV com relatório por linha, equipe (dono adiciona e remove) e fotos da loja.
 - API: `/products` (busca pública), `/products/lookup/:gtin`, `/categories`, `/stores/:id/{overview,products,prices,prices/import,offers,members,photos}`.
 
-Próximas fases: 6 · NFC-e → 7 · lista + veredito → 8 · opcionais.
+**Fase 6 — NFC-e** ✅ (com uma limitação: ver abaixo)
+- `/receipts/import` sem conta: QR Code pela câmera (`@zxing/browser`), link colado, foto da nota (Gemini) ou chave digitada (validação do dígito verificador).
+- API: `POST /receipts/qr` (parser da SEFAZ-SP numa strategy por UF, só hosts oficiais), `POST /receipts/photo`, `POST /receipts/key`, `GET /receipts/mine`, `POST /prices/community`.
+- Normalização de cada item: código de barras → alias conhecido → Gemini com JSON validado. Confiança < 0,8 fica pendente para o admin; nunca mistura unidades, tamanhos ou marcas.
+- A loja vem do CNPJ da nota (cadastrada, unificada com a do mapa ou criada).
+- **Limitação:** daqui, a SEFAZ-SP recusa a conexão do servidor, então a leitura pelo QR não pôde ser testada com uma nota real. A foto funciona (testada com o Gemini real). Detalhes e caminhos em `docs/DECISIONS.md` D-046/D-047.
+
+Próximas fases: 7 · lista + veredito → 8 · opcionais.
 
 A documentação do protótipo (arquitetura, motor de decisão, monetização) continua em [front_lista_esperta/docs/](front_lista_esperta/docs/README.md).

@@ -24,12 +24,15 @@ src/
   products/                catálogo público, busca por código de barras (Open Food Facts), categorias
   prices/                  catálogo da loja, preços e ofertas, importação CSV, visão geral (mediana, NFC-e, procura)
   storage/                 StorageService (disco local hoje) para fotos de loja e de nota
+  receipts/                NFC-e: chave de acesso, parsers por UF (parsers/sp.parser.ts), foto via Gemini, normalização
+  integrations/gemini/     cliente REST do Gemini com responseSchema, validação e fallback de modelos
   integrations/            OpenStreetMap (Overpass), Nominatim, BrasilAPI atrás de interfaces
   shopping-lists/          listas dos usuários logados + importação guest → conta
   common/throttling.ts     rate limit por IP e por IP + X-Guest-Id
   config/env.schema.ts     validação das variáveis (a API não sobe se faltar alguma)
   generated/prisma/        client gerado (fora do git; `npm install` gera)
-test/                      e2e com Supertest contra lista_esperta_test
+test/                      e2e com Supertest contra lista_esperta_test; fixtures/nfce/ com páginas da SEFAZ
+scripts/gemini-smoke.ts    teste manual do Gemini real (npx tsx scripts/gemini-smoke.ts)
 ```
 
 ## Regras que o código garante

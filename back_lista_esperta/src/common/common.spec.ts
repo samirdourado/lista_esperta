@@ -32,6 +32,14 @@ describe('text helpers', () => {
     expect(nameSimilarity('Drogasil', 'RAIA DROGASIL S/A')).toBe(1);
     expect(nameSimilarity('Padaria Central', 'Pet Shop Amigo')).toBe(0);
     expect(nameSimilarity('', 'Qualquer')).toBe(0);
+    // Regression: sharing only the kind of shop is not the same shop.
+    expect(
+      nameSimilarity(
+        'Pastorinho Supermercados',
+        'BOM PRECO SUPERMERCADOS LTDA',
+      ),
+    ).toBe(0);
+    expect(nameSimilarity('Drogaria São Paulo', 'Drogaria Onofre')).toBe(0);
   });
 });
 

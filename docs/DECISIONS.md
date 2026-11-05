@@ -2,6 +2,42 @@
 
 Registro de decisões tomadas onde a especificação era ambígua ou conflitava com o ambiente. A mais recente fica no topo de cada fase.
 
+## Fase 6
+
+### D-046 · Fixture da SEFAZ-SP reconstruída (pendência)
+A especificação pede "fixtures HTML reais". Não tive acesso a uma nota real, e a SEFAZ-SP fecha a conexão deste ambiente (D-047). Por isso, `test/fixtures/nfce/sp-consulta-qrcode.html` foi **reconstruída** a partir da marcação pública da página do QR Code (`#u20`, `#tabResult`, `.txtTit`, `.RCod`, `.Rqtd`, `.RUN`, `.RvlUnit`, `.valor`, `#totalNota`, `#infos`), com empresa e chave fictícias, e isso está dito no próprio arquivo.
+
+**Para fechar a pendência:** abra o QR Code de uma nota sua no navegador, salve a página (Ctrl+S, "somente HTML") em `test/fixtures/nfce/` e adicione um caso em `receipts.spec.ts`. O Prettier não mexe nessa pasta.
+
+### D-047 · A SEFAZ-SP recusa o cliente da API neste ambiente
+Ao buscar a página do QR Code, o servidor da SEFAZ-SP fecha a conexão ("other side closed"), tanto do Docker quanto do host. O cliente se identifica honestamente (`ListaEsperta/0.1`). **Não tentei disfarçá-lo de navegador:** isso seria contornar uma proteção do órgão.
+
+O app trata a falha: a API responde `503 SEFAZ_UNAVAILABLE` e a tela sugere enviar a foto. O caminho da foto está testado de ponta a ponta com o Gemini real.
+
+Caminhos para ler pelo QR em produção:
+1. testar de uma rede brasileira residencial ou comercial (o bloqueio pode ser por IP ou região);
+2. usar um provedor pago de consulta de NFC-e atrás de `SEFAZ_FETCHER` / `NfceProvider`, como prevê a especificação;
+3. pedir acesso oficial à SEFAZ.
+
+### D-048 · Gemini: modelo, fallback e limites de confiança
+- **Modelos:** o principal é `gemini-2.5-flash`. O `gemini-flash-latest` respondia 503 ("high demand") de forma persistente no plano gratuito. Fallback em ordem: `gemini-flash-lite-latest`, `gemini-3.5-flash-lite` (`GEMINI_FALLBACK_MODELS`). Cada modelo tem 2 tentativas para 429/500/503, e 404 (modelo aposentado) passa para o próximo.
+- **Chamada:** a chave vai no header `x-goog-api-key`, nunca na URL. A saída é JSON estrito (`responseSchema`, temperatura 0), validado com class-validator antes de gravar.
+- **Confiança:** a partir de **0,8** o alias é aprovado e o preço entra. Entre **0,5 e 0,8**, o alias fica `PENDING`, sem preço, como pede a especificação. **Abaixo de 0,5**, nenhum produto é criado e a linha fica "não reconhecida"; no teste real, "XPTO 2X LV 3" virava um "Produto Desconhecido".
+- **Teste real** (com a sua chave): 6 linhas de cupom normalizadas em cerca de 7 s, por exemplo "LT LEITE ITAMBE INT 1L" → "Leite UHT Integral Itambé 1 L". O prompt exige tipo, variação, marca e tamanho. Script manual em `scripts/gemini-smoke.ts`.
+
+### D-049 · Mesmo produto só com mesma unidade, tamanho e marca
+Para reaproveitar um produto existente, a normalização exige a mesma unidade, a mesma quantidade, nome parecido (`similarity ≥ 0,6`) **e** marca compatível. O teste real casou o leite Itambé com o leite da "Marca Demo"; a regressão está coberta no e2e.
+
+### D-050 · Mesma loja: o tipo de loja não conta
+Na comparação de nomes (`nameSimilarity`), palavras como supermercado, mercado, drogaria e atacado não contam. O teste real associou a nota da "BOM PRECO SUPERMERCADOS" ao "Pastorinho Supermercados" vizinho. A loja da nota é encontrada pelo CNPJ. Sem CNPJ cadastrado, o app procura uma loja a menos de 150 m com nome parecido (≥ 0,5) e lhe dá o CNPJ; senão, cria a loja com origem `NFCE`, com o endereço geocodificado.
+
+### D-051 · Foto exige a chave de acesso; chave sozinha só é validada
+- **Foto:** a chave de 44 dígitos precisa estar legível e com o dígito verificador certo. Ela torna a nota auditável e impede contar a mesma nota duas vezes. A foto fica guardada no `StorageService` para auditoria.
+- **Chave digitada:** a consulta só pela chave exige captcha na SEFAZ e o provedor pago foi dispensado. Por isso, `POST /receipts/key` valida a chave (dígito, estado, modelo, já enviada?) e pede o QR ou a foto.
+
+### D-052 · Preço da comunidade
+`POST /prices/community` é pública e exige sessão ou `X-Guest-Id`. Tem rate limit de 20/min por aparelho e 60/min por IP, e grava `source = COMMUNITY`, o peso mais baixo.
+
 ## Fase 5
 
 ### D-039 · Código de barras pelo Open Food Facts

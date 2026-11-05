@@ -13,6 +13,7 @@ import { IntegrationsModule } from './integrations/integrations.module.js';
 import { PricesModule } from './prices/prices.module.js';
 import { PrismaModule } from './prisma/prisma.module.js';
 import { ProductsModule } from './products/products.module.js';
+import { ReceiptsModule } from './receipts/receipts.module.js';
 import { ShoppingListsModule } from './shopping-lists/shopping-lists.module.js';
 import { StoreClaimsModule } from './store-claims/store-claims.module.js';
 import { StorageModule } from './storage/storage.module.js';
@@ -39,6 +40,7 @@ import { UsersModule } from './users/users.module.js';
     AdminModule,
     ProductsModule,
     PricesModule,
+    ReceiptsModule,
     ShoppingListsModule,
   ],
   providers: [

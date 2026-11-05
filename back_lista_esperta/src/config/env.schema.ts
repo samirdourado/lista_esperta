@@ -50,6 +50,21 @@ export const envSchema = z
 
     GOOGLE_MAPS_API_KEY: z.string().optional(),
     GEMINI_API_KEY: z.string().optional(),
+    /** Stable alias; any model that supports images and JSON output works. */
+    GEMINI_MODEL: z.string().min(3).default('gemini-2.5-flash'),
+    /** Tried in order when the main model is busy (free tier 429/503) or retired (404). */
+    GEMINI_FALLBACK_MODELS: z
+      .string()
+      .default('gemini-flash-lite-latest,gemini-3.5-flash-lite')
+      .transform((value) =>
+        value
+          .split(',')
+          .map((m) => m.trim())
+          .filter(Boolean),
+      ),
+    GEMINI_URL: z
+      .url()
+      .default('https://generativelanguage.googleapis.com/v1beta'),
     FIRECRAWL_API_KEY: z.string().optional(),
     NFCE_PROVIDER_API_KEY: z.string().optional(),
   })

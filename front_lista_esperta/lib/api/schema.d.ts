@@ -564,6 +564,86 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/prices/community": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["CommunityPricesController_report"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/receipts/qr": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["ReceiptsController_fromQr"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/receipts/photo": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["ReceiptsController_fromPhoto"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/receipts/key": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["ReceiptsController_keyInfo"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/receipts/mine": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ReceiptsController_mine"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/shopping-lists": {
         parameters: {
             query?: never;
@@ -1067,6 +1147,74 @@ export interface components {
             pricesSaved: number;
             productsCreated: number;
             errors: components["schemas"]["ImportRowErrorDto"][];
+        };
+        CommunityPriceDto: {
+            /** Format: uuid */
+            storeId: string;
+            /** Format: uuid */
+            productId: string;
+            /** @example 6.99 */
+            price: number;
+        };
+        CommunityPriceResponseDto: {
+            id: string;
+        };
+        QrReceiptDto: {
+            /**
+             * @description The text inside the receipt QR code
+             * @example https://www.nfce.fazenda.sp.gov.br/NFCeConsultaPublica/Paginas/ConsultaQRCode.aspx?p=35261111222333000181650010000123451123456780|2|1|1|ABC
+             */
+            url: string;
+        };
+        ReceiptStoreDto: {
+            /** Format: uuid */
+            id: string;
+            /** @example Bom Preço */
+            name: string;
+        };
+        ReceiptLineResultDto: {
+            description: string;
+            quantity: number;
+            unit: string;
+            unitPrice: number;
+            totalPrice: number;
+            /**
+             * @description MATCHED lines became prices
+             * @enum {string}
+             */
+            status: "MATCHED" | "PENDING" | "UNMATCHED";
+            productName: string | null;
+        };
+        ReceiptResultDto: {
+            /** Format: uuid */
+            id: string;
+            accessKey: string;
+            store: components["schemas"]["ReceiptStoreDto"];
+            /** Format: date-time */
+            issuedAt: string;
+            total: number;
+            /** @description Prices added to the shared base */
+            pricesAdded: number;
+            /** @enum {string} */
+            source: "SEFAZ" | "PHOTO";
+            lines: components["schemas"]["ReceiptLineResultDto"][];
+        };
+        AccessKeyDto: {
+            /** @example 3526 1111 2223 3300 0181 6500 1000 0123 4511 2345 6780 */
+            accessKey: string;
+        };
+        AccessKeyInfoDto: {
+            valid: boolean;
+            uf: string | null;
+            cnpj: string | null;
+            /** @example 2026-11 */
+            month: string | null;
+            /** @description This state can be read from the QR code */
+            supported: boolean;
+            /** @description Already sent by someone */
+            alreadySent: boolean;
+            /** @enum {string|null} */
+            error: "LENGTH" | "CHECK_DIGIT" | "UF" | "MODEL" | null;
         };
         ShoppingListItemResponseDto: {
             /** Format: uuid */
@@ -2103,6 +2251,163 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ImportReportDto"];
+                };
+            };
+        };
+    };
+    CommunityPricesController_report: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Required when not signed in */
+                "x-guest-id"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CommunityPriceDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CommunityPriceResponseDto"];
+                };
+            };
+        };
+    };
+    ReceiptsController_fromQr: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Device id of guests (UUID v4) */
+                "x-guest-id"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["QrReceiptDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReceiptResultDto"];
+                };
+            };
+            /** @description RECEIPT_ALREADY_SENT */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description NOT_A_RECEIPT_QR, UF_NOT_SUPPORTED, RECEIPT_UNREADABLE, STORE_NOT_LOCATED */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description SEFAZ_UNAVAILABLE */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ReceiptsController_fromPhoto: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-guest-id"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    /** Format: binary */
+                    file?: string;
+                };
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReceiptResultDto"];
+                };
+            };
+            /** @description PHOTO_UNREADABLE, PHOTO_KEY_UNREADABLE, STORE_NOT_LOCATED */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description PHOTO_UNAVAILABLE (no Gemini key) or PHOTO_SERVICE_UNAVAILABLE */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ReceiptsController_keyInfo: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AccessKeyDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccessKeyInfoDto"];
+                };
+            };
+        };
+    };
+    ReceiptsController_mine: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReceiptResultDto"][];
                 };
             };
         };

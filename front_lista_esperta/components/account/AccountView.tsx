@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/Button";
+import { MyReceipts } from "./MyReceipts";
 import { TextField } from "@/components/ui/Field";
 import { Notice } from "@/components/ui/Notice";
 import { Skeleton } from "@/components/ui/Skeleton";
@@ -47,6 +48,7 @@ export function AccountView() {
         <dd className="font-medium">{ROLE_LABEL[user.role]}</dd>
       </dl>
       <PreferencesForm user={user} />
+      <MyReceipts />
       <SignOut />
     </div>
   );
