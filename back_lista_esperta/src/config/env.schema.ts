@@ -22,6 +22,11 @@ export const envSchema = z
     JWT_REFRESH_TTL_DAYS: z.coerce.number().int().positive().default(7),
     /** Defaults to true in production. */
     COOKIE_SECURE: booleanString.optional(),
+    /**
+     * Proxies in front of the API whose X-Forwarded-For can be trusted, so
+     * rate limits see the shopper's IP. Render + Vercel rewrite = 2; local = 0.
+     */
+    TRUST_PROXY_HOPS: z.coerce.number().int().min(0).default(0),
 
     /** Free map services (docs/DECISIONS.md D-031). */
     OVERPASS_URLS: z

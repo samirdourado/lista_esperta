@@ -1,0 +1,42 @@
+# Render Blueprint for the API (free plan). The database lives on Neon
+# (PostgreSQL with PostGIS), and the front on Vercel forwards /api/v1 to it.
+# Step by step in README.md, "Publicar para testes".
+services:
+  - type: web
+    name: lista-esperta-api
+    runtime: docker
+    plan: free
+    # Same region as the Neon database (AWS us-east-1), so each query is quick.
+    region: virginia
+    rootDir: back_lista_esperta
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /api/v1/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false
+      - key: FRONTEND_URL
+        value: https://frontlistaesperta.vercel.app
+      # Photo links go through the front, which forwards /uploads to the API.
+      - key: PUBLIC_URL
+        value: https://frontlistaesperta.vercel.app
+      - key: TRUST_PROXY_HOPS
+        value: "2"
+      - key: JWT_ACCESS_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+      - key: VAPID_SUBJECT
+        value: https://frontlistaesperta.vercel.app
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: FIRECRAWL_API_KEY
+        sync: false
+      - key: ORS_API_KEY
+        sync: false
+      - key: VAPID_PUBLIC_KEY
+        sync: false
+      - key: VAPID_PRIVATE_KEY
+        sync: false

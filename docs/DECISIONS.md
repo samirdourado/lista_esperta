@@ -2,6 +2,27 @@
 
 Registro de decisões tomadas onde a especificação era ambígua ou conflitava com o ambiente. A mais recente fica no topo de cada fase.
 
+## Publicação para testes
+
+### D-068 · Vercel + Render + Neon, com a API atrás do próprio front
+Para testar online de graça: o front fica na Vercel, a API no plano free do Render (Docker, `render.yaml` na raiz) e o banco no Neon. O Neon tem plano gratuito com PostGIS e `pg_trgm`, e a hospedagem compartilhada da TurboCloud não roda Docker nem PostgreSQL.
+
+**O navegador só fala com o front.** Com `API_PROXY_TARGET` definido, o Next repassa `/api/v1/*` e `/uploads/*` para o Render. Chamar `onrender.com` direto não funcionaria, por três motivos:
+- `vercel.app` e `onrender.com` são sites diferentes, então os cookies de sessão seriam de terceiros; Safari e Chrome com proteção contra rastreamento os bloqueiam.
+- O `proxy.ts` decide o acesso a `/merchant`, `/admin` e `/account` olhando o cookie `le_access` no domínio do front.
+- Os cookies `SameSite=lax` não iriam em chamadas entre sites.
+
+Com o repasse, nada muda nos cookies nem no CORS.
+
+**IP de quem acessa:** os limites de tentativa usam o IP. Atrás do balanceador do Render e do repasse da Vercel, `TRUST_PROXY_HOPS=2` faz o Express ler o IP do `X-Forwarded-For`. O padrão é 0, para que ninguém forje o IP rodando local.
+
+**Imagem de produção:** é o `back_lista_esperta/Dockerfile`, que compila o Nest e, ao subir, roda `prisma migrate deploy` e depois `node dist/main`. O `node_modules` vai inteiro porque o CLI do Prisma é dependência de desenvolvimento.
+
+**Limites do plano free, aceitos para testes:**
+- A API dorme depois de 15 minutos sem uso, e o primeiro acesso leva cerca de 1 minuto. Nesse intervalo o verificador de alertas não roda.
+- O disco do Render é apagado a cada deploy, então as fotos enviadas somem. Os dados extraídos ficam no banco.
+- A Vercel pode limitar o tamanho de envio pelo repasse. As fotos aceitas pela API vão até 5 MB.
+
 ## Fase 8
 
 ### D-067 · Aviso de navegação instantânea no dev (pendência pequena)

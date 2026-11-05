@@ -1,5 +1,13 @@
 import type { NextConfig } from "next";
 
+/**
+ * Deployed apart (Vercel + Render), the browser talks only to this site and
+ * Next forwards /api/v1 and /uploads to the API. The session cookies then stay
+ * first-party, which proxy.ts needs and browsers that block third-party
+ * cookies allow (docs/DECISIONS.md D-068). Locally it stays unset.
+ */
+const apiProxyTarget = process.env.API_PROXY_TARGET?.replace(/\/$/, "");
+
 const nextConfig: NextConfig = {
   experimental: {
     agentFeedback: true,
@@ -29,6 +37,13 @@ const nextConfig: NextConfig = {
           { key: "Service-Worker-Allowed", value: "/" },
         ],
       },
+    ];
+  },
+  async rewrites() {
+    if (!apiProxyTarget) return [];
+    return [
+      { source: "/api/v1/:path*", destination: `${apiProxyTarget}/api/v1/:path*` },
+      { source: "/uploads/:path*", destination: `${apiProxyTarget}/uploads/:path*` },
     ];
   },
   // Prototype routes were renamed to English in phase 2; keep old links working.

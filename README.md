@@ -72,6 +72,38 @@ Nesse modo, `back_lista_esperta/.env` usa `localhost:5433`, que é o valor do `.
 
 A senha pode ser trocada com `SEED_PASSWORD`. Contas de cliente são criadas pela tela `/register`.
 
+## Publicar para testes (grátis: Vercel + Render + Neon)
+
+O front fica na Vercel, a API no plano free do Render e o banco no Neon. O navegador só fala com o front, que repassa `/api/v1` e `/uploads` para a API, por causa dos cookies de sessão (D-068).
+
+1. **Banco no Neon** (https://neon.tech, sem cartão):
+   - crie um projeto na região **AWS US East 1 (N. Virginia)**;
+   - em *Connect*, desligue **Connection pooling** e copie a connection string direta (`postgresql://…neon.tech/neondb?sslmode=require`).
+2. **API no Render:**
+   - *New → Blueprint* e escolha este repositório e a branch. O Render lê o `render.yaml`.
+   - Preencha os valores pedidos:
+     - `DATABASE_URL`: a string do Neon;
+     - `GEMINI_API_KEY`, `FIRECRAWL_API_KEY`, `ORS_API_KEY`, `VAPID_PUBLIC_KEY` e `VAPID_PRIVATE_KEY`: os mesmos do seu `back_lista_esperta/.env`.
+   - Os segredos JWT são gerados pelo próprio Render.
+   - O primeiro deploy compila e aplica as migrations. Confira em `https://<nome>.onrender.com/api/v1/health`.
+3. **Front na Vercel** (*Settings → Environment Variables*, depois *Redeploy*):
+   ```
+   API_PROXY_TARGET=https://<nome>.onrender.com
+   NEXT_PUBLIC_API_URL=https://frontlistaesperta.vercel.app/api/v1
+   API_INTERNAL_URL=https://<nome>.onrender.com/api/v1
+   ```
+4. **Dados demo (opcional)**, rodando do seu computador contra o Neon. Use uma senha forte, porque o site é público:
+   ```powershell
+   cd back_lista_esperta
+   $env:DATABASE_URL="<string do Neon>"; $env:SEED_PASSWORD="<senha forte>"
+   npm run db:deploy; npm run db:seed
+   ```
+
+Limites do plano free:
+- a API dorme depois de 15 minutos sem uso, e o primeiro acesso leva cerca de 1 minuto;
+- fotos enviadas somem a cada deploy;
+- os alertas só são verificados enquanto a API está acordada.
+
 ## Scripts (nos dois projetos)
 
 | Script | O que faz |

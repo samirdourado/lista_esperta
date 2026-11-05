@@ -15,6 +15,8 @@ export function configureApp(app: INestApplication): void {
   const config = app.get(ConfigService<Env, true>);
 
   app.setGlobalPrefix(API_PREFIX);
+  const hops = config.get('TRUST_PROXY_HOPS', { infer: true });
+  if (hops > 0) (app as NestExpressApplication).set('trust proxy', hops);
   // Uploaded images (store photos, receipt photos). Names are random UUIDs.
   (app as NestExpressApplication).useStaticAssets(
     app.get(LocalStorageService).rootDir,
