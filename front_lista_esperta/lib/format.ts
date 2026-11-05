@@ -19,7 +19,8 @@ export function brlSpoken(n: number) {
 
 export const km = (n: number) => `${DEC1.format(n)} km`;
 export const meters = (m: number) => (m < 1000 ? `${Math.round(m / 10) * 10} m` : km(m / 1000));
-export const minutes = (n: number) => (n < 60 ? `${Math.round(n)} min` : `${Math.floor(n / 60)} h ${Math.round(n % 60)} min`);
+export const minutes = (n: number) =>
+  n < 60 ? `${Math.round(n)} min` : `${Math.floor(n / 60)} h ${Math.round(n % 60)} min`;
 
 export function qtyLabel(qty: number, unit: "kg" | "un") {
   if (unit === "kg") return qty < 1 ? `${Math.round(qty * 1000)} g` : `${DEC3.format(qty)} kg`;

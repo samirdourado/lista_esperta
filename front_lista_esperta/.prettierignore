@@ -1,0 +1,10 @@
+node_modules
+.next
+out
+build
+coverage
+package-lock.json
+docs
+*.md
+lib/api/schema.d.ts
+public/vendor

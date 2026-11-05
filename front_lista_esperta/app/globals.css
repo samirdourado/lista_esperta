@@ -1,93 +1,68 @@
 @import "tailwindcss";
 
 /*
- * Lista Esperta — paleta derivada do logo (public/logo_lista_esperta.webp):
- *   azul do carrinho  #1a5fe0 / #0a47c4 (sombra) / #2f7bff (brilho)
- *   azul da lista     #9bb5ea (borda) / #c5d5f5 (linhas)
- *   amarelo do pin    #ffb400
- *   marinho (tinta)   #10224a
+ * Lista Esperta design tokens. Source of truth: docs/BRAND.md.
+ * Each colour is defined once with light-dark(): the system preference picks the
+ * value, and <html data-theme="light|dark"> overrides it (see ThemeScript).
  */
 :root {
-  /* Cores de marca (logo) */
-  --brand: #1a5fe0;
-  --brand-strong: #0a47c4;
-  --brand-bright: #2f7bff;
-  --brand-soft: #e4ecfd;
-  --brand-line: #c5d5f5;
-  --on-brand: #ffffff;
-  --accent: #ffb400;
-  --accent-soft: #fff3d1;
+  color-scheme: light dark;
 
-  /* Superfícies e texto */
-  --paper: #f5f8fe;
-  --surface: #ffffff;
-  --ink: #10224a;
-  --ink-soft: #46567c;
-  --line: #d3ddf1;
-  --muted: #67738f;
-  --muted-soft: #e9eef8;
+  /* Brand, measured from public/logo_lista_esperta.webp */
+  --brand: light-dark(#0754e0, #6b9bff);
+  --brand-strong: light-dark(#1363f4, #8eb6ff);
+  --brand-bright: light-dark(#2875fe, #a9c6ff);
+  --brand-soft: light-dark(#e4ecfd, #16284d);
+  --brand-line: light-dark(#c5d4f3, #2a3f6e);
+  --on-brand: light-dark(#ffffff, #0a1430);
+  --accent: #feb204;
+  --accent-soft: light-dark(#fff3d1, #3a2c0c);
+  --on-accent: #10224a;
 
-  /* Etiqueta de preço = amarelo do pin */
-  --tag: var(--accent);
-  --tag-ink: #10224a;
+  /* Surfaces and text */
+  --paper: light-dark(#f5f8fe, #0a1430);
+  --surface: light-dark(#ffffff, #111d3d);
+  --surface-sunken: light-dark(#e9eef8, #1a2747);
+  --ink: light-dark(#10224a, #e8eefc);
+  --ink-soft: light-dark(#46567c, #a9b7d8);
+  --muted: light-dark(#5f6c8a, #8f9bbb);
+  --line: light-dark(#d3ddf1, #26375f);
+  --line-strong: light-dark(#9bb6ee, #3a5288);
 
-  /* Estados (economia usa o azul da marca; alertas puxam do amarelo) */
-  --save: var(--brand);
-  --save-soft: var(--brand-soft);
-  --amber: #8a5800;
-  --amber-soft: var(--accent-soft);
-  --orange: #a8471a;
-  --orange-soft: #fde6d8;
-  --danger: #b3261e;
-  --focus: var(--brand-bright);
+  /* States */
+  --success: light-dark(#1d7a46, #6fd39b);
+  --success-soft: light-dark(#e3f4ea, #12301f);
+  --warning: light-dark(#8a5800, #ffc95a);
+  --warning-soft: var(--accent-soft);
+  --danger: light-dark(#b3261e, #f2a49e);
+  --danger-soft: light-dark(#fbe6e4, #3b1b19);
+  --focus: light-dark(#2875fe, #a9c6ff);
 
-  /* Rampa sequencial em azul da marca, claro → escuro = pouco → muito. */
-  --seq-1: #e4ecfd;
-  --seq-2: #b4cbf6;
-  --seq-3: #7ea4ef;
-  --seq-4: #3f78e6;
-  --seq-5: #0a47c4;
+  /* Price provenance (SourceBadge): shape + colour + text */
+  --orange: light-dark(#a8471a, #f29466);
+  --orange-soft: light-dark(#fde6d8, #3b2216);
+
+  /* Sequential ramp in brand blue; more intensity = more contrast with paper */
+  --seq-1: light-dark(#e4ecfd, #16284d);
+  --seq-2: light-dark(#b4cbf6, #1f3d78);
+  --seq-3: light-dark(#7ea4ef, #2d5bb0);
+  --seq-4: light-dark(#3f78e6, #4d86ec);
+  --seq-5: light-dark(#0a47c4, #9dc0ff);
+
+  /* Shape */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1.25rem;
+  --tap: 2.75rem; /* 44 px minimum touch target */
+  --header-h: 3.5rem;
+  --tabbar-h: 4rem;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --brand: #5b93ff;
-    --brand-strong: #7fabff;
-    --brand-bright: #8eb6ff;
-    --brand-soft: #16284d;
-    --brand-line: #2a3f6e;
-    --on-brand: #0a1430;
-    --accent: #ffbe2e;
-    --accent-soft: #3a2c0c;
-
-    --paper: #0a1430;
-    --surface: #111d3d;
-    --ink: #e8eefc;
-    --ink-soft: #a9b7d8;
-    --line: #26375f;
-    --muted: #8f9bbb;
-    --muted-soft: #1a2747;
-
-    --tag-ink: #10224a;
-
-    --amber: #ffc95a;
-    --orange: #f29466;
-    --orange-soft: #3b2216;
-    --danger: #f2a49e;
-
-    /* No escuro, mais intensidade = mais claro. */
-    --seq-1: #16284d;
-    --seq-2: #1f3d78;
-    --seq-3: #2d5bb0;
-    --seq-4: #4d86ec;
-    --seq-5: #9dc0ff;
-  }
+:root[data-theme="light"] {
+  color-scheme: light;
 }
-
-/* Textura para células suprimidas pelo k-anonimato (não depende de cor). */
-.heat-hidden {
-  background: repeating-linear-gradient(45deg, var(--muted-soft) 0 4px, transparent 4px 8px);
-  outline: 1px solid var(--line);
+:root[data-theme="dark"] {
+  color-scheme: dark;
 }
 
 @theme inline {
@@ -99,59 +74,91 @@
   --color-on-brand: var(--on-brand);
   --color-accent: var(--accent);
   --color-accent-soft: var(--accent-soft);
+  --color-on-accent: var(--on-accent);
   --color-paper: var(--paper);
   --color-surface: var(--surface);
+  --color-surface-sunken: var(--surface-sunken);
   --color-ink: var(--ink);
   --color-ink-soft: var(--ink-soft);
+  --color-muted: var(--muted);
   --color-line: var(--line);
-  --color-tag: var(--tag);
-  --color-tag-ink: var(--tag-ink);
-  --color-save: var(--save);
-  --color-save-soft: var(--save-soft);
-  --color-amber: var(--amber);
-  --color-amber-soft: var(--amber-soft);
+  --color-line-strong: var(--line-strong);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
   --color-orange: var(--orange);
   --color-orange-soft: var(--orange-soft);
-  --color-muted: var(--muted);
-  --color-muted-soft: var(--muted-soft);
-  --color-danger: var(--danger);
-  --font-sans: var(--font-barlow);
-  --font-display: var(--font-barlow-condensed);
+
+  /* Aliases kept for the prototype screens until they are rewritten (phases 5–7). */
+  --color-save: var(--brand);
+  --color-save-soft: var(--brand-soft);
+  --color-amber: var(--warning);
+  --color-amber-soft: var(--warning-soft);
+  --color-muted-soft: var(--surface-sunken);
+  --color-tag: var(--accent);
+  --color-tag-ink: var(--on-accent);
+
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --spacing-tap: var(--tap);
+
+  --font-sans: var(--font-barlow), system-ui, sans-serif;
+  --font-display: var(--font-barlow-condensed), var(--font-barlow), sans-serif;
 }
 
-body {
-  background: var(--paper);
-  color: var(--ink);
-  font-family: var(--font-barlow), system-ui, sans-serif;
-  font-size: 1.0625rem;
-  line-height: 1.5;
-  -webkit-tap-highlight-color: transparent;
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-padding-top: calc(var(--header-h) + 1rem);
+  }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-barlow), system-ui, sans-serif;
+    font-size: 1.0625rem;
+    line-height: 1.5;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-barlow-condensed), var(--font-barlow), sans-serif;
+    line-height: 1;
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+  }
+
+  :focus-visible {
+    outline: 3px solid var(--focus);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
 }
 
-:focus-visible {
-  outline: 3px solid var(--focus);
-  outline-offset: 2px;
-  border-radius: 4px;
-}
-
-/* Etiqueta de gôndola: o único elemento "alto" da interface. */
+/* Shelf price tag: the one loud element of the interface. */
 .price-tag {
   position: relative;
   display: inline-flex;
   align-items: flex-start;
   gap: 0.15em;
   padding: 0.12em 0.32em 0.08em 0.9em;
-  background: var(--tag);
-  color: var(--tag-ink);
+  background: var(--accent);
+  color: var(--on-accent);
   font-family: var(--font-barlow-condensed), sans-serif;
   font-weight: 800;
   line-height: 0.9;
   border-radius: 0.14em 0.1em 0.1em 0.14em;
   transform: rotate(-1.5deg);
-  box-shadow: 0 0.06em 0 rgb(0 0 0 / 0.18);
+  box-shadow: 0 0.06em 0 rgb(16 34 74 / 0.22);
 }
 .price-tag::before {
-  /* furo do gancho da gôndola */
+  /* the hole for the shelf hook */
   content: "";
   position: absolute;
   left: 0.3em;
@@ -181,6 +188,9 @@ body {
     animation: tag-land 520ms cubic-bezier(0.2, 0.9, 0.25, 1.15) both;
     animation-delay: 120ms;
   }
+  .skeleton-pulse {
+    animation: pulse 1.4s ease-in-out infinite;
+  }
 }
 @keyframes tag-land {
   from {
@@ -192,29 +202,24 @@ body {
     transform: rotate(-1.5deg);
   }
 }
-
-/* Folha pautada para digitar a lista. */
-.ruled {
-  background-color: var(--surface);
-  background-image: repeating-linear-gradient(
-    to bottom,
-    transparent 0,
-    transparent calc(2rem - 1px),
-    var(--line) calc(2rem - 1px),
-    var(--line) 2rem
-  );
-  background-attachment: local;
-  background-position: 0 0.75rem;
-  line-height: 2rem;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .skeleton-pulse {
-    animation: pulse 1.4s ease-in-out infinite;
-  }
-}
 @keyframes pulse {
   50% {
     opacity: 0.45;
+  }
+}
+
+/* Texture for heat-map cells hidden by k-anonymity (does not rely on colour). */
+.heat-hidden {
+  background: repeating-linear-gradient(45deg, var(--surface-sunken) 0 4px, transparent 4px 8px);
+  outline: 1px solid var(--line);
+}
+
+/* Room for the mobile tab bar and the iOS home indicator. */
+.pb-tabbar {
+  padding-bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom) + 1.5rem);
+}
+@media (min-width: 64rem) {
+  .pb-tabbar {
+    padding-bottom: 4rem;
   }
 }
