@@ -13,6 +13,7 @@
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
+    "start:render": "prisma migrate deploy && node dist/main",
     "lint": "eslint \"{src,test}/**/*.ts\"",
     "test": "vitest run",
     "test:watch": "vitest",
