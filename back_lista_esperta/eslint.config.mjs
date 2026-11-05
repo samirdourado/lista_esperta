@@ -29,7 +29,19 @@ export default tseslint.config(
     rules: {
       '@typescript-eslint/no-floating-promises': 'error',
       '@typescript-eslint/no-explicit-any': 'warn',
+      // `_name` marks a parameter kept for the interface but not used yet.
+      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
       'prettier/prettier': ['error', { endOfLine: 'auto' }],
+    },
+  },
+  {
+    // Neutrality (spec section 7): the ranking may not depend on sponsored content.
+    files: ['src/verdict/engine.ts'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        { patterns: [{ group: ['**/sponsored/**'], message: 'The verdict engine is neutral: it cannot depend on sponsored content.' }] },
+      ],
     },
   },
   {
@@ -39,6 +51,7 @@ export default tseslint.config(
       '@typescript-eslint/no-unsafe-argument': 'off',
       '@typescript-eslint/no-unsafe-call': 'off',
       '@typescript-eslint/no-unsafe-assignment': 'off',
+      '@typescript-eslint/no-unsafe-return': 'off',
     },
   },
 );

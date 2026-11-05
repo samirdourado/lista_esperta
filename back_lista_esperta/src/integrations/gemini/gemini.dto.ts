@@ -131,3 +131,32 @@ export const RECEIPT_SCHEMA = {
   },
   required: ['store_name', 'issued_at', 'total', 'lines'],
 } as const;
+
+export class ListLineDto {
+  @IsString() @Length(1, 200) text: string;
+  @IsNumber() @Min(0.001) @Max(999) quantity: number;
+}
+
+/** Gemini output for a photo of a shopping list (handwritten or printed). */
+export class ExtractedListDto {
+  @IsArray()
+  @ArrayMaxSize(100)
+  @ValidateNested({ each: true })
+  @Type(() => ListLineDto)
+  lines: ListLineDto[];
+}
+
+export const LIST_SCHEMA = {
+  type: 'OBJECT',
+  properties: {
+    lines: {
+      type: 'ARRAY',
+      items: {
+        type: 'OBJECT',
+        properties: { text: { type: 'STRING' }, quantity: { type: 'NUMBER' } },
+        required: ['text', 'quantity'],
+      },
+    },
+  },
+  required: ['lines'],
+} as const;

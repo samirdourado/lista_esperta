@@ -19,6 +19,7 @@ import { StoreClaimsModule } from './store-claims/store-claims.module.js';
 import { StorageModule } from './storage/storage.module.js';
 import { StoresModule } from './stores/stores.module.js';
 import { UsersModule } from './users/users.module.js';
+import { VerdictModule } from './verdict/verdict.module.js';
 
 @Module({
   imports: [
@@ -26,6 +27,8 @@ import { UsersModule } from './users/users.module.js';
       isGlobal: true,
       cache: true,
       validate: validateEnv,
+      // Tests use only test/test-env.mjs: real API keys in .env must never reach them.
+      ignoreEnvFile: process.env.NODE_ENV === 'test',
     }),
     ThrottlerModule.forRoot(THROTTLERS),
     PrismaModule,
@@ -41,6 +44,7 @@ import { UsersModule } from './users/users.module.js';
     ProductsModule,
     PricesModule,
     ReceiptsModule,
+    VerdictModule,
     ShoppingListsModule,
   ],
   providers: [

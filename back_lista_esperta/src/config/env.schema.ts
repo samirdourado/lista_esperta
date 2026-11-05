@@ -48,6 +48,13 @@ export const envSchema = z
     DISCOVERY_ENABLED: booleanString.default(true),
     DISCOVERY_TTL_DAYS: z.coerce.number().int().positive().default(30),
 
+    /** Car routes for the verdict (free key at openrouteservice.org). Without it: estimates. */
+    ORS_API_KEY: z.string().optional(),
+    ORS_URL: z.url().default('https://api.openrouteservice.org'),
+    /** Two-store split thresholds (spec section 7). */
+    VERDICT_SPLIT_MIN_SAVINGS: z.coerce.number().min(0).default(10),
+    VERDICT_SPLIT_MIN_SHARE: z.coerce.number().min(0).max(1).default(0.05),
+
     GOOGLE_MAPS_API_KEY: z.string().optional(),
     GEMINI_API_KEY: z.string().optional(),
     /** Stable alias; any model that supports images and JSON output works. */

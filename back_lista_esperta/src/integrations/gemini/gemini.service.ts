@@ -5,7 +5,9 @@ import { validate } from 'class-validator';
 import type { Env } from '../../config/env.schema.js';
 import { ExternalServiceError } from '../http.js';
 import {
+  ExtractedListDto,
   ExtractedReceiptDto,
+  LIST_SCHEMA,
   NORMALIZE_SCHEMA,
   NormalizedBatchDto,
   type NormalizedProductDto,
@@ -28,6 +30,13 @@ export interface ReceiptReader {
   read(image: Buffer, mimeType: string): Promise<ExtractedReceiptDto>;
 }
 export const RECEIPT_READER = Symbol('RECEIPT_READER');
+
+/** Reads a photo of a shopping list (spec section 6, item 1). */
+export interface ListReader {
+  readonly enabled: boolean;
+  readList(image: Buffer, mimeType: string): Promise<ExtractedListDto>;
+}
+export const LIST_READER = Symbol('LIST_READER');
 
 export class AiOutputError extends Error {
   constructor(message: string) {
@@ -73,6 +82,11 @@ Regras:
 Linhas:
 ${lines.map((line, index) => `${index}: ${line}`).join('\n')}`;
 
+const LIST_PROMPT = `Esta é a foto de uma lista de compras (escrita à mão ou impressa), em português.
+Devolva um item por linha da lista, com o texto como a pessoa escreveu (corrigindo só a grafia óbvia) e a quantidade.
+- quantity: o número de unidades pedido ("2 leite" → 2). Sem número, 1. Peso e volume ficam no texto ("arroz 5kg").
+- Ignore riscos, rabiscos e o que não for item de compra. Não invente itens.`;
+
 const RECEIPT_PROMPT = `Leia este cupom fiscal brasileiro (NFC-e) e devolva os dados exatamente como impressos.
 - access_key: os 44 dígitos da chave de acesso, sem espaços; null se não estiver legível.
 - cnpj: só dígitos. issued_at: data e hora de emissão em ISO 8601 com -03:00.
@@ -80,7 +94,9 @@ const RECEIPT_PROMPT = `Leia este cupom fiscal brasileiro (NFC-e) e devolva os d
 - Valores em reais como número (12,90 → 12.9). Não invente itens que não estão na imagem.`;
 
 @Injectable()
-export class GeminiService implements ProductNormalizer, ReceiptReader {
+export class GeminiService
+  implements ProductNormalizer, ReceiptReader, ListReader
+{
   private readonly logger = new Logger(GeminiService.name);
 
   constructor(private readonly config: ConfigService<Env, true>) {}
@@ -117,6 +133,19 @@ export class GeminiService implements ProductNormalizer, ReceiptReader {
       RECEIPT_SCHEMA,
     );
     return validated(ExtractedReceiptDto, json);
+  }
+
+  async readList(image: Buffer, mimeType: string): Promise<ExtractedListDto> {
+    const json = await this.generate(
+      [
+        { text: LIST_PROMPT },
+        {
+          inline_data: { mime_type: mimeType, data: image.toString('base64') },
+        },
+      ],
+      LIST_SCHEMA,
+    );
+    return validated(ExtractedListDto, json);
   }
 
   private async generate(parts: Part[], schema: object): Promise<unknown> {
