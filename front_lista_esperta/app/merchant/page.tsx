@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { cacheLife } from "next/cache";
 import Link from "next/link";
 import { Suspense } from "react";
+import { MyStoresPanel } from "@/components/merchant/MyStoresPanel";
 import {
   HEATMAP,
   K_ANONYMITY,
@@ -26,8 +27,12 @@ async function getInsights(storeId: string) {
 export default function MerchantPage({ searchParams }: PageProps<"/merchant">) {
   return (
     <div className="mx-auto w-full max-w-5xl flex-1 px-4 pt-8 pb-20">
-      <p className="rounded-lg bg-muted-soft px-3 py-2 text-[0.95rem]">
-        Demonstração com {SIMULATED_LISTS} listas simuladas do bairro-piloto. Nenhum dado pessoal aparece neste painel.
+      <h1 className="sr-only">Painel da loja</h1>
+      <MyStoresPanel />
+      <h2 className="mt-14 text-3xl font-bold">Desempenho na região</h2>
+      <p className="mt-3 rounded-lg bg-muted-soft px-3 py-2 text-[0.95rem]">
+        Prévia com {SIMULATED_LISTS} listas simuladas do bairro-piloto, enquanto o painel real chega (fase 5). Nenhum
+        dado pessoal aparece aqui.
       </p>
       <Suspense fallback={<p className="mt-8 text-ink-soft">Carregando o painel…</p>}>
         <Dashboard searchParams={searchParams} />
@@ -48,12 +53,12 @@ async function Dashboard({ searchParams }: { searchParams: PageProps<"/merchant"
     <>
       <header className="mt-8 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="font-display text-[clamp(2.4rem,8vw,3.6rem)] leading-none font-bold tracking-tight">
+          <h3 className="font-display text-[clamp(2rem,6vw,2.8rem)] leading-none font-bold tracking-tight">
             {data.storeName}
-          </h1>
+          </h3>
           <p className="mt-2 text-ink-soft">Esta semana, num raio de {NEARBY_M / 1000} km da sua loja.</p>
         </div>
-        <form className="flex items-center gap-2" action="/merchant">
+        <form className="flex w-full min-w-0 flex-wrap items-center gap-2 md:w-auto" action="/merchant">
           <label htmlFor="loja" className="sr-only">
             Loja
           </label>
@@ -61,7 +66,7 @@ async function Dashboard({ searchParams }: { searchParams: PageProps<"/merchant"
             id="loja"
             name="loja"
             defaultValue={storeId}
-            className="rounded-lg border border-line bg-surface px-3 py-2"
+            className="min-h-tap max-w-full min-w-0 flex-1 basis-60 rounded-lg border border-line bg-surface px-3 py-2"
           >
             {STORES.map((s) => (
               <option key={s.id} value={s.id}>

@@ -7,3 +7,4 @@ package-lock.json
 docs
 *.md
 lib/api/schema.d.ts
+public/vendor

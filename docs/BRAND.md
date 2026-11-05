@@ -59,6 +59,10 @@ Desde a fase 2, `front_lista_esperta/app/globals.css` usa estes valores medidos.
 
 Regras: cada token é declarado uma vez com `light-dark(claro, escuro)`. O modo segue `prefers-color-scheme`, com override manual por `data-theme="light|dark"` em `<html>` (botão no cabeçalho). O amarelo `--accent` é reservado à etiqueta de preço. Todos os tokens são expostos ao Tailwind v4 via `@theme inline` (`bg-brand`, `text-ink` etc.).
 
+## Mapa
+
+Lojas são pontos azuis (`#0754E0` claro / `#6B9BFF` escuro) com borda branca; a loja selecionada fica em tinta. A posição da pessoa usa o amarelo do pin do logo (`#FEB204`), a mesma ideia do logo: “onde você está”.
+
 ## Tipografia
 
 Barlow (texto, 400/500/600) e Barlow Condensed (títulos e preços, 600/700/800), via `next/font/google`. A família já está em uso e combina com o traço arredondado do logo.

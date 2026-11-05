@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { DEFAULT_USER_AGENT } from '../integrations/http.js';
 
 const booleanString = z
   .enum(['true', 'false'])
@@ -21,6 +22,26 @@ export const envSchema = z
     JWT_REFRESH_TTL_DAYS: z.coerce.number().int().positive().default(7),
     /** Defaults to true in production. */
     COOKIE_SECURE: booleanString.optional(),
+
+    /** Free map services (docs/DECISIONS.md D-031). */
+    OVERPASS_URLS: z
+      .string()
+      .default(
+        'https://overpass-api.de/api/interpreter,https://overpass.private.coffee/api/interpreter',
+      )
+      .transform((value) =>
+        value
+          .split(',')
+          .map((url) => url.trim())
+          .filter(Boolean),
+      )
+      .pipe(z.array(z.url()).min(1)),
+    NOMINATIM_URL: z.url().default('https://nominatim.openstreetmap.org'),
+    BRASILAPI_URL: z.url().default('https://brasilapi.com.br/api'),
+    HTTP_USER_AGENT: z.string().min(3).default(DEFAULT_USER_AGENT),
+    /** Background import of shops from OpenStreetMap. Off in tests. */
+    DISCOVERY_ENABLED: booleanString.default(true),
+    DISCOVERY_TTL_DAYS: z.coerce.number().int().positive().default(30),
 
     GOOGLE_MAPS_API_KEY: z.string().optional(),
     GEMINI_API_KEY: z.string().optional(),

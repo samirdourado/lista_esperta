@@ -116,6 +116,102 @@ export interface paths {
         patch: operations["UsersController_updateMe"];
         trace?: never;
     };
+    "/api/v1/stores/nearby": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["StoresController_nearby"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stores/claimable": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["StoresController_claimable"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stores/mine": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["StoresController_mine"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stores": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["StoresController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stores/{storeId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["StoresController_update"];
+        trace?: never;
+    };
+    "/api/v1/stores/{storeId}/verification": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["StoresController_verify"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/stores/{storeId}/members": {
         parameters: {
             query?: never;
@@ -126,6 +222,150 @@ export interface paths {
         get: operations["StoresController_members"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/store-claims": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["StoreClaimsController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/store-claims/mine": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["StoreClaimsController_mine"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/geocoding/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["GeocodingController_search"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/geocoding/reverse": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["GeocodingController_reverse"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/store-claims": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminController_listClaims"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/store-claims/{claimId}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminController_approve"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/store-claims/{claimId}/reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminController_reject"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/stores/pending-verification": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminController_pendingVerification"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/stores/{storeId}/verification": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminController_setVerification"];
         delete?: never;
         options?: never;
         head?: never;
@@ -248,13 +488,249 @@ export interface components {
             defaultRadiusKm?: number;
         };
         /** @enum {string} */
+        StoreSource: "OSM" | "GOOGLE_PLACES" | "MERCHANT_REGISTERED" | "NFCE";
+        /** @enum {string} */
+        VerificationStatus: "UNVERIFIED" | "PENDING" | "VERIFIED";
+        AddressDto: {
+            /** @example Rua Domingos de Morais */
+            street?: string;
+            /** @example 2000 */
+            number?: string;
+            /** @example Vila Mariana */
+            district?: string;
+            /** @example São Paulo */
+            city?: string;
+            /**
+             * @description Two-letter state code
+             * @example SP
+             */
+            state?: string;
+            /** @example 04036-000 */
+            postcode?: string;
+        };
+        StoreResponseDto: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            /** @example 11222333000181 */
+            cnpj: string | null;
+            source: components["schemas"]["StoreSource"];
+            verificationStatus: components["schemas"]["VerificationStatus"];
+            lat: number;
+            lng: number;
+            address: components["schemas"]["AddressDto"] | null;
+            /** @description { weekly } from the merchant or { osm } raw OpenStreetMap string */
+            openingHours: {
+                [key: string]: unknown;
+            } | null;
+            /**
+             * @example [
+             *       "alimentos"
+             *     ]
+             */
+            categories: string[];
+            /** @description A merchant runs this store on the app */
+            managed: boolean;
+            /** @example 0.8 */
+            distanceKm?: number;
+        };
+        NearbyStoresResponseDto: {
+            stores: components["schemas"]["StoreResponseDto"][];
+            /**
+             * @description Map areas still being imported in the background; ask again in a few seconds
+             * @example 0
+             */
+            pendingAreas: number;
+        };
+        /** @enum {string} */
         StoreMemberRole: "OWNER" | "STAFF";
+        MyStoreResponseDto: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            /** @example 11222333000181 */
+            cnpj: string | null;
+            source: components["schemas"]["StoreSource"];
+            verificationStatus: components["schemas"]["VerificationStatus"];
+            lat: number;
+            lng: number;
+            address: components["schemas"]["AddressDto"] | null;
+            /** @description { weekly } from the merchant or { osm } raw OpenStreetMap string */
+            openingHours: {
+                [key: string]: unknown;
+            } | null;
+            /**
+             * @example [
+             *       "alimentos"
+             *     ]
+             */
+            categories: string[];
+            /** @description A merchant runs this store on the app */
+            managed: boolean;
+            /** @example 0.8 */
+            distanceKm?: number;
+            memberRole: components["schemas"]["StoreMemberRole"];
+        };
+        TimeRangeDto: {
+            /** @example 08:00 */
+            open: string;
+            /**
+             * @description Earlier than open = closes after midnight
+             * @example 20:00
+             */
+            close: string;
+        };
+        DayHours: {
+            mon?: components["schemas"]["TimeRangeDto"][];
+            tue?: components["schemas"]["TimeRangeDto"][];
+            wed?: components["schemas"]["TimeRangeDto"][];
+            thu?: components["schemas"]["TimeRangeDto"][];
+            fri?: components["schemas"]["TimeRangeDto"][];
+            sat?: components["schemas"]["TimeRangeDto"][];
+            sun?: components["schemas"]["TimeRangeDto"][];
+        };
+        OpeningHoursDto: {
+            /**
+             * @description Ranges per day; a day left out is closed
+             * @example {
+             *       "mon": [
+             *         {
+             *           "open": "08:00",
+             *           "close": "20:00"
+             *         }
+             *       ],
+             *       "sun": []
+             *     }
+             */
+            weekly?: components["schemas"]["DayHours"];
+        };
+        CreateStoreDto: {
+            /** @example Mercado Bom Preço */
+            name: string;
+            /**
+             * @description Recommended: verifies the store
+             * @example 11.222.333/0001-81
+             */
+            cnpj?: string;
+            /** @example -23.5891 */
+            lat: number;
+            /** @example -46.6346 */
+            lng: number;
+            address: components["schemas"]["AddressDto"];
+            openingHours?: components["schemas"]["OpeningHoursDto"];
+            /**
+             * @example [
+             *       "alimentos",
+             *       "limpeza"
+             *     ]
+             */
+            categorySlugs?: string[];
+            /** @description Set after the API answered 409 POSSIBLE_DUPLICATE and the merchant confirmed it is another store */
+            confirmNotDuplicate?: boolean;
+        };
+        VerificationChecksDto: {
+            active: boolean;
+            sameState: boolean;
+            sameCity: boolean;
+            samePostcode: boolean;
+            similarName: boolean;
+        };
+        VerificationResponseDto: {
+            /** @enum {string} */
+            status: "VERIFIED" | "PENDING";
+            checks: components["schemas"]["VerificationChecksDto"];
+            /** @example BOM PRECO SUPERMERCADOS LTDA */
+            legalName: string;
+            tradeName: string | null;
+        };
+        CreateStoreResponseDto: {
+            store: components["schemas"]["StoreResponseDto"];
+            verification?: components["schemas"]["VerificationResponseDto"] | null;
+            /** @description Why the CNPJ could not be checked now */
+            verificationError?: string | null;
+        };
+        UpdateStoreDto: {
+            /** @example Mercado Bom Preço */
+            name?: string;
+            /** @example -23.5891 */
+            lat?: number;
+            /** @example -46.6346 */
+            lng?: number;
+            address?: components["schemas"]["AddressDto"];
+            openingHours?: components["schemas"]["OpeningHoursDto"];
+            /**
+             * @example [
+             *       "alimentos",
+             *       "limpeza"
+             *     ]
+             */
+            categorySlugs?: string[];
+        };
+        VerifyStoreDto: {
+            /** @example 11.222.333/0001-81 */
+            cnpj: string;
+        };
         StoreMemberResponseDto: {
             /** Format: uuid */
             userId: string;
             /** @example Ana */
             displayName: string;
             memberRole: components["schemas"]["StoreMemberRole"];
+        };
+        CreateStoreClaimDto: {
+            /** Format: uuid */
+            storeId: string;
+            /**
+             * @description When it matches the store, the claim is approved right away
+             * @example 11.222.333/0001-81
+             */
+            cnpj?: string;
+            /** @example Sou o dono desde 2015. */
+            message?: string;
+        };
+        /** @enum {string} */
+        ClaimStatus: "PENDING" | "APPROVED" | "REJECTED";
+        StoreClaimResponseDto: {
+            /** Format: uuid */
+            id: string;
+            status: components["schemas"]["ClaimStatus"];
+            message: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            store: components["schemas"]["StoreResponseDto"];
+        };
+        CreateStoreClaimResponseDto: {
+            claim: components["schemas"]["StoreClaimResponseDto"];
+            /** @description Approved on the spot because the CNPJ matched the store */
+            autoApproved: boolean;
+            verification?: components["schemas"]["VerificationResponseDto"] | null;
+        };
+        GeocodedPlaceDto: {
+            label: string;
+            lat: number;
+            lng: number;
+            address: components["schemas"]["AddressDto"];
+        };
+        AdminStoreClaimResponseDto: {
+            /** Format: uuid */
+            id: string;
+            status: components["schemas"]["ClaimStatus"];
+            message: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            store: components["schemas"]["StoreResponseDto"];
+            /**
+             * @example {
+             *       "id": "uuid",
+             *       "email": "loja@example.com",
+             *       "displayName": "Loja"
+             *     }
+             */
+            user: Record<string, never>;
+        };
+        SetVerificationDto: {
+            /** @enum {string} */
+            status: "VERIFIED" | "UNVERIFIED";
         };
         ShoppingListItemResponseDto: {
             /** Format: uuid */
@@ -531,6 +1007,173 @@ export interface operations {
             };
         };
     };
+    StoresController_nearby: {
+        parameters: {
+            query: {
+                lat: number;
+                lng: number;
+                radiusKm?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NearbyStoresResponseDto"];
+                };
+            };
+        };
+    };
+    StoresController_claimable: {
+        parameters: {
+            query: {
+                lat: number;
+                lng: number;
+                /** @description Store name, to rank by similarity */
+                q?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StoreResponseDto"][];
+                };
+            };
+        };
+    };
+    StoresController_mine: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MyStoreResponseDto"][];
+                };
+            };
+        };
+    };
+    StoresController_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateStoreDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CreateStoreResponseDto"];
+                };
+            };
+            /** @description POSSIBLE_DUPLICATE or CNPJ_TAKEN: claim the existing store */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    StoresController_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                storeId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateStoreDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StoreResponseDto"];
+                };
+            };
+            /** @description Not a member of this store */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    StoresController_verify: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                storeId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VerifyStoreDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VerificationResponseDto"];
+                };
+            };
+            /** @description CNPJ_NOT_FOUND or CNPJ_NOT_ACTIVE */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description The CNPJ registry did not answer */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     StoresController_members: {
         parameters: {
             query?: never;
@@ -556,6 +1199,217 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    StoreClaimsController_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateStoreClaimDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CreateStoreClaimResponseDto"];
+                };
+            };
+            /** @description ALREADY_MEMBER or CNPJ_TAKEN */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    StoreClaimsController_mine: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StoreClaimResponseDto"][];
+                };
+            };
+        };
+    };
+    GeocodingController_search: {
+        parameters: {
+            query: {
+                q: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GeocodedPlaceDto"][];
+                };
+            };
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GeocodingController_reverse: {
+        parameters: {
+            query: {
+                lat: number;
+                lng: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GeocodedPlaceDto"];
+                };
+            };
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminController_listClaims: {
+        parameters: {
+            query?: {
+                status?: "PENDING" | "APPROVED" | "REJECTED";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminStoreClaimResponseDto"][];
+                };
+            };
+        };
+    };
+    AdminController_approve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                claimId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StoreClaimResponseDto"];
+                };
+            };
+        };
+    };
+    AdminController_reject: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                claimId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StoreClaimResponseDto"];
+                };
+            };
+        };
+    };
+    AdminController_pendingVerification: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StoreResponseDto"][];
+                };
+            };
+        };
+    };
+    AdminController_setVerification: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                storeId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SetVerificationDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StoreResponseDto"];
+                };
             };
         };
     };

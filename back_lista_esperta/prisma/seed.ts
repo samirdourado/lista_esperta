@@ -230,6 +230,19 @@ async function seedStores(ownerId: string) {
       )
       ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name, location = EXCLUDED.location,
         address = EXCLUDED.address, opening_hours = EXCLUDED.opening_hours`;
+    // Demo stores sell groceries and cleaning products.
+    for (const slug of ['alimentos', 'limpeza']) {
+      const category = await prisma.category.findUniqueOrThrow({
+        where: { slug },
+      });
+      await prisma.storeCategory.upsert({
+        where: {
+          storeId_categoryId: { storeId: store.id, categoryId: category.id },
+        },
+        update: {},
+        create: { storeId: store.id, categoryId: category.id },
+      });
+    }
     await prisma.storeMember.upsert({
       where: { storeId_userId: { storeId: store.id, userId: ownerId } },
       update: { memberRole: 'OWNER' },

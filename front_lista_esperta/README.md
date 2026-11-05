@@ -11,12 +11,13 @@ PWA da **Lista Esperta** em Next.js 16 (App Router, Cache Components, Tailwind v
 | `/` | `(shopper)` | Montar a lista (protótipo) |
 | `/verdict` | `(shopper)` | Veredito: 1 ou 2 lojas pelo custo total (protótipo, motor real sobre preços simulados) |
 | `/receipts/import` | `(shopper)` | Validação da chave da NFC-e no aparelho (protótipo) |
+| `/stores` | `(shopper)` | Lojas por perto: mapa (MapLibre + OpenFreeMap) e lista por distância, sem login |
 | `/how-it-works` | `(shopper)` | Fórmula, parâmetros e neutralidade |
 | `/offline` | `(shopper)` | Página servida pelo service worker sem conexão |
 | `/login`, `/register` | `(auth)` | Entrar e criar conta ("Quero economizar" / "Tenho uma loja") |
 | `/account` | `(shopper)` | Minha conta: nome, custo por km, valor da hora, raio padrão, sair. Exige login |
 | `/merchant` | `merchant/` | Painel do lojista (protótipo). Exige conta de lojista ou admin |
-| `/merchant/onboarding` | `merchant/` | Onde o lojista sem loja cai; o cadastro da loja chega na fase 4 |
+| `/merchant/onboarding` | `merchant/` | Encontrar a loja no mapa e pedir para administrá-la, ou cadastrá-la (pin, horários, categorias, CNPJ) |
 
 O `proxy.ts` protege `/merchant`, `/admin` e `/account` consultando `GET /api/v1/auth/me` (ver `docs/DECISIONS.md`, D-023).
 
@@ -41,6 +42,10 @@ As rotas antigas (`/veredito`, `/nota`, `/lojista`, `/transparencia`) redirecion
 - **Componentes base** em `components/ui/`: `Button` / `buttonClasses` (também para `<Link>`), `TextField`, `TextAreaField`, `Badge`, `Notice`, `Skeleton`, `Spinner` e `PageHeading`. Todo alvo de toque tem no mínimo 44 px (`min-h-tap` / `size-tap`).
 - **Shell:** `components/layout/` tem `AppHeader`, `HeaderNav` (tablet e desktop), `TabBar` (celular), `SiteFooter` e `SkipLink`.
 - **A etiqueta de preço amarela** (`PriceTag`, `.price-tag`) é o único elemento chamativo da interface. O amarelo do pin não aparece em outros lugares.
+
+## Mapa
+
+MapLibre GL 6 com tiles gratuitos do OpenFreeMap (sem chave). O worker do MapLibre é copiado para `public/vendor/maplibre/` no `postinstall` (`scripts/copy-maplibre-worker.mjs`) e carregado por `components/map/load-maplibre.ts` (ver `docs/DECISIONS.md` D-037). A lista de lojas é a forma acessível de navegar; o mapa é complementar.
 
 ## PWA
 

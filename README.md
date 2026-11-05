@@ -109,8 +109,18 @@ Para ver o PWA (service worker, offline, instalação): `cd front_lista_esperta 
 - Listas no servidor só para quem tem conta, com filtro por dono, e `POST /shopping-lists/import` para a migração guest → conta.
 - Front: login, cadastro ("Quero economizar" / "Tenho uma loja"), minha conta (nome e custo de deslocamento), onboarding do lojista, `proxy.ts` protegendo `/merchant`, `/admin` e `/account`, client tipado pelo OpenAPI com TanStack Query, listas do visitante no IndexedDB e convite discreto para criar conta depois do veredito.
 
-Ainda simulado: os preços e as lojas do veredito (`lib/demo/`) e a localização, que cai no centro da Vila Mariana. Isso muda nas fases 4 (lojas reais e geolocalização) e 7 (veredito pela API).
+**Fase 4 — lojas** ✅ (mapas 100% gratuitos, sem chave; ver `docs/DECISIONS.md` D-031)
+- Lojas reais do OpenStreetMap, importadas em segundo plano por área e guardadas por 30 dias, com deduplicação por CNPJ ou por proximidade (< 50 m) + nome parecido.
+- `/stores` (sem login): mapa (MapLibre + OpenFreeMap, claro e escuro) e lista por distância, raio de 1 a 10 km, sua localização real ou um endereço digitado, selo discreto de "Loja não verificada".
+- Onboarding do lojista: encontrar a loja no mapa e pedir para administrá-la, ou cadastrar com pin ajustável, horários e categorias.
+- CNPJ conferido na BrasilAPI: dígitos, situação ativa, cidade/UF/CEP e nome → `VERIFIED` ou `PENDING` (para o admin). Reivindicação com CNPJ que bate é aprovada na hora.
+- API de moderação para o admin (`/admin/...`, pelo Swagger; as telas são da fase 8).
+- Hot reload do front no Docker corrigido (polling do Turbopack).
 
-Próximas fases: 4 · lojas → 5 · dashboard do lojista → 6 · NFC-e → 7 · lista + veredito → 8 · opcionais.
+A primeira vez que uma região é aberta, as lojas levam até um minuto para aparecer: o serviço gratuito do OpenStreetMap é lento e a importação roda em segundo plano. Depois, ficam no banco.
+
+Ainda simulado: os preços e o veredito (`lib/demo/`). A tela da lista ainda usa o centro da Vila Mariana quando você está fora de lá. Isso muda na fase 7, com o veredito real pela API.
+
+Próximas fases: 5 · dashboard do lojista → 6 · NFC-e → 7 · lista + veredito → 8 · opcionais.
 
 A documentação do protótipo (arquitetura, motor de decisão, monetização) continua em [front_lista_esperta/docs/](front_lista_esperta/docs/README.md).

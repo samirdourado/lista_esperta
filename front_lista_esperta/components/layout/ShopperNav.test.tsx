@@ -8,7 +8,7 @@ const pathname = vi.hoisted(() => ({ value: "/" }));
 vi.mock("next/navigation", () => ({ usePathname: () => pathname.value }));
 
 describe("isCurrent", () => {
-  const [list, receipts] = SHOPPER_NAV;
+  const [list, , receipts] = SHOPPER_NAV;
 
   it("treats the verdict as part of the list flow", () => {
     expect(isCurrent(list, "/")).toBe(true);

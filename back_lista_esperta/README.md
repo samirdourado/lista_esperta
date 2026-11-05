@@ -16,7 +16,12 @@ prisma.config.ts           conexão e seed (Prisma 7)
 src/
   auth/                    cadastro, login, refresh com rotação, guards e decorators
   users/                   perfil e preferências de deslocamento (PATCH /users/me)
-  stores/                  StoreMemberGuard, StoresGeoRepository (único acesso a `location`)
+  stores/                  lojas: busca por perto, cadastro, verificação de CNPJ, descoberta em segundo plano,
+                           StoreMemberGuard e StoresGeoRepository (único acesso a `location`)
+  store-claims/            "esta loja é minha": reivindicação, aprovada na hora com CNPJ que bate
+  admin/                   moderação de reivindicações e verificações (só ADMIN)
+  geocoding/               endereço ↔ coordenada para quem não libera a localização
+  integrations/            OpenStreetMap (Overpass), Nominatim, BrasilAPI atrás de interfaces
   shopping-lists/          listas dos usuários logados + importação guest → conta
   common/throttling.ts     rate limit por IP e por IP + X-Guest-Id
   config/env.schema.ts     validação das variáveis (a API não sobe se faltar alguma)

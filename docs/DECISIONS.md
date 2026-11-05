@@ -2,6 +2,60 @@
 
 Registro de decisões tomadas onde a especificação era ambígua ou conflitava com o ambiente. A mais recente fica no topo de cada fase.
 
+## Fase 4
+
+### D-031 · Mapas gratuitos no lugar do Google (decisão sua)
+Você escolheu a opção 100% gratuita. Cada serviço fica atrás de uma interface em `src/integrations/providers.ts` e pode ser trocado por um pago numa linha do `IntegrationsModule`:
+
+| Função | Serviço | Interface |
+|---|---|---|
+| Descobrir lojas | OpenStreetMap via Overpass API | `PlacesProvider` |
+| Endereço ↔ coordenada | Nominatim | `GeocodingProvider` |
+| CNPJ | BrasilAPI | `CnpjLookup` |
+| Mapa no navegador | MapLibre GL 6 + OpenFreeMap (claro `liberty`, escuro `dark`) | — |
+
+Nenhuma chave é necessária. O enum `StoreSource` ganhou `OSM` (o `GOOGLE_PLACES` foi mantido para uma troca futura), e `google_place_id` virou `external_id`, único junto com `source`. A migration usa `RENAME`, que preserva os dados.
+
+### D-032 · Descoberta de lojas em segundo plano, por células
+O Overpass público leva de 30 a 40 s por consulta e às vezes não responde. No teste real, uma célula de cerca de 5,5 km na Vila Mariana trouxe 658 lojas em 41 s. Por isso:
+- o mapa é dividido em células de 0,05°, e cada célula é consultada uma vez e guardada em `place_discovery_cells`, que vale por 30 dias (`DISCOVERY_TTL_DAYS`);
+- uma fila no processo da API busca uma célula por vez, sendo educada com o serviço gratuito, e retoma as pendentes quando a API reinicia;
+- `GET /stores/nearby` responde na hora com o que já está no banco e informa `pendingAreas`; o front repete a consulta a cada 8 s, por até cerca de 3 min;
+- cada pedido enfileira no máximo 16 células, as mais próximas primeiro;
+- vários espelhos do Overpass são tentados em ordem (`OVERPASS_URLS`).
+
+A fila é em memória porque há uma única instância da API. Com várias instâncias, ela deve ir para uma fila de verdade (BullMQ, pg-boss).
+
+### D-033 · O que conta como "loja" no OpenStreetMap
+Entram `shop=*` com nome, farmácias e feiras (`amenity=pharmacy|marketplace`). Ficam de fora os serviços que não vendem produtos (cabeleireiro, lavanderia, oficina, agência de viagem…). O tipo OSM é convertido para as nossas categorias (`supermarket` → `alimentos`, `hardware` → `construcao/ferramentas` etc.) em `osm.mapper.ts`.
+
+### D-034 · Deduplicação e quem manda nos dados
+- **Mesma loja:** mesmo CNPJ, ou menos de 50 m de distância com `similarity(nome) ≥ 0.4` (pg_trgm).
+- **OSM não duplica:** uma loja do OSM que repete uma de outra origem não é importada.
+- **Lojista vence:** quando uma loja tem lojista (`StoreMember`), as importações seguintes do OSM não sobrescrevem os dados dela.
+- **Cadastro do lojista:** uma possível duplicata responde `409 POSSIBLE_DUPLICATE` com o `storeId` da loja existente. O front oferece duas saídas: "É a minha loja: pedir para administrar" ou "É outra loja: cadastrar mesmo assim" (`confirmNotDuplicate`).
+
+### D-035 · Verificação do CNPJ e reivindicação
+O CNPJ é validado primeiro pelos dígitos verificadores e depois consultado na BrasilAPI. A regra, em `verification.rules.ts`, coberta por testes:
+- **Não ativo** (BAIXADA, SUSPENSA…): recusado (422).
+- **Mesmo estado e cidade, mais o mesmo prefixo de CEP ou um nome parecido:** `VERIFIED`.
+- **Qualquer outro caso:** `PENDING`, para o admin conferir.
+
+Na reivindicação, se o CNPJ informado dá `VERIFIED` para aquela loja e ninguém a administra ainda, o pedido é aprovado na hora. Sem CNPJ, fica pendente para o admin.
+
+A API de moderação (`/admin/store-claims`, `/admin/stores/pending-verification`) já existe e funciona pelo Swagger. As telas do admin são da fase 8.
+
+### D-036 · Polling do Turbopack no Docker
+O `WATCHPACK_POLLING` da fase 1 só vale para o webpack. O Next 16 usa Turbopack, e no Docker do Windows o front **não recarregava** mudanças de arquivo; na fase 1 eu só tinha testado o hot reload da API. Com `WATCHPACK_POLLING=true`, o `next.config.ts` liga `watchOptions.pollIntervalMs: 1000`. A documentação do Next recomenda essa opção só como último recurso, e um bind mount do Windows é exatamente esse caso. Agora está testado.
+
+### D-037 · Worker do MapLibre servido por `public/`
+O MapLibre 6 localiza o worker com `new URL(variável, import.meta.url)`, que o bundler não resolve. Isso causava o erro "Worker failed to load" e deixava o mapa em branco. O `postinstall` copia o worker para `public/vendor/maplibre/` (fora do git), e `loadMapLibre()` chama `setWorkerUrl()`.
+
+### D-038 · Escopo da fase
+- **Lojas por perto:** nova rota `/stores` (mapa + lista), sem login. Na barra de abas do celular, entra no lugar de "Como calculamos", que continua no cabeçalho e no rodapé. A navegação do cabeçalho agora aparece só a partir de 1024 px.
+- **Fotos da loja:** ficam para a fase 5, junto com o `StorageService`.
+- **Veredito:** continua com os dados simulados até a fase 7. A localização real já é usada em `/stores` e no onboarding.
+
 ## Fase 3
 
 ### D-019 · Migration inicial editada à mão

@@ -10,4 +10,6 @@ export const TEST_ENV = {
   JWT_ACCESS_SECRET: 'test-access-secret-0123456789abcdef0123456789',
   JWT_REFRESH_SECRET: 'test-refresh-secret-0123456789abcdef012345678',
   THROTTLE_DISABLED: 'true',
+  // Store discovery calls OpenStreetMap; stores.e2e-spec.ts turns it on with a fake.
+  DISCOVERY_ENABLED: 'false',
 };

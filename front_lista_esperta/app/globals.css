@@ -233,7 +233,7 @@
 .pb-tabbar {
   padding-bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom) + 1.5rem);
 }
-@media (min-width: 48rem) {
+@media (min-width: 64rem) {
   .pb-tabbar {
     padding-bottom: 4rem;
   }

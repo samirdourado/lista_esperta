@@ -9,14 +9,26 @@ import { StoresGeoRepository } from '../src/stores/stores-geo.repository.js';
 
 export type TestApp = INestApplication<App>;
 
+export interface TestAppOptions extends Pick<
+  ModuleMetadata,
+  'controllers' | 'providers'
+> {
+  /** Replaces providers, e.g. the external services with fakes. */
+  overrides?: { token: unknown; value: unknown }[];
+}
+
 export async function createTestApp(
-  extra: Pick<ModuleMetadata, 'controllers' | 'providers'> = {},
+  options: TestAppOptions = {},
 ): Promise<TestApp> {
-  const moduleRef = await Test.createTestingModule({
+  let builder = Test.createTestingModule({
     imports: [AppModule],
-    controllers: extra.controllers ?? [],
-    providers: extra.providers ?? [],
-  }).compile();
+    controllers: options.controllers ?? [],
+    providers: options.providers ?? [],
+  });
+  for (const { token, value } of options.overrides ?? []) {
+    builder = builder.overrideProvider(token).useValue(value);
+  }
+  const moduleRef = await builder.compile();
   const app = moduleRef.createNestApplication<TestApp>();
   configureApp(app);
   await app.init();

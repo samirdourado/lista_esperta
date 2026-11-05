@@ -8,6 +8,10 @@ const nextConfig: NextConfig = {
   },
   cacheComponents: true,
   partialPrefetching: true,
+  // Docker on Windows: file events do not cross the bind mount, so Turbopack
+  // must poll. Only when the compose file asks for it (WATCHPACK_POLLING=true);
+  // see docs/DECISIONS.md D-036.
+  ...(process.env.WATCHPACK_POLLING === "true" ? { watchOptions: { pollIntervalMs: 1000 } } : {}),
   turbopack: {
     rules: {
       "*.css": {
