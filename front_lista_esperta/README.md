@@ -2,15 +2,15 @@
 
 PWA da **Lista Esperta** em Next.js 16 (App Router, Cache Components, Tailwind v4). O setup completo, com Docker e com o backend, está no [README da raiz](../README.md).
 
-> Estado: a base visual e o PWA são definitivos (fase 2). As telas de lista, veredito, NFC-e e lojista ainda são o **protótipo do hackathon**, com preços simulados em `lib/demo/`. Elas serão reescritas sobre a API Nest nas fases 3 a 7.
+> Estado: todas as telas usam a API Nest com dados reais (fase 7). O protótipo do hackathon e os dados simulados (`lib/demo/`) foram removidos.
 
 ## Rotas
 
 | Rota | Grupo | O que é |
 |---|---|---|
-| `/` | `(shopper)` | Montar a lista (protótipo) |
-| `/verdict` | `(shopper)` | Veredito: 1 ou 2 lojas pelo custo total (protótipo, motor real sobre preços simulados) |
-| `/receipts/import` | `(shopper)` | Validação da chave da NFC-e no aparelho (protótipo) |
+| `/` | `(shopper)` | Montar a lista: texto livre com quantidade ("2 leite"), autocompletar do catálogo, colar várias linhas ou foto da lista (Gemini, pela API). Salva no aparelho ou na conta |
+| `/verdict` | `(shopper)` | Veredito pela API: a loja de menor custo total (itens + deslocamento), divisão em duas lojas quando compensa, a origem de cada preço, itens sem preço e o bloco "Patrocinado" separado. Raio, R$/km e valor da hora ajustáveis na tela |
+| `/receipts/import` | `(shopper)` | Enviar NFC-e: QR Code pela câmera, link, foto ou chave digitada |
 | `/stores` | `(shopper)` | Lojas por perto: mapa (MapLibre + OpenFreeMap) e lista por distância, sem login |
 | `/how-it-works` | `(shopper)` | Fórmula, parâmetros e neutralidade |
 | `/offline` | `(shopper)` | Página servida pelo service worker sem conexão |
@@ -32,7 +32,7 @@ As rotas antigas (`/veredito`, `/nota`, `/lojista`, `/transparencia`) redirecion
 |---|---|
 | `npm run dev` | Servidor de desenvolvimento (http://localhost:3000) |
 | `npm run build` / `npm start` | Build e servidor de produção |
-| `npm run lint` | ESLint (inclui a regra que impede `lib/verdict/` de importar anúncios) |
+| `npm run lint` | ESLint (inclui a regra de neutralidade: os componentes do ranking em `components/verdict/` não podem importar o `SponsoredBlock`) |
 | `npm run typecheck` | `next typegen` + `tsc --noEmit` |
 | `npm test` | Vitest: lógica em `lib/` e componentes com Testing Library (jsdom) |
 | `npm run format` / `format:check` | Prettier, com ordenação de classes do Tailwind |
@@ -58,10 +58,10 @@ MapLibre GL 6 com tiles gratuitos do OpenFreeMap (sem chave). O worker do MapLib
 
 ## Variáveis de ambiente
 
-Ver [.env.example](.env.example). Só variáveis `NEXT_PUBLIC_*` chegam ao navegador. As rotas `app/api/*` do protótipo ainda leem `GEMINI_API_KEY` e serão removidas quando a API Nest assumir essas funções (ver `docs/DECISIONS.md`, D-009).
+Ver [.env.example](.env.example). Só variáveis `NEXT_PUBLIC_*` chegam ao navegador. O front não guarda nenhuma chave de serviço: Gemini, OpenRouteService e as outras integrações ficam só na API.
 
 ## Nota para agentes de código
 
 Esta versão do Next.js tem APIs diferentes das antigas: consulte `node_modules/next/dist/docs/` antes de escrever código (ver [AGENTS.md](AGENTS.md)). Por exemplo, o `middleware.ts` virou `proxy.ts`.
 
-A documentação do protótipo (relatório do hackathon) está em [docs/](docs/README.md).
+A documentação do protótipo (relatório do hackathon) continua em [docs/](docs/README.md), como registro histórico.

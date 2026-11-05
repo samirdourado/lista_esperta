@@ -98,8 +98,6 @@ A senha pode ser trocada com `SEED_PASSWORD`. Contas de cliente são criadas pel
 - Componentes base em `components/ui/` e testes com Testing Library.
 - Rotas em inglês (`/verdict`, `/receipts/import`, `/how-it-works`, `/merchant`); as antigas redirecionam.
 
-As telas de lista, veredito, NFC-e e lojista ainda são o protótipo do hackathon (dados simulados em `lib/demo/`), agora sobre a base nova. Elas serão reescritas nas fases 4 a 7.
-
 Para ver o PWA (service worker, offline, instalação): `cd front_lista_esperta && npm run build && npm start`.
 
 **Fase 3 — banco e autenticação** ✅
@@ -119,8 +117,6 @@ Para ver o PWA (service worker, offline, instalação): `cd front_lista_esperta 
 
 A primeira vez que uma região é aberta, as lojas levam até um minuto para aparecer: o serviço gratuito do OpenStreetMap é lento e a importação roda em segundo plano. Depois, ficam no banco.
 
-Ainda simulado: os preços e o veredito (`lib/demo/`). A tela da lista ainda usa o centro da Vila Mariana quando você está fora de lá. Isso muda na fase 7, com o veredito real pela API.
-
 **Fase 5 — painel do lojista** ✅
 - `/merchant/stores/[id]`: visão geral (produtos com preço, ofertas, posição frente à mediana da região, notas fiscais com preço diferente, procura anônima na região com k ≥ 10), produtos e preços com edição em massa, ofertas com validade, "não vendo mais", busca por código de barras (catálogo e Open Food Facts), importação de planilha CSV com relatório por linha, equipe (dono adiciona e remove) e fotos da loja.
 - API: `/products` (busca pública), `/products/lookup/:gtin`, `/categories`, `/stores/:id/{overview,products,prices,prices/import,offers,members,photos}`.
@@ -132,6 +128,15 @@ Ainda simulado: os preços e o veredito (`lib/demo/`). A tela da lista ainda usa
 - A loja vem do CNPJ da nota (cadastrada, unificada com a do mapa ou criada).
 - **Limitação:** daqui, a SEFAZ-SP recusa a conexão do servidor, então a leitura pelo QR não pôde ser testada com uma nota real. A foto funciona (testada com o Gemini real). Detalhes e caminhos em `docs/DECISIONS.md` D-046/D-047.
 
-Próximas fases: 7 · lista + veredito → 8 · opcionais.
+**Fase 7 — lista e veredito** ✅ (sem dados simulados)
+- `/` monta a lista: texto livre com quantidade ("2 leite", "ovos x 12"), autocompletar do catálogo pelo teclado, colar várias linhas ou foto da lista (Gemini, pela API). Fica salva no aparelho ou na conta.
+- `/verdict` usa a sua localização real (ou um endereço) e responde qual loja sai mais barata pelo **custo total**: itens + mediana da região para o que faltar + ida e volta × R$/km + tempo × valor da hora. Sugere dividir em duas lojas quando economiza mais de R$ 10 e mais de 5%. Mostra a origem de cada preço, os itens sem preço, as lojas fechadas que ficaram de fora e o bloco "Patrocinado" separado do ranking.
+- Raio (1 a 10 km), R$/km e valor da hora ajustáveis na própria tela: na conta, para quem entrou; no aparelho, para visitantes.
+- API: `POST /verdict` (sem login, motor puro e testado), `POST /lists/parse-photo`. Neutralidade garantida por regra de lint nos dois projetos e por teste e2e.
+- O protótipo (`lib/demo/`, rotas `app/api/*`) foi removido.
+
+As distâncias são estimadas (linha reta × 1,3) até você colocar uma `ORS_API_KEY` gratuita no `.env` (D-054).
+
+Próxima fase: 8 · opcionais (encartes, alertas de preço, painel do admin).
 
 A documentação do protótipo (arquitetura, motor de decisão, monetização) continua em [front_lista_esperta/docs/](front_lista_esperta/docs/README.md).

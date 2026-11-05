@@ -23,6 +23,10 @@ src/
   geocoding/               endereço ↔ coordenada para quem não libera a localização
   products/                catálogo público, busca por código de barras (Open Food Facts), categorias
   prices/                  catálogo da loja, preços e ofertas, importação CSV, visão geral (mediana, NFC-e, procura)
+  verdict/                 veredito: engine.ts (puro, testado), preço vigente por loja, horário de funcionamento,
+                           procura anônima; POST /verdict e POST /lists/parse-photo
+  integrations/routes/     distância e tempo: OpenRouteService com ORS_API_KEY, senão estimativa (linha reta × 1,3)
+  sponsored/               conteúdo patrocinado, fora do motor (regra de lint + teste e2e de neutralidade)
   storage/                 StorageService (disco local hoje) para fotos de loja e de nota
   receipts/                NFC-e: chave de acesso, parsers por UF (parsers/sp.parser.ts), foto via Gemini, normalização
   integrations/gemini/     cliente REST do Gemini com responseSchema, validação e fallback de modelos

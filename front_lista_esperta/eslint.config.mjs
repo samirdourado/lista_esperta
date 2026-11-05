@@ -8,18 +8,18 @@ const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
   {
-    // Neutralidade do ranking (docs/03-monetizacao-b2b.md, Seção 3.6).
-    files: ["lib/verdict/**/*.ts"],
-    // Os testes importam anúncios de propósito, para provar que eles não alteram o veredito.
-    ignores: ["**/*.test.ts"],
+    // Neutrality (spec section 7): ranking components cannot depend on sponsored
+    // content; only VerdictView lays out both blocks side by side.
+    files: ["components/verdict/**/*.tsx"],
+    ignores: ["components/verdict/VerdictView.tsx", "components/verdict/SponsoredBlock.tsx", "**/*.test.tsx"],
     rules: {
       "no-restricted-imports": [
         "error",
         {
           patterns: [
             {
-              group: ["**/ads/**", "**/ads", "**/cashback/**"],
-              message: "O motor de veredito é neutro: não pode depender de anúncios.",
+              group: ["**/SponsoredBlock", "./SponsoredBlock"],
+              message: "O ranking é neutro: componentes do ranking não podem depender do bloco patrocinado.",
             },
           ],
         },

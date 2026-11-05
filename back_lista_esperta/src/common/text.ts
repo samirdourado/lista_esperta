@@ -80,3 +80,50 @@ export function nameSimilarity(
   for (const word of small) if (large.has(word)) shared += 1;
   return shared / small.size;
 }
+
+const UNIT_ALIASES: Record<string, string> = {
+  kg: 'kg',
+  kgs: 'kg',
+  quilo: 'kg',
+  quilos: 'kg',
+  g: 'g',
+  gr: 'g',
+  grs: 'g',
+  gramas: 'g',
+  l: 'l',
+  lt: 'l',
+  lts: 'l',
+  litro: 'l',
+  litros: 'l',
+  ml: 'ml',
+};
+const SIZE =
+  /\b(\d+(?:[.,]\d+)?)\s*(kgs?|quilos?|grs?|gramas|g|lts?|litros?|l|ml)\b/gi;
+
+/** "arroz 5kg" → "arroz 5 kg": trigram search sees the size as its own word. */
+export function spaceSizes(value: string): string {
+  return value.replace(/(\d)([a-zA-Z])/g, '$1 $2');
+}
+
+/** Sizes written in a text, in grams or millilitres ("1,5 L" → ["v1500"]). */
+export function sizesOf(value: string): string[] {
+  const sizes: string[] = [];
+  const plain = value.normalize('NFD').replace(/[̀-ͯ]/g, '');
+  for (const [, amount, rawUnit] of plain.matchAll(SIZE)) {
+    const unit = UNIT_ALIASES[rawUnit.toLowerCase()];
+    const n = Number(amount.replace(',', '.'));
+    if (unit === 'kg') sizes.push(`m${n * 1000}`);
+    else if (unit === 'g') sizes.push(`m${n}`);
+    else if (unit === 'l') sizes.push(`v${n * 1000}`);
+    else sizes.push(`v${n}`);
+  }
+  return sizes;
+}
+
+/** A typed size must be the product's size: "arroz 1 kg" is not the 5 kg pack. */
+export function sameSize(typed: string, productName: string): boolean {
+  const wanted = sizesOf(typed);
+  if (wanted.length === 0) return true;
+  const offered = new Set(sizesOf(productName));
+  return wanted.every((size) => offered.has(size));
+}

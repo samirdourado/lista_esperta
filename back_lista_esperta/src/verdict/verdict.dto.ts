@@ -158,6 +158,8 @@ export class RankedStoreDto {
 export class SplitDto {
   @ApiProperty({ type: [VerdictStoreDto] }) stores: VerdictStoreDto[];
   @ApiProperty({
+    type: 'object',
+    additionalProperties: { type: 'string' },
     description: 'Item index → store id',
     example: { 0: 'uuid-a', 1: 'uuid-b' },
   })

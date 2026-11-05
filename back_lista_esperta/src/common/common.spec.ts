@@ -1,6 +1,12 @@
 import { formatCnpj, isValidCnpj, normalizeCnpj } from './cnpj.js';
 import { CELL_DEGREES, cellFromKey, cellsForCircle } from './geo-cell.js';
-import { nameSimilarity, normalizeText } from './text.js';
+import {
+  nameSimilarity,
+  normalizeText,
+  sameSize,
+  sizesOf,
+  spaceSizes,
+} from './text.js';
 
 describe('CNPJ', () => {
   it('accepts valid numbers with or without punctuation', () => {
@@ -59,5 +65,24 @@ describe('discovery cells', () => {
     const cell = cellsForCircle(-23.5, -46.6, 1)[0];
     expect(cellFromKey(cell.key)).toEqual(cell);
     expect(cell.north - cell.south).toBeCloseTo(CELL_DEGREES, 6);
+  });
+});
+
+describe('sizes in product text', () => {
+  it('reads sizes in any common spelling', () => {
+    expect(sizesOf('Arroz branco tipo 1 Camil 5 kg')).toEqual(['m5000']);
+    expect(sizesOf('refri 1,5L')).toEqual(['v1500']);
+    expect(sizesOf('café 500g')).toEqual(['m500']);
+    expect(sizesOf('leite 1 litro')).toEqual(['v1000']);
+    expect(spaceSizes('arroz 5kg')).toBe('arroz 5 kg');
+  });
+
+  it('never takes one size for another', () => {
+    expect(sameSize('arroz 5kg', 'Arroz branco tipo 1 Camil 5 kg')).toBe(true);
+    expect(sameSize('arroz 5000 g', 'Arroz branco 5 kg')).toBe(true);
+    expect(sameSize('arroz 1 kg', 'Arroz branco tipo 1 Camil 5 kg')).toBe(
+      false,
+    );
+    expect(sameSize('arroz', 'Arroz branco tipo 1 Camil 5 kg')).toBe(true);
   });
 });

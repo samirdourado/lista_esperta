@@ -177,6 +177,15 @@ describe('Verdict (e2e)', () => {
     });
   });
 
+  it('matches typed sizes but never swaps one size for another', async () => {
+    const res = await verdict({
+      items: [{ text: 'arroz 5kg' }, { text: 'arroz 1kg' }],
+    }).expect(200);
+    expect(
+      res.body.items.map((i: { productName: string | null }) => i.productName),
+    ).toEqual(['Arroz branco tipo 1 Camil 5 kg', null]);
+  });
+
   it('penalizes missing items with the regional median and resolves typed text', async () => {
     const res = await verdict({
       items: [

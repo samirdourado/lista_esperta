@@ -644,6 +644,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/verdict": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["VerdictController_compute"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/lists/parse-photo": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["VerdictController_parsePhoto"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/shopping-lists": {
         parameters: {
             query?: never;
@@ -1215,6 +1247,158 @@ export interface components {
             alreadySent: boolean;
             /** @enum {string|null} */
             error: "LENGTH" | "CHECK_DIGIT" | "UF" | "MODEL" | null;
+        };
+        PointDto: {
+            /** @example -23.5891 */
+            lat: number;
+            /** @example -46.6346 */
+            lng: number;
+        };
+        VerdictItemInputDto: {
+            /**
+             * Format: uuid
+             * @description From the catalog autocomplete
+             */
+            productId?: string;
+            /**
+             * @description What the person typed
+             * @example arroz 5kg
+             */
+            text: string;
+            /**
+             * @default 1
+             * @example 2
+             */
+            quantity: number;
+        };
+        VerdictRequestDto: {
+            origin: components["schemas"]["PointDto"];
+            items: components["schemas"]["VerdictItemInputDto"][];
+            /** @default 5 */
+            radiusKm: number;
+            /**
+             * @description R$ per km driven
+             * @default 1
+             */
+            costPerKm: number;
+            /**
+             * @description R$ one hour of the person is worth
+             * @default 0
+             */
+            valuePerHour: number;
+        };
+        ResolvedItemDto: {
+            index: number;
+            text: string;
+            quantity: number;
+            productId: string | null;
+            productName: string | null;
+            /** @description Some store nearby has a price for it */
+            priced: boolean;
+            /** @description Median of stores nearby */
+            regionalMedian: number | null;
+        };
+        VerdictStoreDto: {
+            id: string;
+            name: string;
+            lat: number;
+            lng: number;
+            address: components["schemas"]["AddressDto"] | null;
+            /** @enum {string} */
+            verificationStatus: "UNVERIFIED" | "PENDING" | "VERIFIED";
+            /** @description null = hours unknown */
+            openNow: boolean | null;
+        };
+        PriceEvidenceDto: {
+            /** @enum {string} */
+            source: "NFCE" | "MERCHANT" | "FLYER" | "COMMUNITY";
+            /** Format: date-time */
+            observedAt: string;
+            /** @description Receipts with this product here in 7 days */
+            receiptCount: number;
+            /** @description A merchant offer with an end date */
+            offer: boolean;
+        };
+        StoreLineDto: {
+            index: number;
+            unitPrice: number | null;
+            subtotal: number | null;
+            evidence: components["schemas"]["PriceEvidenceDto"] | null;
+        };
+        RankedStoreDto: {
+            store: components["schemas"]["VerdictStoreDto"];
+            itemsCost: number;
+            /** @description Regional median of the items this store lacks */
+            missingPenalty: number;
+            /** @description Round trip */
+            travelKm: number;
+            travelMinutes: number;
+            travelCost: number;
+            totalCost: number;
+            found: number;
+            /** @description Items priced somewhere nearby ("X de Y") */
+            priced: number;
+            missing: number[];
+            lines: components["schemas"]["StoreLineDto"][];
+        };
+        SplitDto: {
+            stores: components["schemas"]["VerdictStoreDto"][];
+            /**
+             * @description Item index → store id
+             * @example {
+             *       "0": "uuid-a",
+             *       "1": "uuid-b"
+             *     }
+             */
+            assignment: {
+                [key: string]: string;
+            };
+            itemsCost: number;
+            missingPenalty: number;
+            travelKm: number;
+            travelMinutes: number;
+            travelCost: number;
+            totalCost: number;
+            /** @description Against the best single store */
+            savings: number;
+        };
+        VerdictParamsDto: {
+            radiusKm: number;
+            costPerKm: number;
+            valuePerHour: number;
+            splitMinSavings: number;
+            splitMinShare: number;
+            /** @enum {string} */
+            routing: "OPENROUTESERVICE" | "ESTIMATE";
+            storesConsidered: number;
+            /** @description Stores left out because they are closed now */
+            storesClosed: number;
+            /** @description Map areas still importing shops */
+            pendingAreas: number;
+        };
+        SponsoredItemDto: {
+            storeId: string;
+            storeName: string;
+            title: string;
+            /** @example Patrocinado */
+            label: string;
+        };
+        VerdictResponseDto: {
+            items: components["schemas"]["ResolvedItemDto"][];
+            /** @description By total cost only */
+            ranking: components["schemas"]["RankedStoreDto"][];
+            split: components["schemas"]["SplitDto"] | null;
+            params: components["schemas"]["VerdictParamsDto"];
+            /** @description Separate block; never changes the ranking */
+            sponsored: components["schemas"]["SponsoredItemDto"][];
+            /** Format: date-time */
+            computedAt: string;
+        };
+        ParsedListLineDto: {
+            /** @example arroz 5kg */
+            text: string;
+            /** @example 1 */
+            quantity: number;
         };
         ShoppingListItemResponseDto: {
             /** Format: uuid */
@@ -2409,6 +2593,64 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["ReceiptResultDto"][];
                 };
+            };
+        };
+    };
+    VerdictController_compute: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-guest-id"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VerdictRequestDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VerdictResponseDto"];
+                };
+            };
+        };
+    };
+    VerdictController_parsePhoto: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    /** Format: binary */
+                    file?: string;
+                };
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ParsedListLineDto"][];
+                };
+            };
+            /** @description PHOTO_UNAVAILABLE / PHOTO_SERVICE_UNAVAILABLE */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };

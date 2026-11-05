@@ -4,7 +4,7 @@ import { useCallback } from "react";
 import { readDevice, writeDevice } from "@/lib/device/device-store";
 import { useShoppingListRepository } from "@/lib/session";
 import { CURRENT_LIST_KEY } from "./migrate";
-import { DEFAULT_LIST_NAME, type ShoppingList } from "./repository";
+import { DEFAULT_LIST_NAME, type ShoppingList, type ShoppingListItem } from "./repository";
 
 /**
  * The list being edited on the home screen. Guests keep it on the device,
@@ -23,13 +23,13 @@ export function useCurrentList() {
   }, [repository]);
 
   const save = useCallback(
-    async (lines: string[]): Promise<ShoppingList> => {
+    async (items: ShoppingListItem[]): Promise<ShoppingList> => {
       const id = await readDevice<string>(CURRENT_LIST_KEY);
       const existing = id ? await repository.get(id) : undefined;
       const saved = await repository.save({
         id: existing?.id,
         name: existing?.name ?? DEFAULT_LIST_NAME,
-        items: lines.map((freeText) => ({ freeText, quantity: 1 })),
+        items,
       });
       await writeDevice(CURRENT_LIST_KEY, saved.id);
       return saved;

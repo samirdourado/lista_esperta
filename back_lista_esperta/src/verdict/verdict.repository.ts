@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '../generated/prisma/client.js';
 import { PrismaService } from '../prisma/prisma.service.js';
+import { sameSize, spaceSizes } from '../common/text.js';
 import {
   FRESH_DAYS_FAST,
   FRESH_DAYS_MERCHANT,
@@ -18,6 +19,8 @@ export interface CurrentPriceRow {
 
 /** Minimum trigram similarity to accept a typed item as a catalog product. */
 const TEXT_MATCH_SIMILARITY = 0.3;
+/** Same, for a typed item found inside a longer catalog name. */
+const TEXT_MATCH_WORD_SIMILARITY = 0.6;
 
 @Injectable()
 export class VerdictRepository {
@@ -71,15 +74,23 @@ export class VerdictRepository {
       include: { product: { select: { id: true, canonicalName: true } } },
     });
     if (alias) return alias.product;
-    const [row] = await this.prisma.$queryRaw<
+    // word_similarity scores a short typed item inside a long catalog name
+    // ("arroz 5 kg" in "Arroz branco tipo 1 Camil 5 kg").
+    const query = spaceSizes(text);
+    const rows = await this.prisma.$queryRaw<
       { id: string; canonicalName: string }[]
     >`
       SELECT id, canonical_name AS "canonicalName" FROM products
-      WHERE similarity(canonical_name, ${text}) >= ${TEXT_MATCH_SIMILARITY}
-         OR canonical_name ILIKE ${`%${text}%`}
-      ORDER BY similarity(canonical_name, ${text}) DESC
-      LIMIT 1`;
-    return row ?? null;
+      WHERE similarity(canonical_name, ${query}) >= ${TEXT_MATCH_SIMILARITY}
+         OR word_similarity(${query}, canonical_name) >= ${TEXT_MATCH_WORD_SIMILARITY}
+         OR canonical_name ILIKE ${`%${query}%`}
+      ORDER BY greatest(
+        similarity(canonical_name, ${query}),
+        word_similarity(${query}, canonical_name)
+      ) DESC, canonical_name
+      LIMIT 5`;
+    // Never swap sizes: "arroz 1 kg" must not price the 5 kg pack.
+    return rows.find((row) => sameSize(query, row.canonicalName)) ?? null;
   }
 
   /** Anonymous demand: +1 list per product in a ~1 km cell today (no ids stored). */

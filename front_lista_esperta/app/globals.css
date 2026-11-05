@@ -208,21 +208,6 @@
   }
 }
 
-/* Ruled sheet for typing the list. */
-.ruled {
-  background-color: var(--surface);
-  background-image: repeating-linear-gradient(
-    to bottom,
-    transparent 0,
-    transparent calc(2rem - 1px),
-    var(--line) calc(2rem - 1px),
-    var(--line) 2rem
-  );
-  background-attachment: local;
-  background-position: 0 0.75rem;
-  line-height: 2rem;
-}
-
 /* Texture for heat-map cells hidden by k-anonymity (does not rely on colour). */
 .heat-hidden {
   background: repeating-linear-gradient(45deg, var(--surface-sunken) 0 4px, transparent 4px 8px);

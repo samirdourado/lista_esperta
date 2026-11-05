@@ -2,6 +2,29 @@
 
 Registro de decisões tomadas onde a especificação era ambígua ou conflitava com o ambiente. A mais recente fica no topo de cada fase.
 
+## Fase 7
+
+### D-060 · Item digitado → produto do catálogo, sem trocar tamanho
+Quem digita "arroz 5kg" quase nunca escreve o nome do catálogo inteiro ("Arroz branco tipo 1 Camil 5 kg"). Só `similarity` do `pg_trgm` não achava, porque compara o texto inteiro. Agora a busca separa número e unidade ("5kg" → "5 kg") e aceita também `word_similarity ≥ 0,6`, que mede o item curto dentro do nome longo. Se o item digitado tem tamanho, o produto precisa ter o mesmo, em gramas ou mililitros (`sameSize` em `common/text.ts`): "arroz 1 kg" fica sem preço em vez de usar o preço do pacote de 5 kg, a mesma regra da normalização (nunca misturar tamanhos). Achado no teste real pelo navegador. Há teste unitário e e2e.
+
+### D-059 · Neutralidade também no front
+No back, o motor (`src/verdict/engine.ts`) não pode importar `sponsored/` (lint), e um teste e2e confere que um anúncio não muda o ranking. No front, os componentes do ranking em `components/verdict/` não podem importar `SponsoredBlock` (`no-restricted-imports`). Só o `VerdictView`, que monta a página, coloca os dois blocos lado a lado, e o patrocinado fica num `aside` próprio com o rótulo "Patrocinado". Hoje o `SponsoredService` devolve lista vazia: não há anunciantes.
+
+### D-058 · Protótipo removido; foto da lista passou para a API
+Saíram `lib/demo/`, `lib/verdict/*` (motor do protótipo), `lib/geo.ts`, `lib/nfce.ts`, `lib/ads/`, `lib/forecast/` (D-008) e as rotas `app/api/*` do Next. A leitura da foto da lista agora é `POST /api/v1/lists/parse-photo` no Nest, com o mesmo `GeminiService` das notas. Assim o front não guarda nenhuma chave (o `GEMINI_API_KEY` do `.env.local` do front deixou de ser usado e pode ser apagado), e isso fecha a D-009.
+
+### D-057 · Procura anônima: uma vez por aparelho, por dia, por área
+Cada veredito soma +1 lista por produto na célula de ~1 km do dia (`demand_signals`), sem ids. Para que o mesmo visitante repetindo o veredito não infle o número, o serviço guarda em memória um hash de aparelho + dia + célula e ignora as repetições. A memória zera quando a API reinicia, o que no pior caso conta a mesma pessoa duas vezes num dia. É aceitável para um sinal agregado mostrado só com k ≥ 10. Para mais de uma instância da API, isso iria para o Redis.
+
+### D-056 · Horário de funcionamento
+As lojas guardam horários por dia da semana (`openingHours`). O veredito tira do ranking as lojas **fechadas agora** (no relógio de São Paulo, UTC−3) e diz quantas ficaram de fora. Loja sem horário informado entra, com o aviso "Horário não informado". Assim uma loja do OpenStreetMap sem `opening_hours` não some da comparação.
+
+### D-055 · Qual preço vale em cada loja
+Para cada loja e produto vale a observação confiável mais recente, dentro de uma janela de validade: 7 dias para nota fiscal (NFCE) e cliente (COMMUNITY), 30 dias para preço do lojista (MERCHANT) e encarte (FLYER), porque o lojista atualiza quando muda. Uma oferta ativa do lojista ganha (é o preço da gôndola agora). O preço informado por cliente só vale quando não há outro. Cada preço volta com a origem e a idade ("visto há 2 h · 3 notas fiscais"), e o item sem preço na loja entra pela mediana da região (D-041).
+
+### D-054 · Distância estimada sem a chave do OpenRouteService
+Com `ORS_API_KEY`, o veredito pede ao OpenRouteService a matriz de distância e tempo de carro (plano gratuito). Sem a chave, ou se o serviço falhar, a distância é a linha reta × 1,3 (acréscimo médio das ruas) a 25 km/h (trânsito urbano). A tela diz qual dos dois foi usado. O resultado fica em cache por célula de ~500 m de origem, para não gastar a cota. O custo do deslocamento conta ida e volta.
+
 ## Fase 6
 
 ### D-046 · Fixture da SEFAZ-SP reconstruída (pendência)
