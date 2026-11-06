@@ -1,9 +1,10 @@
 import Link from "next/link";
 import { PriceTag } from "@/components/PriceTag";
 import { VerificationNote, addressLine } from "@/components/stores/StoreSummary";
+import { cx } from "@/lib/cx";
 import { brl } from "@/lib/format";
 import type { ShoppingListItem } from "@/lib/shopping-lists/repository";
-import { evidenceLabel, type RankedStore, type Verdict } from "@/lib/verdict/queries";
+import { evidenceLabel, type RankedStore, type UnpricedStore, type Verdict } from "@/lib/verdict/queries";
 
 const km = (value: number) => `${value.toLocaleString("pt-BR", { maximumFractionDigits: 1 })} km`;
 const minutes = (value: number) =>
@@ -26,7 +27,7 @@ export function BestStore({ best }: { best: RankedStore }) {
           ? "Total da lista nesta loja, com a média da região para o que ela não tem."
           : "Total da sua lista nesta loja."}
       </p>
-      <dl className="mt-5 grid grid-cols-2 gap-x-6 gap-y-3 border-y border-line py-4 sm:grid-cols-3">
+      <dl className="mt-5 grid grid-cols-3 gap-x-4 gap-y-3 border-y border-line py-4">
         <div>
           <dt className="text-[0.9rem] text-ink-soft">Itens</dt>
           <dd className="text-xl font-bold">
@@ -38,10 +39,9 @@ export function BestStore({ best }: { best: RankedStore }) {
           <dd className="text-xl font-bold">{brl(best.itemsCost)}</dd>
         </div>
         <div>
-          <dt className="text-[0.9rem] text-ink-soft">Ida e volta</dt>
-          <dd className="text-xl font-bold">
-            {km(best.travelKm)} · {minutes(best.travelMinutes)}
-          </dd>
+          <dt className="text-[0.9rem] text-ink-soft">Distância</dt>
+          <dd className="text-xl font-bold">{km(best.travelKm / 2)}</dd>
+          <dd className="text-[0.85rem] text-ink-soft">{minutes(best.travelMinutes / 2)} de carro</dd>
         </div>
       </dl>
       <div className="mt-2 flex flex-wrap gap-x-3">
@@ -81,9 +81,7 @@ export function ItemLines({
                   : `Sem preço aqui: conta a mediana da região (${brl(resolved.regionalMedian ?? 0)})`}
               </span>
               {item?.webPrice && (
-                <span className="block text-[0.85rem] text-ink-soft">
-                  Na internet: {brl(item.webPrice.price)} em {item.webPrice.store}
-                </span>
+                <span className="block text-[0.85rem] text-ink-soft">Na internet: {brl(item.webPrice.price)}</span>
               )}
               {resolved.productId && (
                 <Link
@@ -140,28 +138,73 @@ export function SplitCard({ verdict, items }: { verdict: Verdict; items: Shoppin
   );
 }
 
-/** The rest of the ranking, cheapest list first. */
-export function OtherStores({ ranking }: { ranking: RankedStore[] }) {
+/** The rest of the ranking, cheapest list first. Tapping one shows it on the map. */
+export function OtherStores({
+  ranking,
+  selectedId,
+  onSelect,
+}: {
+  ranking: RankedStore[];
+  selectedId?: string | null;
+  onSelect?: (id: string) => void;
+}) {
   if (ranking.length === 0) return null;
   return (
     <section aria-labelledby="others">
       <h2 id="others" className="text-2xl font-bold">
         Outras lojas por perto
       </h2>
-      <ol className="mt-2 divide-y divide-line rounded-md border border-line bg-surface">
+      <ol className="mt-2 flex flex-col gap-2">
         {ranking.map((entry, position) => (
-          <li key={entry.store.id} className="flex flex-wrap items-baseline justify-between gap-2 px-4 py-3">
-            <span>
-              <span className="mr-2 text-ink-soft tabular-nums">{position + 2}º</span>
-              <span className="font-medium">{entry.store.name}</span>
-              <span className="block text-[0.85rem] text-ink-soft">
-                {entry.found} de {entry.priced} itens · {km(entry.travelKm)} ida e volta
+          <li key={entry.store.id} data-store={entry.store.id}>
+            <button
+              type="button"
+              onClick={() => onSelect?.(entry.store.id)}
+              aria-pressed={selectedId === entry.store.id}
+              className={cx(
+                "flex w-full flex-wrap items-baseline justify-between gap-2 rounded-md border bg-surface px-4 py-3 text-left",
+                selectedId === entry.store.id
+                  ? "border-brand ring-2 ring-brand/30"
+                  : "border-line hover:border-line-strong",
+              )}
+            >
+              <span className="min-w-0">
+                <span className="mr-2 text-ink-soft tabular-nums">{position + 2}º</span>
+                <span className="font-medium">{entry.store.name}</span>
+                <span className="block text-[0.85rem] text-ink-soft">
+                  {entry.found} de {entry.priced} itens ·{" "}
+                  {entry.travelKm < 0.2 ? "a menos de 100 m" : `${km(entry.travelKm / 2)} de você`}
+                </span>
               </span>
-            </span>
-            <span className="font-semibold tabular-nums">{brl(entry.totalCost)}</span>
+              <span className="text-lg font-bold tabular-nums">{brl(entry.totalCost)}</span>
+            </button>
           </li>
         ))}
       </ol>
     </section>
+  );
+}
+
+/** Shops inside the radius nobody has priced yet: they show on the map in grey. */
+export function UnpricedStores({ stores, total = stores.length }: { stores: UnpricedStore[]; total?: number }) {
+  if (stores.length === 0) return null;
+  return (
+    <details className="rounded-md border border-line bg-surface px-4 py-1">
+      <summary className="min-h-tap cursor-pointer content-center font-medium">
+        {total} {total === 1 ? "loja" : "lojas"} no raio ainda sem preço
+      </summary>
+      <p className="text-[0.9rem] text-ink-soft">
+        Ninguém enviou nota nem a loja informou preços. Elas aparecem em cinza no mapa
+        {total > stores.length ? `; aqui estão as ${stores.length} mais perto.` : "."}
+      </p>
+      <ul className="mt-2 mb-3 divide-y divide-line">
+        {stores.map(({ store, distanceKm }) => (
+          <li key={store.id} className="flex justify-between gap-3 py-2 text-[0.95rem]">
+            <span className="min-w-0 truncate">{store.name}</span>
+            <span className="shrink-0 text-ink-soft tabular-nums">{km(distanceKm)}</span>
+          </li>
+        ))}
+      </ul>
+    </details>
   );
 }

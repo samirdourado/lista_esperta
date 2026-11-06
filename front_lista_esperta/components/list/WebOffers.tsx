@@ -3,13 +3,13 @@ import { cx } from "@/lib/cx";
 import { brl } from "@/lib/format";
 import type { WebOffer } from "@/lib/web-prices/queries";
 
-/** Accessible name of one result: what it is, how much, where, and what tapping does. */
-export const offerLabel = (offer: WebOffer) =>
-  `${offer.title}, ${brl(offer.price)} em ${offer.store}. Adicionar à lista`;
+/** Accessible name of one result: what it is, how much, and what tapping does. */
+export const offerLabel = (offer: WebOffer) => `${offer.title}, ${brl(offer.price)}. Adicionar à lista`;
 
 /**
  * The Google Shopping results under the list input: a listbox driven by the
- * input (combobox pattern), cheapest first. Tapping a row adds it.
+ * input (combobox pattern), cheapest first: photo, name and price only.
+ * Tapping a row adds it.
  */
 export function WebOffers({
   id,
@@ -55,11 +55,6 @@ export function WebOffers({
           )}
           <span className="min-w-0 flex-1">
             <span className="line-clamp-2 leading-snug font-medium">{offer.title}</span>
-            <span className="mt-0.5 block truncate text-[0.85rem] text-ink-soft">
-              {offer.store}
-              {offer.nearby && <span className="font-medium text-success"> · {offer.nearby}</span>}
-              {!offer.nearby && offer.delivery && ` · ${offer.delivery}`}
-            </span>
           </span>
           <span className="shrink-0 text-right text-lg font-bold tabular-nums">{brl(offer.price)}</span>
           <span

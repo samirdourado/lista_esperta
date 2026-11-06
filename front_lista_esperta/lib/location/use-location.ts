@@ -16,18 +16,31 @@ export interface LocationState {
   /** gps = this visit; saved = last known on this device; address = typed by the person. */
   source?: "gps" | "saved" | "address";
   label?: string;
+  /** Radius of uncertainty of the GPS reading, in metres. */
+  accuracyM?: number;
 }
 
-function currentPosition(): Promise<Point> {
+/** Above this, the browser is guessing (Wi-Fi or IP): ask the person to confirm the address. */
+export const IMPRECISE_M = 500;
+
+/**
+ * A fresh, precise reading: the person just tapped "Usar minha localização",
+ * so no cached position (desktop browsers often cache an IP-based guess).
+ */
+function currentPosition(): Promise<{ point: Point; accuracyM: number }> {
   return new Promise((resolve, reject) => {
     if (!("geolocation" in navigator)) {
       reject(new Error("unavailable"));
       return;
     }
     navigator.geolocation.getCurrentPosition(
-      (position) => resolve({ lat: position.coords.latitude, lng: position.coords.longitude }),
+      (position) =>
+        resolve({
+          point: { lat: position.coords.latitude, lng: position.coords.longitude },
+          accuracyM: Math.round(position.coords.accuracy),
+        }),
       (error) => reject(new Error(error.code === error.PERMISSION_DENIED ? "denied" : "unavailable")),
-      { enableHighAccuracy: false, timeout: 10_000, maximumAge: 5 * 60_000 },
+      { enableHighAccuracy: true, timeout: 20_000, maximumAge: 0 },
     );
   });
 }
@@ -63,9 +76,9 @@ export function useLocation() {
   const locate = useCallback(async () => {
     setState((current) => ({ ...current, status: "locating" }));
     try {
-      const point = await currentPosition();
+      const { point, accuracyM } = await currentPosition();
       remember(point);
-      setState({ status: "ready", point, source: "gps" });
+      setState({ status: "ready", point, source: "gps", accuracyM });
     } catch (error) {
       const reason = error instanceof Error && error.message === "denied" ? "denied" : "unavailable";
       setState((current) => ({ ...current, status: current.point ? "ready" : reason }));

@@ -122,6 +122,12 @@ export class VerdictStoreDto {
   openNow: boolean | null;
 }
 
+/** A store inside the radius with no price for any item of the list yet. */
+export class UnpricedStoreDto {
+  @ApiProperty({ type: VerdictStoreDto }) store: VerdictStoreDto;
+  @ApiProperty({ description: 'Straight line, one way' }) distanceKm: number;
+}
+
 export class RankedStoreDto {
   @ApiProperty({ type: VerdictStoreDto }) store: VerdictStoreDto;
   @ApiProperty() itemsCost: number;
@@ -164,6 +170,11 @@ export class VerdictParamsDto {
   @ApiProperty() splitMinShare: number;
   @ApiProperty({ enum: ['OPENROUTESERVICE', 'ESTIMATE'] }) routing: string;
   @ApiProperty() storesConsidered: number;
+  @ApiProperty({
+    description:
+      'Open shops in the radius with no price yet (unpricedStores lists the closest)',
+  })
+  storesWithoutPrices: number;
   @ApiProperty({ description: 'Stores left out because they are closed now' })
   storesClosed: number;
   @ApiProperty({ description: 'Map areas still importing shops' })
@@ -175,6 +186,12 @@ export class VerdictResponseDto {
   @ApiProperty({ type: [RankedStoreDto], description: 'By total cost only' })
   ranking: RankedStoreDto[];
   @ApiProperty({ type: SplitDto, nullable: true }) split: SplitDto | null;
+  @ApiProperty({
+    type: [UnpricedStoreDto],
+    description:
+      'Open stores in the radius with no price for the list yet, closest first',
+  })
+  unpricedStores: UnpricedStoreDto[];
   @ApiProperty({ type: VerdictParamsDto }) params: VerdictParamsDto;
   @ApiProperty({
     type: [SponsoredItemDto],

@@ -27,6 +27,8 @@ import {
 
 /** Stores routed and compared per verdict, closest first (keeps the route matrix small). */
 const MAX_ROUTED_STORES = 30;
+/** Shops without prices shown on the map, closest first. */
+const MAX_UNPRICED_STORES = 60;
 
 function storeDto(row: StoreRow, openNow: boolean | null): VerdictStoreDto {
   return {
@@ -119,6 +121,19 @@ export class VerdictService {
         return openNow !== false;
       })
       .slice(0, MAX_ROUTED_STORES);
+
+    // Shown on the map so the person sees every shop around, even before anyone priced it.
+    const withoutPrices = nearby.filter(
+      (store) =>
+        !withPrices.has(store.id) &&
+        isOpenAt(store.openingHours, now) !== false,
+    );
+    const unpricedStores = withoutPrices
+      .slice(0, MAX_UNPRICED_STORES)
+      .map((store) => ({
+        store: storeDto(store, isOpenAt(store.openingHours, now)),
+        distanceKm: Math.round(Number(store.distanceKm) * 100) / 100,
+      }));
 
     // 3. Travel, then the engine.
     const matrix = await this.routes.matrix(
@@ -223,6 +238,7 @@ export class VerdictService {
       items,
       ranking,
       split,
+      unpricedStores,
       params: {
         radiusKm,
         splitMinSavings: params.splitMinSavings,
@@ -230,6 +246,7 @@ export class VerdictService {
         routing: matrix.source,
         storesConsidered: candidates.length,
         storesClosed,
+        storesWithoutPrices: withoutPrices.length,
         pendingAreas,
       },
       sponsored,

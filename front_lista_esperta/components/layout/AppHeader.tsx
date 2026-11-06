@@ -3,7 +3,6 @@ import { Logo } from "@/components/brand/Logo";
 import { SessionNav } from "@/components/auth/SessionNav";
 import { StoreIcon } from "@/components/icons";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
-import { HeaderNav } from "./ShopperNav";
 
 export function AppHeader() {
   return (
@@ -11,7 +10,6 @@ export function AppHeader() {
       <div className="mx-auto flex h-(--header-h) max-w-5xl items-center gap-2 px-4">
         <Logo />
         <div className="ml-auto flex items-center gap-1">
-          <HeaderNav />
           <Link
             href="/merchant"
             className="inline-flex min-h-tap items-center gap-1.5 rounded-full px-3 text-[0.95rem] font-medium whitespace-nowrap text-ink-soft hover:text-ink md:ml-2 md:border md:border-line"

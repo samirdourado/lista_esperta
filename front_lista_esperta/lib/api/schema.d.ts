@@ -1640,6 +1640,11 @@ export interface components {
             /** @description Against the best single store */
             savings: number;
         };
+        UnpricedStoreDto: {
+            store: components["schemas"]["VerdictStoreDto"];
+            /** @description Straight line, one way */
+            distanceKm: number;
+        };
         VerdictParamsDto: {
             radiusKm: number;
             splitMinSavings: number;
@@ -1647,6 +1652,8 @@ export interface components {
             /** @enum {string} */
             routing: "OPENROUTESERVICE" | "ESTIMATE";
             storesConsidered: number;
+            /** @description Open shops in the radius with no price yet (unpricedStores lists the closest) */
+            storesWithoutPrices: number;
             /** @description Stores left out because they are closed now */
             storesClosed: number;
             /** @description Map areas still importing shops */
@@ -1664,6 +1671,8 @@ export interface components {
             /** @description By total cost only */
             ranking: components["schemas"]["RankedStoreDto"][];
             split: components["schemas"]["SplitDto"] | null;
+            /** @description Open stores in the radius with no price for the list yet, closest first */
+            unpricedStores: components["schemas"]["UnpricedStoreDto"][];
             params: components["schemas"]["VerdictParamsDto"];
             /** @description Separate block; never changes the ranking */
             sponsored: components["schemas"]["SponsoredItemDto"][];

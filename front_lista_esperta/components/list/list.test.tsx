@@ -133,10 +133,10 @@ describe("ShoppingListEditor", () => {
     rerender(wrap(<ShoppingListEditor />));
     expect(screen.getByText(/Mais baratos no Google para/)).toHaveTextContent("São Paulo");
     expect(screen.getAllByRole("option")).toHaveLength(3);
-    await user.click(screen.getByRole("option", { name: /Leite Piracanjuba 1L, R\$\s5,29 em Atacadão/ }));
+    await user.click(screen.getByRole("option", { name: /Leite Piracanjuba 1L, R\$\s5,29\. Adicionar/ }));
 
     expect(screen.getByText("Leite Piracanjuba 1L")).toBeInTheDocument();
-    expect(screen.getByText(/Na internet: R\$\s5,29 em Atacadão/)).toBeInTheDocument();
+    expect(screen.getByText(/Na internet: R\$\s5,29$/)).toBeInTheDocument();
     await waitFor(() =>
       expect(mocks.save).toHaveBeenLastCalledWith([
         {

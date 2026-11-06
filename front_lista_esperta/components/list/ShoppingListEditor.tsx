@@ -382,9 +382,7 @@ export function ShoppingListEditor() {
                 <span className="min-w-0 flex-1">
                   <span className="line-clamp-2 leading-snug">{item.freeText}</span>
                   {item.webPrice && (
-                    <span className="block text-[0.85rem] text-ink-soft">
-                      Na internet: {brl(item.webPrice.price)} em {item.webPrice.store}
-                    </span>
+                    <span className="block text-[0.85rem] text-ink-soft">Na internet: {brl(item.webPrice.price)}</span>
                   )}
                 </span>
                 <span className="flex items-center" role="group" aria-label={`Quantidade de ${item.freeText}`}>

@@ -91,10 +91,8 @@ export function useSignOut() {
 export function useUpdateProfile() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (body: {
-      displayName?: string;
-      defaultRadiusKm?: number;
-    }) => unwrap(await api.PATCH("/api/v1/users/me", { body })),
+    mutationFn: async (body: { displayName?: string; defaultRadiusKm?: number }) =>
+      unwrap(await api.PATCH("/api/v1/users/me", { body })),
     onSuccess: (user) => queryClient.setQueryData(SESSION_KEY, user),
   });
 }
