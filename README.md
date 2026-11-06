@@ -178,6 +178,8 @@ As distâncias são estimadas (linha reta × 1,3) até você colocar uma `ORS_AP
 - O veredito ordena só pelo **preço da lista** nas lojas dentro do raio; a distância aparece e desempata. Saíram o custo por km e o valor da hora.
 - **Preços do Google ao montar a lista:** digite o produto e toque em 🔍 Pesquisar. Aparecem os mais baratos do Google Shopping na sua cidade, com loja e preço; o botão com o carrinho adiciona à lista com o preço de referência. Precisa da `SERPAPI_API_KEY` (grátis, 250 buscas/mês em https://serpapi.com).
 - O tema claro é o padrão; o escuro fica no botão da lua.
+- **Veredito com mapa** (D-073): seletor deslizante de 0,5 a 10 km, lojas do raio da lista mais barata para a mais cara, e ao lado o mapa com o preço da lista em cada loja; lojas ainda sem preço aparecem em cinza. "Usar minha localização" pede uma leitura nova e precisa do GPS e mostra a rua encontrada, com aviso quando o navegador só sabe a posição aproximada.
+- **Menos telas** (D-072): saíram "Lojas", "Enviar nota" e "Como calculamos" como páginas e a barra de abas do celular. Enviar nota e Como calculamos abrem em painéis na tela principal (`/?painel=nota`, `/?painel=como-calculamos`); os endereços antigos redirecionam.
 
 Para testar as notificações no computador: `cd front_lista_esperta && npm run build && npm start`, entre com uma conta, abra `/alerts` e toque em "Ligar notificações".
 

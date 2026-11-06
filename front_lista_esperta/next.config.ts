@@ -50,9 +50,13 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       { source: "/veredito", destination: "/verdict", permanent: true },
-      { source: "/nota", destination: "/receipts/import", permanent: true },
+      { source: "/nota", destination: "/?painel=nota", permanent: true },
       { source: "/lojista", destination: "/merchant", permanent: true },
-      { source: "/transparencia", destination: "/how-it-works", permanent: true },
+      { source: "/transparencia", destination: "/?painel=como-calculamos", permanent: true },
+      // Pages folded into the home and the verdict (D-072).
+      { source: "/receipts/import", destination: "/?painel=nota", permanent: false },
+      { source: "/how-it-works", destination: "/?painel=como-calculamos", permanent: false },
+      { source: "/stores", destination: "/verdict", permanent: false },
     ];
   },
 };

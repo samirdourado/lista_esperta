@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import "fake-indexeddb/auto";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render, screen, within } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -27,12 +27,10 @@ vi.mock("@/lib/location/use-location", () => ({
 }));
 
 const queries = vi.hoisted(() => ({
-  nearby: { data: undefined as unknown, isPending: false, isSuccess: true, isError: false, error: null },
   create: vi.fn(),
 }));
 vi.mock("@/lib/stores/queries", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/lib/stores/queries")>()),
-  useNearbyStores: () => queries.nearby,
   useAddressSearch: () => ({ data: [], isFetching: false, isError: false, isSuccess: false }),
   useCreateStore: () => ({ mutateAsync: queries.create }),
 }));
@@ -41,7 +39,6 @@ vi.mock("@/lib/session", async (importOriginal) => ({
   useSession: () => ({ data: null, isPending: false }),
 }));
 
-const { NearbyStores } = await import("./NearbyStores");
 const { StoreForm } = await import("@/components/merchant/StoreForm");
 
 const store = (overrides: Partial<Store>): Store => ({
@@ -68,51 +65,6 @@ beforeEach(() => {
   location.value = { status: "idle", point: undefined, source: undefined };
   location.locate.mockReset();
   queries.create.mockReset();
-});
-
-describe("NearbyStores", () => {
-  it("asks for the location only when the person taps, with an address as alternative", async () => {
-    const user = userEvent.setup();
-    render(wrap(<NearbyStores />));
-    await user.click(screen.getByRole("button", { name: "Usar minha localização" }));
-    expect(location.locate).toHaveBeenCalled();
-    expect(screen.getByLabelText("Ou digite um endereço")).toBeInTheDocument();
-  });
-
-  it("explains a denied permission", () => {
-    location.value = { status: "denied", point: undefined, source: undefined };
-    render(wrap(<NearbyStores />));
-    expect(screen.getByText("O navegador não liberou sua localização")).toBeInTheDocument();
-  });
-
-  it("lists stores with distance, kind and a quiet note for unverified ones", () => {
-    location.value = { status: "ready", point: { lat: -23.58, lng: -46.63 }, source: "gps" };
-    queries.nearby = {
-      ...queries.nearby,
-      data: {
-        pendingAreas: 1,
-        stores: [
-          store({}),
-          store({
-            id: "s2",
-            name: "Drogaria Bairro",
-            verificationStatus: "VERIFIED",
-            categories: ["farmacia"],
-            distanceKm: 1.24,
-          }),
-        ],
-      },
-    };
-    render(wrap(<NearbyStores />));
-    expect(screen.getByText(/2 lojas em até 5 km\. Buscando mais lojas na região/)).toBeInTheDocument();
-    const items = screen.getAllByRole("listitem");
-    expect(within(items[0]).getByText("Mercado do Mapa")).toBeInTheDocument();
-    expect(within(items[0]).getByText("350 m")).toBeInTheDocument();
-    expect(within(items[0]).getByText("Loja não verificada")).toBeInTheDocument();
-    expect(within(items[1]).getByText("1,2 km")).toBeInTheDocument();
-    expect(within(items[1]).getByText("Loja verificada")).toBeInTheDocument();
-    expect(screen.getByRole("radio", { name: /^atés*5 km$/ })).toBeChecked();
-  });
 });
 
 describe("StoreForm", () => {

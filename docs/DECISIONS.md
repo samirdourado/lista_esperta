@@ -4,6 +4,30 @@ Registro de decisões tomadas onde a especificação era ambígua ou conflitava 
 
 ## Ajustes depois da fase 8
 
+### D-074 · Resultados do Google ficam abertos para adicionar vários
+Cada busca gasta 1 das 250 do mês. Por isso a caixa de resultados continua aberta depois de adicionar um item, para dar para escolher outros da mesma busca sem pesquisar de novo.
+- **Quando fecha:** só no ×, no Esc, ao apagar o texto do campo ou ao tocar fora dela.
+- **Item adicionado:** o carrinho vira um ✓ num círculo verde (`--success`). Tocar de novo não duplica, e o leitor de tela anuncia "Já está na lista".
+- **Nova busca:** as marcações recomeçam do zero.
+
+### D-073 · Veredito com seletor de distância e mapa; localização mais precisa
+- **Distância:** um seletor deslizante de 0,5 a 10 km, em passos de 0,5. O número acompanha o dedo, e a busca só roda 0,4 s depois que a pessoa solta. Começa em 0,5 km e não em 0, porque um raio zero não encontra loja.
+- **Lista e mapa:** no desktop ficam lado a lado e, no celular, o mapa vem em cima.
+  - **Mapa:** mostra o raio como um círculo tracejado e cada loja com preço com o total da lista em cima do ponto. Tocar num ponto destaca a loja na lista, e tocar na loja da lista destaca o ponto.
+- **Lojas sem preço:** o veredito passa a devolver as lojas abertas do raio que ainda não têm preço para nenhum item (`unpricedStores`, as 60 mais perto, e o total em `params.storesWithoutPrices`). Elas aparecem em cinza no mapa e numa lista recolhida.
+  - Sem isso, quem mora longe das lojas com preço via uma tela vazia. Era o caso do CEP 04760-040: as lojas demo ficam a cerca de 10 km dali, e as lojas reais da região, vindas do OpenStreetMap, ainda não têm preço.
+- **Localização:** "Usar minha localização" pede uma leitura nova (`maximumAge: 0`) e precisa (`enableHighAccuracy`). Antes o navegador podia devolver uma posição guardada ou estimada pelo IP.
+  - O app mostra a rua e o bairro encontrados (Nominatim), para a pessoa conferir.
+  - Quando a precisão passa de 500 m, avisa e sugere digitar o endereço.
+
+### D-072 · Menos telas: Lojas, Enviar nota e Como calculamos
+Saíram as páginas `/stores`, `/receipts/import` e `/how-it-works`, e a barra de abas do celular. A página de lojas mostrava estabelecimentos sem preço, e o foco do app é onde a lista sai mais barata.
+- **Painéis na tela principal:** Enviar nota e Como calculamos abrem num painel (`<dialog>` nativo), que vem de baixo no celular e da direita no desktop.
+- **Endereço do painel:** fica na URL (`?painel=nota`, `?painel=como-calculamos`). Assim um link de qualquer tela abre o painel, e o botão voltar fecha.
+- **Endereços antigos:** redirecionam para esses painéis e para `/verdict`.
+- **Como calculamos:** o texto foi reescrito para a regra atual: o preço da lista, a mediana para o que falta, o desempate pela distância e o Google só como referência.
+- **Busca no Google:** os resultados mostram só a foto, o nome e o preço.
+
 ### D-071 · Tema claro como padrão
 O app abre sempre no tema claro, mesmo com o aparelho no modo escuro. O botão da lua liga o escuro, e a escolha fica salva no aparelho (`le-theme`). Antes, o padrão seguia o sistema e o botão tinha três estados. O mapa segue a mesma regra.
 

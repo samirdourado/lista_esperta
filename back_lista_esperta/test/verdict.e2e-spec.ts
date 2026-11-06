@@ -178,6 +178,28 @@ describe('Verdict (e2e)', () => {
     });
   });
 
+  it('lists the open shops in the radius that have no price yet, for the map', async () => {
+    await geo.create({
+      name: 'Quitanda Sem Preço',
+      source: 'OSM',
+      lat: -23.5918,
+      lng: -46.6346,
+    });
+    const res = await verdict({
+      items: [{ productId: ids.milk, text: 'leite' }],
+    }).expect(200);
+    const names = res.body.unpricedStores.map(
+      (s: { store: { name: string } }) => s.store.name,
+    );
+    expect(names).toContain('Quitanda Sem Preço');
+    // Priced, closed or out of the radius: not here.
+    expect(names).not.toContain('Mercado Perto');
+    expect(names).not.toContain('Fechado');
+    expect(names).not.toContain('Muito Longe');
+    expect(res.body.unpricedStores[0].distanceKm).toBeCloseTo(0.3, 1);
+    expect(res.body.params.storesWithoutPrices).toBe(names.length);
+  });
+
   it('matches typed sizes but never swaps one size for another', async () => {
     const res = await verdict({
       items: [{ text: 'arroz 5kg' }, { text: 'arroz 1kg' }],

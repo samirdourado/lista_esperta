@@ -133,10 +133,21 @@ describe("ShoppingListEditor", () => {
     rerender(wrap(<ShoppingListEditor />));
     expect(screen.getByText(/Mais baratos no Google para/)).toHaveTextContent("São Paulo");
     expect(screen.getAllByRole("option")).toHaveLength(3);
-    await user.click(screen.getByRole("option", { name: /Leite Piracanjuba 1L, R\$\s5,29 em Atacadão/ }));
+    await user.click(screen.getByRole("option", { name: /Leite Piracanjuba 1L, R\$\s5,29\. Adicionar/ }));
+    // The results stay open to add more from the same search; the added one shows a check.
+    expect(
+      screen.getByRole("option", { name: /Leite Piracanjuba 1L, R\$\s5,29\. Já está na lista/ }),
+    ).toBeInTheDocument();
+    await user.click(screen.getByRole("option", { name: /Leite Piracanjuba/ }));
+    expect(screen.getAllByText("Leite Piracanjuba 1L")).toHaveLength(2); // the result and one list row
+    await user.click(screen.getByRole("option", { name: /Leite Ninho 1L/ }));
+    expect(mocks.webSearch).toHaveBeenCalledTimes(1);
+
+    await user.click(screen.getByRole("heading", { name: /Sua lista/ }));
+    expect(screen.queryByRole("option")).not.toBeInTheDocument();
 
     expect(screen.getByText("Leite Piracanjuba 1L")).toBeInTheDocument();
-    expect(screen.getByText(/Na internet: R\$\s5,29 em Atacadão/)).toBeInTheDocument();
+    expect(screen.getAllByText(/Na internet: R\$\s/)).toHaveLength(2);
     await waitFor(() =>
       expect(mocks.save).toHaveBeenLastCalledWith([
         {
@@ -150,6 +161,7 @@ describe("ShoppingListEditor", () => {
             seenAt: "2026-11-06T12:00:00.000Z",
           },
         },
+        expect.objectContaining({ freeText: "Leite Ninho 1L", webPrice: expect.objectContaining({ price: 6.99 }) }),
       ]),
     );
   });

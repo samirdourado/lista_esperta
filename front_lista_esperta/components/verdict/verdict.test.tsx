@@ -102,8 +102,10 @@ const verdict: Verdict = {
     routing: "ESTIMATE",
     storesConsidered: 2,
     storesClosed: 1,
+    storesWithoutPrices: 1,
     pendingAreas: 0,
   },
+  unpricedStores: [{ store: store("q", "Quitanda Sem Preço"), distanceKm: 0.4 }],
   sponsored: [{ storeId: "b", storeName: "Mercado Perto", title: "Leite em oferta", label: "Patrocinado" }],
   computedAt: new Date().toISOString(),
 };
@@ -149,7 +151,8 @@ describe("VerdictView", () => {
   it("explains when no store nearby has prices yet", () => {
     render(wrap(<VerdictView verdict={{ ...verdict, ranking: [], split: null, sponsored: [] }} items={items} />));
     expect(screen.getByText("Ainda não temos preços desses itens perto de você")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Enviar uma nota fiscal" })).toHaveAttribute("href", "/receipts/import");
+    expect(screen.getByRole("link", { name: "Enviar uma nota fiscal" })).toHaveAttribute("href", "/?painel=nota");
+    expect(screen.getByText("1 loja no raio ainda sem preço")).toBeInTheDocument();
   });
 });
 

@@ -9,10 +9,9 @@ PWA da **Lista Esperta** em Next.js 16 (App Router, Cache Components, Tailwind v
 | Rota | Grupo | O que é |
 |---|---|---|
 | `/` | `(shopper)` | Montar a lista: texto livre com quantidade ("2 leite"), autocompletar do catálogo, menores preços do Google (🔍 Pesquisar, com o carrinho para adicionar), colar várias linhas ou foto da lista (Gemini, pela API). Salva no aparelho ou na conta |
-| `/verdict` | `(shopper)` | Veredito pela API: a loja perto de você onde a lista sai mais barata, divisão em duas lojas quando compensa, a origem de cada preço, itens sem preço e o bloco "Patrocinado" separado. Raio ajustável na tela |
-| `/receipts/import` | `(shopper)` | Enviar NFC-e: QR Code pela câmera, link, foto ou chave digitada |
-| `/stores` | `(shopper)` | Lojas por perto: mapa (MapLibre + OpenFreeMap) e lista por distância, sem login |
-| `/how-it-works` | `(shopper)` | Fórmula, parâmetros e neutralidade |
+| `/verdict` | `(shopper)` | Veredito pela API: seletor deslizante de 0,5 a 10 km, lojas do raio da lista mais barata para a mais cara ao lado de um mapa com o preço da lista em cada loja (lojas sem preço em cinza), divisão em duas lojas quando compensa, a origem de cada preço e o bloco "Patrocinado" separado |
+| `/?painel=nota` | `(shopper)` | Painel sobre a tela principal: enviar NFC-e (QR Code pela câmera, link, foto ou chave digitada) |
+| `/?painel=como-calculamos` | `(shopper)` | Painel sobre a tela principal: como funciona, a conta, origem dos preços e neutralidade |
 | `/offline` | `(shopper)` | Página servida pelo service worker sem conexão |
 | `/login`, `/register` | `(auth)` | Entrar e criar conta ("Quero economizar" / "Tenho uma loja") |
 | `/alerts` | `(shopper)` | Alertas de preço: produto, preço-alvo, raio, menor preço agora e notificações no aparelho. Para quem tem conta |

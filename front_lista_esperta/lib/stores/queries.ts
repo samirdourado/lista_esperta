@@ -20,26 +20,6 @@ export type ClaimResult = Schemas["CreateStoreClaimResponseDto"];
 /** Keeps the cache key stable while the GPS jitters by a few metres. */
 const round = (value: number) => Math.round(value * 1000) / 1000;
 
-/** Stops polling after ~3 minutes even if an area is still being imported. */
-const MAX_POLLS = 22;
-
-export function useNearbyStores(point: Point | undefined, radiusKm: number) {
-  return useQuery({
-    queryKey: ["stores", "nearby", point && round(point.lat), point && round(point.lng), radiusKm],
-    enabled: Boolean(point),
-    queryFn: async () =>
-      unwrap(
-        await api.GET("/api/v1/stores/nearby", {
-          params: { query: { lat: point!.lat, lng: point!.lng, radiusKm } },
-        }),
-      ),
-    // New shops are imported in the background: ask again while areas are pending.
-    refetchInterval: (query) =>
-      (query.state.data?.pendingAreas ?? 0) > 0 && query.state.dataUpdateCount < MAX_POLLS ? 8000 : false,
-    placeholderData: (previous) => previous,
-  });
-}
-
 export function useAddressSearch(query: string) {
   const q = query.trim();
   return useQuery({
@@ -47,6 +27,20 @@ export function useAddressSearch(query: string) {
     enabled: q.length >= 3,
     queryFn: async () => unwrap(await api.GET("/api/v1/geocoding/search", { params: { query: { q } } })),
     staleTime: 60 * 60_000,
+  });
+}
+
+/** The address at a point, so the person can check where the app thinks they are. */
+export function usePlaceName(point: Point | undefined) {
+  const lat = point ? Number(point.lat.toFixed(4)) : null;
+  const lng = point ? Number(point.lng.toFixed(4)) : null;
+  return useQuery({
+    queryKey: ["geocoding", "reverse", lat, lng],
+    enabled: lat !== null && lng !== null,
+    queryFn: async () =>
+      unwrap(await api.GET("/api/v1/geocoding/reverse", { params: { query: { lat: lat!, lng: lng! } } })),
+    staleTime: 24 * 60 * 60_000,
+    retry: false,
   });
 }
 

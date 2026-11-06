@@ -55,7 +55,6 @@
   --radius-lg: 1.25rem;
   --tap: 2.75rem; /* 44 px minimum touch target */
   --header-h: 3.5rem;
-  --tabbar-h: 4rem;
 }
 
 :root[data-theme="dark"] {
@@ -211,12 +210,89 @@
   outline: 1px solid var(--line);
 }
 
-/* Room for the mobile tab bar and the iOS home indicator. */
-.pb-tabbar {
-  padding-bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom) + 1.5rem);
+/* Distance slider on the verdict: big thumb for the finger, track filled up to the value. */
+.radius-slider {
+  appearance: none;
+  height: var(--tap);
+  background: transparent;
+  cursor: pointer;
 }
-@media (min-width: 64rem) {
-  .pb-tabbar {
-    padding-bottom: 4rem;
+.radius-slider::-webkit-slider-runnable-track {
+  height: 0.5rem;
+  border-radius: 999px;
+  background: linear-gradient(to right, var(--brand) var(--fill), var(--surface-sunken) var(--fill));
+}
+.radius-slider::-moz-range-track {
+  height: 0.5rem;
+  border-radius: 999px;
+  background: linear-gradient(to right, var(--brand) var(--fill), var(--surface-sunken) var(--fill));
+}
+.radius-slider::-webkit-slider-thumb {
+  appearance: none;
+  margin-top: -0.625rem;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 999px;
+  background: var(--surface);
+  border: 3px solid var(--brand);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.25);
+}
+.radius-slider::-moz-range-thumb {
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 999px;
+  background: var(--surface);
+  border: 3px solid var(--brand);
+}
+.radius-slider:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: 999px;
+}
+
+/* Sheet (components/ui/Sheet.tsx): bottom panel on phones, side panel from 48rem. */
+.sheet {
+  margin: auto 0 0;
+  width: 100%;
+  max-width: 100%;
+  max-height: 90dvh;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: 0 -8px 30px rgb(0 0 0 / 0.18);
+}
+.sheet::backdrop {
+  background: rgb(10 20 48 / 0.45);
+}
+.sheet[open] {
+  animation: sheet-up 0.22s ease-out;
+}
+@media (min-width: 48rem) {
+  .sheet {
+    margin: 0 0 0 auto;
+    width: min(32rem, 100%);
+    height: 100dvh;
+    max-height: 100dvh;
+    border-radius: var(--radius-lg) 0 0 var(--radius-lg);
+  }
+  .sheet[open] {
+    animation-name: sheet-left;
+  }
+}
+@keyframes sheet-up {
+  from {
+    transform: translateY(100%);
+  }
+}
+@keyframes sheet-left {
+  from {
+    transform: translateX(100%);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sheet[open] {
+    animation: none;
   }
 }

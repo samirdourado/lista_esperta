@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { PANEL_HREF } from "@/lib/panels";
 import { brl } from "@/lib/format";
 import { useMyReceipts } from "@/lib/receipts/queries";
 
@@ -16,7 +17,7 @@ export function MyReceipts() {
       {receipts.isSuccess && items.length === 0 && (
         <p className="text-ink-soft">
           Você ainda não enviou notas.{" "}
-          <Link href="/receipts/import" className="font-semibold text-brand underline underline-offset-4">
+          <Link href={PANEL_HREF.receipt} className="font-semibold text-brand underline underline-offset-4">
             Enviar uma nota
           </Link>
         </p>

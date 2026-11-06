@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useId, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { SearchIcon } from "@/components/icons";
 import { Button } from "@/components/ui/Button";
 import { Notice } from "@/components/ui/Notice";
@@ -48,6 +48,9 @@ export function ShoppingListEditor() {
   /** The query sent to Google; the results panel is open while it is set. */
   const [webQuery, setWebQuery] = useState<string | null>(null);
   const relocating = useRef(false);
+  /** Results already added from this search: they show a check (D-074). */
+  const [addedOffers, setAddedOffers] = useState<Set<number>>(() => new Set());
+  const formRef = useRef<HTMLFormElement>(null);
   const offers = webQuery ? (web.data?.offers ?? []) : [];
   const open = !webQuery && query.length >= 2 && suggestions.length > 0;
   const optionCount = webQuery ? offers.length : open ? suggestions.length : 0;
@@ -97,18 +100,33 @@ export function ShoppingListEditor() {
     add(lines);
     setText("");
     setQuery("");
-    setActive(-1);
+    closeWeb();
   };
 
-  const closeWeb = () => {
+  const closeWeb = useCallback(() => {
     setWebQuery(null);
     setActive(-1);
-  };
+  }, []);
+
+  // Each search costs quota: the results stay open to add several, and close
+  // only on ×, Esc, an empty input or a tap outside the box.
+  useEffect(() => {
+    if (!webQuery) return;
+    const onPointerDown = (event: PointerEvent) => {
+      if (formRef.current && !formRef.current.contains(event.target as Node)) {
+        closeWeb();
+        setQuery(""); // and no catalog suggestions popping up in its place
+      }
+    };
+    document.addEventListener("pointerdown", onPointerDown);
+    return () => document.removeEventListener("pointerdown", onPointerDown);
+  }, [webQuery, closeWeb]);
 
   const searchPrices = () => {
     const wanted = parseLine(text).text.trim();
     if (wanted.length < 2) return;
     setWebQuery(wanted);
+    setAddedOffers(new Set());
     setQuery("");
     setActive(-1);
     // Near the shopper when we can: ask for the location once, else search the whole country.
@@ -126,7 +144,8 @@ export function ShoppingListEditor() {
 
   const chooseOffer = (index: number) => {
     const offer = offers[index];
-    if (!offer || !web.data) return;
+    if (!offer || !web.data || addedOffers.has(index)) return;
+    setAddedOffers((current) => new Set(current).add(index));
     add([
       {
         freeText: offer.title,
@@ -140,9 +159,6 @@ export function ShoppingListEditor() {
         },
       },
     ]);
-    setText("");
-    setQuery("");
-    closeWeb();
   };
 
   const choose = (index: number) => {
@@ -169,6 +185,7 @@ export function ShoppingListEditor() {
   return (
     <div className="mt-8 flex flex-col gap-5">
       <form
+        ref={formRef}
         className="relative"
         onSubmit={(event) => {
           event.preventDefault();
@@ -187,7 +204,7 @@ export function ShoppingListEditor() {
             onChange={(event) => {
               setText(event.target.value);
               setActive(-1);
-              if (webQuery) setWebQuery(null);
+              if (webQuery && !event.target.value.trim()) closeWeb();
             }}
             onKeyDown={(event) => {
               if (event.key === "Escape") {
@@ -295,7 +312,7 @@ export function ShoppingListEditor() {
             )}
             {web.isSuccess && offers.length > 0 && (
               <>
-                <WebOffers id={listboxId} offers={offers} active={active} onChoose={chooseOffer} />
+                <WebOffers id={listboxId} offers={offers} active={active} added={addedOffers} onChoose={chooseOffer} />
                 <p className="border-t border-line px-3 py-2 text-[0.8rem] text-muted">
                   Preços de lojas online na sua região, só como referência. A comparação usa os mercados perto de você.
                 </p>
@@ -382,9 +399,7 @@ export function ShoppingListEditor() {
                 <span className="min-w-0 flex-1">
                   <span className="line-clamp-2 leading-snug">{item.freeText}</span>
                   {item.webPrice && (
-                    <span className="block text-[0.85rem] text-ink-soft">
-                      Na internet: {brl(item.webPrice.price)} em {item.webPrice.store}
-                    </span>
+                    <span className="block text-[0.85rem] text-ink-soft">Na internet: {brl(item.webPrice.price)}</span>
                   )}
                 </span>
                 <span className="flex items-center" role="group" aria-label={`Quantidade de ${item.freeText}`}>

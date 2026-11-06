@@ -19,6 +19,8 @@ export const MAP_COLORS = {
   storeDark: "#6b9bff",
   selected: "#10224a",
   selectedDark: "#e8eefc",
+  /** Shops without prices yet. */
+  muted: "#9aa4b8",
   /** The logo's location pin. */
   you: "#feb204",
   outline: "#ffffff",
