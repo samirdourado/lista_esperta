@@ -162,7 +162,9 @@ describe('Verdict (e2e)', () => {
       priced: 2,
       missing: [],
     });
-    expect(best.totalCost).toBeCloseTo(best.itemsCost + best.travelCost, 2);
+    // Basket price only; the trip is shown, not charged (D-069).
+    expect(best.totalCost).toBe(best.itemsCost);
+    expect(best).not.toHaveProperty('travelCost');
     expect(best.lines[0]).toMatchObject({
       unitPrice: 5.2,
       subtotal: 10.4,
@@ -170,7 +172,6 @@ describe('Verdict (e2e)', () => {
     });
     expect(res.body.params).toMatchObject({
       radiusKm: 5,
-      costPerKm: 1,
       routing: 'ESTIMATE',
       storesClosed: 1,
       storesConsidered: 2,

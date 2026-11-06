@@ -1,36 +1,29 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
-import { AutoThemeIcon, MoonIcon, SunIcon } from "@/components/icons";
-import { applyThemePreference, readThemePreference, THEME_EVENT, type ThemePreference } from "./theme";
-
-const NEXT: Record<ThemePreference, ThemePreference> = { system: "light", light: "dark", dark: "system" };
-
-const LABEL: Record<ThemePreference, string> = {
-  system: "Tema igual ao do aparelho",
-  light: "Tema claro",
-  dark: "Tema escuro",
-};
+import { MoonIcon, SunIcon } from "@/components/icons";
+import { applyThemePreference, readThemePreference, THEME_EVENT } from "./theme";
 
 function subscribe(onChange: () => void) {
   window.addEventListener(THEME_EVENT, onChange);
   return () => window.removeEventListener(THEME_EVENT, onChange);
 }
 
+/** Light by default; one tap switches to dark and back. */
 export function ThemeToggle() {
-  const preference = useSyncExternalStore(subscribe, readThemePreference, () => "system" as const);
-  const next = NEXT[preference];
-  const Icon = preference === "light" ? SunIcon : preference === "dark" ? MoonIcon : AutoThemeIcon;
+  const preference = useSyncExternalStore(subscribe, readThemePreference, () => "light" as const);
+  const dark = preference === "dark";
 
   return (
     <button
       type="button"
-      onClick={() => applyThemePreference(next)}
+      onClick={() => applyThemePreference(dark ? "light" : "dark")}
       className="inline-flex size-tap items-center justify-center rounded-full text-ink-soft hover:bg-surface-sunken hover:text-ink"
-      aria-label={`${LABEL[preference]}. Mudar para: ${LABEL[next].toLowerCase()}`}
-      title={LABEL[preference]}
+      aria-label={dark ? "Usar tema claro" : "Usar tema escuro"}
+      aria-pressed={dark}
+      title={dark ? "Tema claro" : "Tema escuro"}
     >
-      <Icon />
+      {dark ? <SunIcon /> : <MoonIcon />}
     </button>
   );
 }

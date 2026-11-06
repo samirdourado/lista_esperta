@@ -3,12 +3,17 @@ import { unwrap } from "@/lib/api/errors";
 import type { ImportResult } from "@/lib/api/types";
 import { deleteDevice, getGuestId, readDevice, writeDevice } from "@/lib/device/device-store";
 import { LocalShoppingListRepository } from "./local";
+import type { ShoppingListItem } from "./repository";
 
 export const CURRENT_LIST_KEY = "currentListId";
 
 type ImportCall = (body: {
   guestId: string;
-  lists: { clientId: string; name: string; items: { freeText: string; quantity: number }[] }[];
+  lists: {
+    clientId: string;
+    name: string;
+    items: { freeText: string; quantity: number; webPrice?: ShoppingListItem["webPrice"] }[];
+  }[];
 }) => Promise<ImportResult>;
 
 const importViaApi: ImportCall = async (body) => unwrap(await api.POST("/api/v1/shopping-lists/import", { body }));
@@ -31,7 +36,11 @@ export async function migrateGuestDataToAccount(
       .map((list) => ({
         clientId: list.id,
         name: list.name,
-        items: list.items.map((item) => ({ freeText: item.freeText, quantity: item.quantity })),
+        items: list.items.map((item) => ({
+          freeText: item.freeText,
+          quantity: item.quantity,
+          ...(item.webPrice ? { webPrice: item.webPrice } : {}),
+        })),
       })),
   });
 

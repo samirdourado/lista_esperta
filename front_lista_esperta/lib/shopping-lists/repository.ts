@@ -1,7 +1,17 @@
+/** A price seen on Google Shopping when the item was added: reference only (D-070). */
+export interface WebPrice {
+  title: string;
+  price: number;
+  store: string;
+  url?: string | null;
+  seenAt: string;
+}
+
 export interface ShoppingListItem {
   freeText: string;
   quantity: number;
   productId?: string | null;
+  webPrice?: WebPrice | null;
 }
 
 export interface ShoppingList {

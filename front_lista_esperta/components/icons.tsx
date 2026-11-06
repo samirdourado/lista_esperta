@@ -77,10 +77,20 @@ export const MoonIcon = (p: IconProps) => (
   </Icon>
 );
 
-export const AutoThemeIcon = (p: IconProps) => (
+export const SearchIcon = (p: IconProps) => (
   <Icon {...p}>
-    <circle cx="12" cy="12" r="9" />
-    <path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor" />
+    <circle cx="11" cy="11" r="7" />
+    <path d="m20 20-3.5-3.5" />
+  </Icon>
+);
+
+/** Shopping cart with a plus: "add to the list". */
+export const CartPlusIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M3 4h2l2.4 11.2a1 1 0 0 0 1 .8h8.9a1 1 0 0 0 1-.8L20 8H6.2" />
+    <circle cx="9" cy="20" r="1.3" />
+    <circle cx="17" cy="20" r="1.3" />
+    <path d="M13 9.5v4M11 11.5h4" />
   </Icon>
 );
 

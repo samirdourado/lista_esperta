@@ -63,6 +63,37 @@ describe('Shopping lists (e2e)', () => {
     await agent.get(`/api/v1/shopping-lists/${id}`).expect(404);
   });
 
+  it('keeps the Google reference price of an item', async () => {
+    const { agent } = await signUp(app, 'ana@example.com');
+    const webPrice = {
+      title: 'Leite UHT Integral Italac 1L',
+      price: 4.79,
+      store: 'Carrefour',
+      url: 'https://www.google.com/shopping/product/1',
+      seenAt: '2026-11-06T12:00:00.000Z',
+    };
+    const created = await agent
+      .post('/api/v1/shopping-lists')
+      .send({
+        name: 'Mercado',
+        items: [
+          { freeText: 'Leite UHT Integral Italac 1L', webPrice },
+          { freeText: 'café' },
+        ],
+      })
+      .expect(201);
+    expect(
+      created.body.items.map((i: { webPrice: unknown }) => i.webPrice),
+    ).toEqual([webPrice, null]);
+    await agent
+      .post('/api/v1/shopping-lists')
+      .send({
+        name: 'x',
+        items: [{ freeText: 'y', webPrice: { ...webPrice, price: -1 } }],
+      })
+      .expect(400);
+  });
+
   it('hides other people’s lists: read, update and delete all answer 404', async () => {
     const ana = await signUp(app, 'ana@example.com');
     const bia = await signUp(app, 'bia@example.com');

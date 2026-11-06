@@ -18,8 +18,6 @@ export interface VerdictInput {
   origin: Point;
   items: ShoppingListItem[];
   radiusKm: number;
-  costPerKm: number;
-  valuePerHour: number;
 }
 
 /** POST /verdict is stateless: the same input always means the same answer. */
@@ -31,8 +29,6 @@ export function useVerdict(input: VerdictInput | null) {
       const body = {
         origin: input!.origin,
         radiusKm: input!.radiusKm,
-        costPerKm: input!.costPerKm,
-        valuePerHour: input!.valuePerHour,
         items: input!.items.map((item) => ({
           text: item.freeText,
           quantity: item.quantity,

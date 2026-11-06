@@ -6,9 +6,7 @@ const STYLE_LIGHT = "https://tiles.openfreemap.org/styles/liberty";
 const STYLE_DARK = "https://tiles.openfreemap.org/styles/dark";
 
 export function isDarkTheme(): boolean {
-  const forced = document.documentElement.dataset.theme;
-  if (forced) return forced === "dark";
-  return window.matchMedia("(prefers-color-scheme: dark)").matches;
+  return document.documentElement.dataset.theme === "dark";
 }
 
 export function mapStyleUrl(): string {

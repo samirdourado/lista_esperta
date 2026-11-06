@@ -9,8 +9,8 @@ const km = (value: number) => `${value.toLocaleString("pt-BR", { maximumFraction
 const minutes = (value: number) =>
   value < 60 ? `${Math.round(value)} min` : `${Math.floor(value / 60)} h ${Math.round(value % 60)} min`;
 
-/** The answer: where the whole list costs least, travel included. */
-export function BestStore({ best, verdict }: { best: RankedStore; verdict: Verdict }) {
+/** The answer: the store nearby where the whole list costs least (D-069). */
+export function BestStore({ best }: { best: RankedStore }) {
   return (
     <section aria-labelledby="best-store">
       <p className="text-ink-soft">Compre tudo em</p>
@@ -22,9 +22,11 @@ export function BestStore({ best, verdict }: { best: RankedStore; verdict: Verdi
         <PriceTag value={best.totalCost} land />
       </div>
       <p className="mt-3 text-ink-soft">
-        Custo total, contando {verdict.params.valuePerHour > 0 ? "o deslocamento e o seu tempo" : "o deslocamento"}.
+        {best.missing.length > 0
+          ? "Total da lista nesta loja, com a média da região para o que ela não tem."
+          : "Total da sua lista nesta loja."}
       </p>
-      <dl className="mt-5 grid grid-cols-2 gap-x-6 gap-y-3 border-y border-line py-4 sm:grid-cols-4">
+      <dl className="mt-5 grid grid-cols-2 gap-x-6 gap-y-3 border-y border-line py-4 sm:grid-cols-3">
         <div>
           <dt className="text-[0.9rem] text-ink-soft">Itens</dt>
           <dd className="text-xl font-bold">
@@ -40,10 +42,6 @@ export function BestStore({ best, verdict }: { best: RankedStore; verdict: Verdi
           <dd className="text-xl font-bold">
             {km(best.travelKm)} · {minutes(best.travelMinutes)}
           </dd>
-        </div>
-        <div>
-          <dt className="text-[0.9rem] text-ink-soft">Deslocamento</dt>
-          <dd className="text-xl font-bold">{brl(best.travelCost)}</dd>
         </div>
       </dl>
       <div className="mt-2 flex flex-wrap gap-x-3">
@@ -82,6 +80,11 @@ export function ItemLines({
                   ? evidenceLabel(line.evidence)
                   : `Sem preço aqui: conta a mediana da região (${brl(resolved.regionalMedian ?? 0)})`}
               </span>
+              {item?.webPrice && (
+                <span className="block text-[0.85rem] text-ink-soft">
+                  Na internet: {brl(item.webPrice.price)} em {item.webPrice.store}
+                </span>
+              )}
               {resolved.productId && (
                 <Link
                   href={`/alerts?product=${resolved.productId}&name=${encodeURIComponent(resolved.productName ?? resolved.text)}`}
@@ -137,7 +140,7 @@ export function SplitCard({ verdict, items }: { verdict: Verdict; items: Shoppin
   );
 }
 
-/** The rest of the ranking, by total cost. */
+/** The rest of the ranking, cheapest list first. */
 export function OtherStores({ ranking }: { ranking: RankedStore[] }) {
   if (ranking.length === 0) return null;
   return (

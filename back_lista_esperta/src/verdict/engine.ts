@@ -3,10 +3,11 @@
  *
  *   totalCost(store) = Σ price(item, store) × qty
  *                    + Σ regional median × qty   (items the store lacks)
- *                    + distanceKm × costPerKm + travelMinutes × valuePerMinute
+ *
+ * The cheapest basket nearby wins; distance only breaks ties (D-069).
  *
  * NEUTRALITY: this file knows nothing about sponsorship. Its inputs are
- * prices, distances and the person's preferences, and nothing else can
+ * prices and distances, and nothing else can
  * change the order. Enforced by ESLint (no imports from ../sponsored) and by
  * verdict.spec.ts.
  */
@@ -35,8 +36,6 @@ export interface Leg {
 }
 
 export interface EngineParams {
-  costPerKm: number;
-  valuePerMinute: number;
   /** Only suggest two stores when they save more than this (R$)… */
   splitMinSavings: number;
   /** …and more than this share of the best single store. */
@@ -51,7 +50,6 @@ export interface StoreTotals {
   missingPenalty: number;
   travelKm: number;
   travelMinutes: number;
-  travelCost: number;
   totalCost: number;
   found: number;
   /** Items with a price somewhere nearby (the denominator of "X de Y"). */
@@ -67,7 +65,6 @@ export interface SplitPlan {
   missingPenalty: number;
   travelKm: number;
   travelMinutes: number;
-  travelCost: number;
   totalCost: number;
   savings: number;
 }
@@ -105,16 +102,11 @@ export function regionalMedians(
   return medians;
 }
 
-function travelCost(km: number, minutes: number, params: EngineParams) {
-  return km * params.costPerKm + minutes * params.valuePerMinute;
-}
-
 /** One store: round trip, every priced item bought there or penalized. */
 export function storeTotals(
   store: EngineStore,
   items: EngineItem[],
   medians: Map<string, number>,
-  params: EngineParams,
 ): StoreTotals {
   let itemsCost = 0;
   let missingPenalty = 0;
@@ -135,15 +127,13 @@ export function storeTotals(
   }
   const travelKm = store.km * 2;
   const travelMinutes = store.minutes * 2;
-  const travel = travelCost(travelKm, travelMinutes, params);
   return {
     storeId: store.id,
     itemsCost: round2(itemsCost),
     missingPenalty: round2(missingPenalty),
     travelKm: round2(travelKm),
     travelMinutes: Math.round(travelMinutes),
-    travelCost: round2(travel),
-    totalCost: round2(itemsCost + missingPenalty + travel),
+    totalCost: round2(itemsCost + missingPenalty),
     found,
     priced,
     missing,
@@ -157,7 +147,6 @@ export function pairTotals(
   between: Leg,
   items: EngineItem[],
   medians: Map<string, number>,
-  params: EngineParams,
 ): Omit<SplitPlan, 'savings'> {
   let itemsCost = 0;
   let missingPenalty = 0;
@@ -177,7 +166,6 @@ export function pairTotals(
   // Visit the closer store first: the route is the same length either way.
   const travelKm = a.km + between.km + b.km;
   const travelMinutes = a.minutes + between.minutes + b.minutes;
-  const travel = travelCost(travelKm, travelMinutes, params);
   return {
     storeIds: a.km <= b.km ? [a.id, b.id] : [b.id, a.id],
     assignment,
@@ -185,8 +173,7 @@ export function pairTotals(
     missingPenalty: round2(missingPenalty),
     travelKm: round2(travelKm),
     travelMinutes: Math.round(travelMinutes),
-    travelCost: round2(travel),
-    totalCost: round2(itemsCost + missingPenalty + travel),
+    totalCost: round2(itemsCost + missingPenalty),
   };
 }
 
@@ -216,7 +203,7 @@ export function computeVerdict(
     .map((item) => item.index);
   const byId = new Map(stores.map((store) => [store.id, store]));
   const ranking = stores
-    .map((store) => storeTotals(store, items, medians, params))
+    .map((store) => storeTotals(store, items, medians))
     // A store with none of the items is no answer.
     .filter((totals) => totals.found > 0)
     .sort((x, y) => compareTotals(x, y, byId));
@@ -229,14 +216,7 @@ export function computeVerdict(
       for (let j = i + 1; j < candidates.length; j += 1) {
         const a = byId.get(candidates[i].storeId)!;
         const b = byId.get(candidates[j].storeId)!;
-        const pair = pairTotals(
-          a,
-          b,
-          between(a.id, b.id),
-          items,
-          medians,
-          params,
-        );
+        const pair = pairTotals(a, b, between(a.id, b.id), items, medians);
         // Both stores must be used, otherwise it is not a split.
         const used = new Set(Object.values(pair.assignment));
         if (used.size < 2) continue;

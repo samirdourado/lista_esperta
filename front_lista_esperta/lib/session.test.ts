@@ -7,8 +7,6 @@ const base: User = {
   email: "a@b.c",
   role: "SHOPPER",
   displayName: "A",
-  costPerKm: 1,
-  valuePerHour: 0,
   defaultRadiusKm: 5,
   storeIds: [],
 };

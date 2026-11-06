@@ -16,12 +16,6 @@ export class UserResponseDto {
   @ApiProperty({ example: 'Ana' })
   displayName: string;
 
-  @ApiProperty({ example: 1, description: 'Travel cost in BRL per km' })
-  costPerKm: number;
-
-  @ApiProperty({ example: 0, description: 'How much one hour is worth, BRL' })
-  valuePerHour: number;
-
   @ApiProperty({ example: 5 })
   defaultRadiusKm: number;
 
@@ -38,8 +32,6 @@ export class UserResponseDto {
       email: user.email,
       role: user.role,
       displayName: user.displayName,
-      costPerKm: user.costPerKm.toNumber(),
-      valuePerHour: user.valuePerHour.toNumber(),
       defaultRadiusKm: user.defaultRadiusKm.toNumber(),
       storeIds,
     };

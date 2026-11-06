@@ -5,7 +5,6 @@ import { useEffect, useState } from "react";
 import { MapPinIcon } from "@/components/icons";
 import { LocationPrompt } from "@/components/location/LocationPrompt";
 import { buttonClasses } from "@/components/ui/Button";
-import { TextField } from "@/components/ui/Field";
 import { Notice } from "@/components/ui/Notice";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { errorMessage } from "@/lib/api/errors";
@@ -13,17 +12,17 @@ import { cx } from "@/lib/cx";
 import { useLocation } from "@/lib/location/use-location";
 import { useCurrentList } from "@/lib/shopping-lists/current";
 import type { ShoppingListItem } from "@/lib/shopping-lists/repository";
-import { useTravelPreferences } from "@/lib/verdict/preferences";
+import { useSearchPreferences } from "@/lib/verdict/preferences";
 import { useVerdict } from "@/lib/verdict/queries";
 import { VerdictView } from "./VerdictView";
 
 const RADII = [1, 2, 5, 10];
 
-/** Loads the list, the location and the travel preferences, then asks the API. */
+/** Loads the list, the location and the search radius, then asks the API. */
 export function VerdictScreen() {
   const { load } = useCurrentList();
   const location = useLocation();
-  const { preferences, save } = useTravelPreferences();
+  const { preferences, save } = useSearchPreferences();
   const [items, setItems] = useState<ShoppingListItem[] | null>(null);
   const [changingPlace, setChangingPlace] = useState(false);
 
@@ -39,7 +38,7 @@ export function VerdictScreen() {
 
   const input =
     items && items.length > 0 && location.point && preferences && !changingPlace
-      ? { origin: location.point, items, ...preferences }
+      ? { origin: location.point, items, radiusKm: preferences.radiusKm }
       : null;
   const verdict = useVerdict(input);
 
@@ -104,8 +103,7 @@ export function VerdictScreen() {
       {preferences && (
         <details className="rounded-md border border-line bg-surface px-4 py-1">
           <summary className="min-h-tap cursor-pointer content-center font-medium">
-            Até {preferences.radiusKm} km · R$ {preferences.costPerKm.toFixed(2).replace(".", ",")}/km
-            {preferences.valuePerHour > 0 && ` · seu tempo R$ ${preferences.valuePerHour}/h`}
+            Lojas até {preferences.radiusKm} km de você
           </summary>
           <div className="mt-2 mb-3 flex flex-col gap-4">
             <fieldset>
@@ -127,34 +125,6 @@ export function VerdictScreen() {
                 ))}
               </div>
             </fieldset>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <TextField
-                label="Custo por km (R$)"
-                hint="Combustível e desgaste."
-                type="number"
-                inputMode="decimal"
-                step="0.05"
-                min={0}
-                defaultValue={preferences.costPerKm}
-                onBlur={(event) => {
-                  const value = Number(event.target.value);
-                  if (value >= 0 && value <= 20) void save({ costPerKm: value });
-                }}
-              />
-              <TextField
-                label="Quanto vale uma hora sua (R$)"
-                hint="0 = considerar só o dinheiro."
-                type="number"
-                inputMode="decimal"
-                step="1"
-                min={0}
-                defaultValue={preferences.valuePerHour}
-                onBlur={(event) => {
-                  const value = Number(event.target.value);
-                  if (value >= 0 && value <= 1000) void save({ valuePerHour: value });
-                }}
-              />
-            </div>
           </div>
         </details>
       )}

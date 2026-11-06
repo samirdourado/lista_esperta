@@ -70,23 +70,6 @@ export class VerdictRequestDto {
   @Min(0.5)
   @Max(20)
   radiusKm?: number;
-
-  @ApiPropertyOptional({ default: 1, description: 'R$ per km driven' })
-  @IsOptional()
-  @IsNumber({ maxDecimalPlaces: 2 })
-  @Min(0)
-  @Max(20)
-  costPerKm?: number;
-
-  @ApiPropertyOptional({
-    default: 0,
-    description: 'R$ one hour of the person is worth',
-  })
-  @IsOptional()
-  @IsNumber({ maxDecimalPlaces: 2 })
-  @Min(0)
-  @Max(1000)
-  valuePerHour?: number;
 }
 
 export class ResolvedItemDto {
@@ -146,8 +129,10 @@ export class RankedStoreDto {
   missingPenalty: number;
   @ApiProperty({ description: 'Round trip' }) travelKm: number;
   @ApiProperty() travelMinutes: number;
-  @ApiProperty() travelCost: number;
-  @ApiProperty() totalCost: number;
+  @ApiProperty({
+    description: 'Items plus the regional median of the missing ones',
+  })
+  totalCost: number;
   @ApiProperty() found: number;
   @ApiProperty({ description: 'Items priced somewhere nearby ("X de Y")' })
   priced: number;
@@ -168,7 +153,6 @@ export class SplitDto {
   @ApiProperty() missingPenalty: number;
   @ApiProperty() travelKm: number;
   @ApiProperty() travelMinutes: number;
-  @ApiProperty() travelCost: number;
   @ApiProperty() totalCost: number;
   @ApiProperty({ description: 'Against the best single store' })
   savings: number;
@@ -176,8 +160,6 @@ export class SplitDto {
 
 export class VerdictParamsDto {
   @ApiProperty() radiusKm: number;
-  @ApiProperty() costPerKm: number;
-  @ApiProperty() valuePerHour: number;
   @ApiProperty() splitMinSavings: number;
   @ApiProperty() splitMinShare: number;
   @ApiProperty({ enum: ['OPENROUTESERVICE', 'ESTIMATE'] }) routing: string;

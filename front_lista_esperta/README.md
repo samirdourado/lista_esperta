@@ -8,15 +8,15 @@ PWA da **Lista Esperta** em Next.js 16 (App Router, Cache Components, Tailwind v
 
 | Rota | Grupo | O que é |
 |---|---|---|
-| `/` | `(shopper)` | Montar a lista: texto livre com quantidade ("2 leite"), autocompletar do catálogo, colar várias linhas ou foto da lista (Gemini, pela API). Salva no aparelho ou na conta |
-| `/verdict` | `(shopper)` | Veredito pela API: a loja de menor custo total (itens + deslocamento), divisão em duas lojas quando compensa, a origem de cada preço, itens sem preço e o bloco "Patrocinado" separado. Raio, R$/km e valor da hora ajustáveis na tela |
+| `/` | `(shopper)` | Montar a lista: texto livre com quantidade ("2 leite"), autocompletar do catálogo, menores preços do Google (🔍 Pesquisar, com o carrinho para adicionar), colar várias linhas ou foto da lista (Gemini, pela API). Salva no aparelho ou na conta |
+| `/verdict` | `(shopper)` | Veredito pela API: a loja perto de você onde a lista sai mais barata, divisão em duas lojas quando compensa, a origem de cada preço, itens sem preço e o bloco "Patrocinado" separado. Raio ajustável na tela |
 | `/receipts/import` | `(shopper)` | Enviar NFC-e: QR Code pela câmera, link, foto ou chave digitada |
 | `/stores` | `(shopper)` | Lojas por perto: mapa (MapLibre + OpenFreeMap) e lista por distância, sem login |
 | `/how-it-works` | `(shopper)` | Fórmula, parâmetros e neutralidade |
 | `/offline` | `(shopper)` | Página servida pelo service worker sem conexão |
 | `/login`, `/register` | `(auth)` | Entrar e criar conta ("Quero economizar" / "Tenho uma loja") |
 | `/alerts` | `(shopper)` | Alertas de preço: produto, preço-alvo, raio, menor preço agora e notificações no aparelho. Para quem tem conta |
-| `/account` | `(shopper)` | Minha conta: nome, custo por km, valor da hora, raio padrão, sair. Exige login |
+| `/account` | `(shopper)` | Minha conta: nome, raio padrão, sair. Exige login |
 | `/merchant` | `merchant/` | Lojas do lojista. Exige conta de lojista ou admin |
 | `/merchant/stores/[storeId]` | `merchant/` | Painel da loja: visão geral, produtos e preços, importar planilha, equipe, fotos e CNPJ |
 | `/merchant/stores/[storeId]/flyers` | `merchant/` | Encartes: colar o link (página ou PDF) e ver o que entrou, o que está em revisão e o histórico |

@@ -3,6 +3,7 @@ import { Transform, Type } from 'class-transformer';
 import {
   ArrayMaxSize,
   IsArray,
+  IsISO8601,
   IsNumber,
   IsOptional,
   IsString,
@@ -22,6 +23,35 @@ const trim = ({ value }: { value: unknown }) =>
 
 export const MAX_ITEMS_PER_LIST = 200;
 export const MAX_LISTS_PER_IMPORT = 50;
+
+/** A price seen on Google Shopping: reference only, never part of the ranking. */
+export class WebPriceDto {
+  @ApiProperty({ example: 'Leite UHT Integral Italac 1L' })
+  @IsString()
+  @Length(1, 300)
+  title: string;
+
+  @ApiProperty({ example: 4.79 })
+  @IsNumber({ maxDecimalPlaces: 2 })
+  @Min(0)
+  @Max(1_000_000)
+  price: number;
+
+  @ApiProperty({ example: 'Carrefour' })
+  @IsString()
+  @Length(1, 120)
+  store: string;
+
+  @ApiPropertyOptional({ nullable: true, type: String })
+  @IsOptional()
+  @IsString()
+  @Length(1, 2000)
+  url?: string | null;
+
+  @ApiProperty({ format: 'date-time' })
+  @IsISO8601()
+  seenAt: string;
+}
 
 export class ShoppingListItemInputDto {
   @ApiProperty({ example: 'arroz 5kg' })
@@ -44,6 +74,12 @@ export class ShoppingListItemInputDto {
   @IsOptional()
   @IsUUID()
   productId?: string;
+
+  @ApiPropertyOptional({ type: WebPriceDto, nullable: true })
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => WebPriceDto)
+  webPrice?: WebPriceDto | null;
 }
 
 export class UpsertShoppingListDto {
@@ -97,6 +133,9 @@ export class ShoppingListItemResponseDto {
 
   @ApiProperty({ format: 'uuid', nullable: true, type: String })
   productId: string | null;
+
+  @ApiProperty({ type: WebPriceDto, nullable: true })
+  webPrice: WebPriceDto | null;
 }
 
 export class ShoppingListResponseDto {
@@ -131,6 +170,7 @@ export class ShoppingListResponseDto {
           freeText: item.freeText,
           quantity: item.quantity.toNumber(),
           productId: item.productId,
+          webPrice: (item.webPrice as WebPriceDto | null) ?? null,
         })),
     };
   }

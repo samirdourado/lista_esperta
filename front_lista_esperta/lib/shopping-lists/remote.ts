@@ -8,7 +8,12 @@ function fromServer(list: ServerShoppingList): ShoppingList {
     id: list.id,
     name: list.name,
     updatedAt: list.updatedAt,
-    items: list.items.map((item) => ({ freeText: item.freeText, quantity: item.quantity, productId: item.productId })),
+    items: list.items.map((item) => ({
+      freeText: item.freeText,
+      quantity: item.quantity,
+      productId: item.productId,
+      webPrice: item.webPrice,
+    })),
   };
 }
 
@@ -19,6 +24,7 @@ function toBody(draft: ShoppingListDraft) {
       freeText: item.freeText,
       quantity: item.quantity,
       ...(item.productId ? { productId: item.productId } : {}),
+      ...(item.webPrice ? { webPrice: item.webPrice } : {}),
     })),
   };
 }

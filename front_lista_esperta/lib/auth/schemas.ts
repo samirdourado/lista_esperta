@@ -20,13 +20,8 @@ export const registerSchema = z.object({
 });
 export type RegisterValues = z.infer<typeof registerSchema>;
 
-const money = (max: number) =>
-  z.number({ error: "Informe um número." }).min(0, "Use um valor a partir de zero.").max(max, `Use no máximo ${max}.`);
-
 export const preferencesSchema = z.object({
   displayName: z.string().trim().min(1, "Informe seu nome.").max(80, "Use no máximo 80 caracteres."),
-  costPerKm: money(20),
-  valuePerHour: money(1000),
   defaultRadiusKm: z
     .number({ error: "Informe um número." })
     .min(0.5, "Use pelo menos 0,5 km.")

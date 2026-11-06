@@ -34,6 +34,8 @@ services:
         sync: false
       - key: FIRECRAWL_API_KEY
         sync: false
+      - key: SERPAPI_API_KEY
+        sync: false
       - key: ORS_API_KEY
         sync: false
       - key: VAPID_PUBLIC_KEY

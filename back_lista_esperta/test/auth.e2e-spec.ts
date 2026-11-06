@@ -41,10 +41,10 @@ describe('Auth (e2e)', () => {
       email: 'ana@example.com',
       role: 'SHOPPER',
       displayName: 'Ana',
-      costPerKm: 1,
       defaultRadiusKm: 5,
     });
     expect(res.body.user).not.toHaveProperty('passwordHash');
+    expect(res.body.user).not.toHaveProperty('costPerKm');
 
     const cookies = cookiesOf(res);
     expect(cookies.le_access).toMatch(/HttpOnly/);
@@ -192,17 +192,15 @@ describe('Auth (e2e)', () => {
       .expect(401);
   });
 
-  it('updates travel preferences of the signed-in user', async () => {
+  it('updates the search radius of the signed-in user', async () => {
     const { agent } = await signUp(app, 'edu@example.com');
     const res = await agent
       .patch('/api/v1/users/me')
-      .send({ costPerKm: 1.35, valuePerHour: 25, defaultRadiusKm: 3 })
+      .send({ defaultRadiusKm: 3 })
       .expect(200);
-    expect(res.body).toMatchObject({
-      costPerKm: 1.35,
-      valuePerHour: 25,
-      defaultRadiusKm: 3,
-    });
+    expect(res.body).toMatchObject({ defaultRadiusKm: 3 });
+    // Travel cost and the value of time are gone (D-069).
+    await agent.patch('/api/v1/users/me').send({ costPerKm: 1 }).expect(400);
 
     await agent.patch('/api/v1/users/me').send({ role: 'ADMIN' }).expect(400);
   });

@@ -93,8 +93,6 @@ export function useUpdateProfile() {
   return useMutation({
     mutationFn: async (body: {
       displayName?: string;
-      costPerKm?: number;
-      valuePerHour?: number;
       defaultRadiusKm?: number;
     }) => unwrap(await api.PATCH("/api/v1/users/me", { body })),
     onSuccess: (user) => queryClient.setQueryData(SESSION_KEY, user),

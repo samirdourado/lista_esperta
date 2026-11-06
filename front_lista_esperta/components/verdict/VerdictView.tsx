@@ -28,7 +28,7 @@ export function VerdictView({ verdict, items }: { verdict: Verdict; items: Shopp
 
   return (
     <div className="flex flex-col gap-10">
-      <BestStore best={best} verdict={verdict} />
+      <BestStore best={best} />
       <SplitCard verdict={verdict} items={items} />
 
       <section aria-labelledby="best-items">

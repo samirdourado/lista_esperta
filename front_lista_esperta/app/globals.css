@@ -2,11 +2,11 @@
 
 /*
  * Lista Esperta design tokens. Source of truth: docs/BRAND.md.
- * Each colour is defined once with light-dark(): the system preference picks the
- * value, and <html data-theme="light|dark"> overrides it (see ThemeScript).
+ * Each colour is defined once with light-dark(). Light is the theme; dark only
+ * applies when the person picks it (<html data-theme="dark">, see theme.ts, D-071).
  */
 :root {
-  color-scheme: light dark;
+  color-scheme: light;
 
   /* Brand, measured from public/logo_lista_esperta.webp */
   --brand: light-dark(#0754e0, #6b9bff);
@@ -58,9 +58,6 @@
   --tabbar-h: 4rem;
 }
 
-:root[data-theme="light"] {
-  color-scheme: light;
-}
 :root[data-theme="dark"] {
   color-scheme: dark;
 }
