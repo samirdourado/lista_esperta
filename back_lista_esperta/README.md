@@ -15,7 +15,7 @@ prisma/
 prisma.config.ts           conexão e seed (Prisma 7)
 src/
   auth/                    cadastro, login, refresh com rotação, guards e decorators
-  users/                   perfil e preferências de deslocamento (PATCH /users/me)
+  users/                   perfil e raio de busca (PATCH /users/me)
   stores/                  lojas: busca por perto, cadastro, verificação de CNPJ, descoberta em segundo plano,
                            StoreMemberGuard e StoresGeoRepository (único acesso a `location`)
   store-claims/            "esta loja é minha": reivindicação, aprovada na hora com CNPJ que bate
@@ -29,6 +29,8 @@ src/
   flyers/                  encartes: Firecrawl → Gemini → normalização → preços FLYER (POST /stores/:id/flyers)
   alerts/                  alertas de preço e Web Push (VAPID próprio); checagem periódica
   integrations/firecrawl/  cliente do Firecrawl (POST /v2/scrape)
+  web-prices/              menores preços do Google Shopping (SerpApi) para a lista, com cache; GET /web-prices
+  integrations/serpapi/    cliente do SerpApi (google_shopping e locations)
   sponsored/               conteúdo patrocinado, fora do motor (regra de lint + teste e2e de neutralidade)
   storage/                 StorageService (disco local hoje) para fotos de loja e de nota
   receipts/                NFC-e: chave de acesso, parsers por UF (parsers/sp.parser.ts), foto via Gemini, normalização

@@ -60,11 +60,7 @@ export class VerdictService {
     now = new Date(),
   ): Promise<VerdictResponseDto> {
     const radiusKm = input.radiusKm ?? 5;
-    const costPerKm = input.costPerKm ?? 1;
-    const valuePerHour = input.valuePerHour ?? 0;
     const params = {
-      costPerKm,
-      valuePerMinute: valuePerHour / 60,
       splitMinSavings: this.config.get('VERDICT_SPLIT_MIN_SAVINGS', {
         infer: true,
       }),
@@ -212,7 +208,6 @@ export class VerdictService {
           missingPenalty: plan.missingPenalty,
           travelKm: plan.travelKm,
           travelMinutes: plan.travelMinutes,
-          travelCost: plan.travelCost,
           totalCost: plan.totalCost,
           savings: plan.savings,
         }
@@ -230,8 +225,6 @@ export class VerdictService {
       split,
       params: {
         radiusKm,
-        costPerKm,
-        valuePerHour,
         splitMinSavings: params.splitMinSavings,
         splitMinShare: params.splitMinShare,
         routing: matrix.source,

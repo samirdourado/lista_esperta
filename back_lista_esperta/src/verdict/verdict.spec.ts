@@ -8,8 +8,6 @@ import {
 import { isOpenAt, parseOsmHours } from './opening-hours.js';
 
 const PARAMS: EngineParams = {
-  costPerKm: 1,
-  valuePerMinute: 0,
   splitMinSavings: 10,
   splitMinShare: 0.05,
   splitCandidates: 8,
@@ -32,36 +30,30 @@ const items = (...ids: (string | null)[]): EngineItem[] =>
 const straight = () => ({ km: 1, minutes: 3 });
 
 describe('computeVerdict', () => {
-  it('ranks by total cost including the round trip', () => {
-    const near = store('near', 0.5, { rice: 30, beans: 10 }); // 40 + 1 km = 41
-    const far = store('far', 5, { rice: 27, beans: 9 }); // 36 + 10 km = 46
+  it('ranks by the basket price alone; the trip is only shown', () => {
+    const near = store('near', 0.5, { rice: 30, beans: 10 }); // 40
+    const far = store('far', 5, { rice: 27, beans: 9 }); // 36
     const { ranking } = computeVerdict(
       items('rice', 'beans'),
-      [far, near],
+      [near, far],
       straight,
       PARAMS,
     );
     expect(ranking.map((r) => [r.storeId, r.totalCost])).toEqual([
-      ['near', 41],
-      ['far', 46],
+      ['far', 36],
+      ['near', 40],
     ]);
-    expect(ranking[0]).toMatchObject({ found: 2, priced: 2, travelKm: 1 });
+    expect(ranking[0]).toMatchObject({ found: 2, priced: 2, travelKm: 10 });
   });
 
-  it('counts the value of time when the person sets it', () => {
-    const near = store('near', 0.5, { rice: 30 });
-    const far = store('far', 1, { rice: 28 });
-    const cheapTime = computeVerdict(
+  it('breaks a price tie with the closer store', () => {
+    const { ranking } = computeVerdict(
       items('rice'),
-      [near, far],
+      [store('far', 3, { rice: 28 }), store('near', 0.5, { rice: 28 })],
       straight,
       PARAMS,
-    ).ranking[0].storeId;
-    const dearTime = computeVerdict(items('rice'), [near, far], straight, {
-      ...PARAMS,
-      valuePerMinute: 1,
-    }).ranking[0].storeId;
-    expect([cheapTime, dearTime]).toEqual(['far', 'near']);
+    );
+    expect(ranking.map((r) => r.storeId)).toEqual(['near', 'far']);
   });
 
   it('penalizes missing items with the regional median and reports "X de Y"', () => {
@@ -93,10 +85,10 @@ describe('computeVerdict', () => {
       straight,
       PARAMS,
     );
-    // Best single: meat 60 + 2 = 62. Pair: 40 + 5 + (1 + 1 + 1) = 48 → saves 14 (22 %).
+    // Best single: meat 60. Pair: 40 + 5 = 45 → saves 15 (25 %).
     expect(withSplit.split).toMatchObject({
-      savings: 14,
-      totalCost: 48,
+      savings: 15,
+      totalCost: 45,
       travelKm: 3,
     });
     expect(withSplit.split!.assignment).toEqual({ 0: 'meat', 1: 'clean' });
@@ -107,7 +99,7 @@ describe('computeVerdict', () => {
       straight,
       PARAMS,
     );
-    expect(small.split).toBeNull(); // saves 6: below R$ 10
+    expect(small.split).toBeNull(); // saves 7: below R$ 10
 
     const tunedDown = computeVerdict(
       items('steak', 'soap'),
@@ -118,7 +110,7 @@ describe('computeVerdict', () => {
         splitMinSavings: 5,
       },
     );
-    expect(tunedDown.split?.savings).toBe(6); // thresholds are configurable
+    expect(tunedDown.split?.savings).toBe(7); // thresholds are configurable
   });
 
   it('ignores stores that have none of the items and items nobody prices', () => {

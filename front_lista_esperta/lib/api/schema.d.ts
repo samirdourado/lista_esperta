@@ -836,6 +836,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/web-prices": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["WebPricesController_search"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/push/public-key": {
         parameters: {
             query?: never;
@@ -965,16 +981,6 @@ export interface components {
             role: components["schemas"]["Role"];
             /** @example Ana */
             displayName: string;
-            /**
-             * @description Travel cost in BRL per km
-             * @example 1
-             */
-            costPerKm: number;
-            /**
-             * @description How much one hour is worth, BRL
-             * @example 0
-             */
-            valuePerHour: number;
             /** @example 5 */
             defaultRadiusKm: number;
             /** @description Stores this user can manage */
@@ -992,10 +998,6 @@ export interface components {
         UpdateMeDto: {
             /** @example Ana */
             displayName?: string;
-            /** @example 1.2 */
-            costPerKm?: number;
-            /** @example 30 */
-            valuePerHour?: number;
             /** @example 5 */
             defaultRadiusKm?: number;
         };
@@ -1563,16 +1565,6 @@ export interface components {
             items: components["schemas"]["VerdictItemInputDto"][];
             /** @default 5 */
             radiusKm: number;
-            /**
-             * @description R$ per km driven
-             * @default 1
-             */
-            costPerKm: number;
-            /**
-             * @description R$ one hour of the person is worth
-             * @default 0
-             */
-            valuePerHour: number;
         };
         ResolvedItemDto: {
             index: number;
@@ -1620,7 +1612,7 @@ export interface components {
             /** @description Round trip */
             travelKm: number;
             travelMinutes: number;
-            travelCost: number;
+            /** @description Items plus the regional median of the missing ones */
             totalCost: number;
             found: number;
             /** @description Items priced somewhere nearby ("X de Y") */
@@ -1644,15 +1636,12 @@ export interface components {
             missingPenalty: number;
             travelKm: number;
             travelMinutes: number;
-            travelCost: number;
             totalCost: number;
             /** @description Against the best single store */
             savings: number;
         };
         VerdictParamsDto: {
             radiusKm: number;
-            costPerKm: number;
-            valuePerHour: number;
             splitMinSavings: number;
             splitMinShare: number;
             /** @enum {string} */
@@ -1687,6 +1676,17 @@ export interface components {
             /** @example 1 */
             quantity: number;
         };
+        WebPriceDto: {
+            /** @example Leite UHT Integral Italac 1L */
+            title: string;
+            /** @example 4.79 */
+            price: number;
+            /** @example Carrefour */
+            store: string;
+            url?: string | null;
+            /** Format: date-time */
+            seenAt: string;
+        };
         ShoppingListItemResponseDto: {
             /** Format: uuid */
             id: string;
@@ -1694,6 +1694,7 @@ export interface components {
             quantity: number;
             /** Format: uuid */
             productId: string | null;
+            webPrice: components["schemas"]["WebPriceDto"] | null;
         };
         ShoppingListResponseDto: {
             /** Format: uuid */
@@ -1717,6 +1718,7 @@ export interface components {
              * @description Catalogue product, when matched
              */
             productId?: string;
+            webPrice?: components["schemas"]["WebPriceDto"] | null;
         };
         ImportedShoppingListDto: {
             /** @example Compras da semana */
@@ -1778,6 +1780,33 @@ export interface components {
              * @example https://www.mercado.com.br/encarte-da-semana.pdf
              */
             url: string;
+        };
+        WebOfferDto: {
+            /** @example Leite UHT Integral Italac 1L */
+            title: string;
+            /** @example 4.79 */
+            price: number;
+            /** @example Carrefour */
+            store: string;
+            thumbnail: string | null;
+            /** @description Google Shopping page */
+            url: string | null;
+            /** @example Frete grátis */
+            delivery: string | null;
+            /** @description Google's local hint, e.g. 'Perto, 2 km' */
+            nearby: string | null;
+        };
+        WebPriceResponseDto: {
+            query: string;
+            /**
+             * @description City Google used; null when the location was not known
+             * @example Sao Paulo
+             */
+            location: string | null;
+            /** @description Cheapest first */
+            offers: components["schemas"]["WebOfferDto"][];
+            /** Format: date-time */
+            searchedAt: string;
         };
         PushPublicKeyDto: {
             /** @description VAPID public key; null when push is not configured */
@@ -3350,6 +3379,43 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["FlyerImportDto"];
                 };
+            };
+        };
+    };
+    WebPricesController_search: {
+        parameters: {
+            query: {
+                q: string;
+                lat?: number;
+                lng?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WebPriceResponseDto"];
+                };
+            };
+            /** @description WEB_SEARCH_QUOTA */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description WEB_SEARCH_UNAVAILABLE | WEB_SEARCH_FAILED */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };

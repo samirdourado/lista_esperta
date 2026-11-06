@@ -2,6 +2,26 @@
 
 Registro de decisões tomadas onde a especificação era ambígua ou conflitava com o ambiente. A mais recente fica no topo de cada fase.
 
+## Ajustes depois da fase 8
+
+### D-071 · Tema claro como padrão
+O app abre sempre no tema claro, mesmo com o aparelho no modo escuro. O botão da lua liga o escuro, e a escolha fica salva no aparelho (`le-theme`). Antes, o padrão seguia o sistema e o botão tinha três estados. O mapa segue a mesma regra.
+
+### D-070 · Menores preços do Google ao montar a lista (SerpApi)
+Ao digitar um produto e tocar em Pesquisar, a API (`GET /web-prices`) busca no Google Shopping pelo SerpApi, na cidade de quem pesquisa, e devolve até 6 ofertas: entre as 20 mais relevantes, as mais baratas primeiro, sem repetir a mesma loja e o mesmo título.
+- **Cidade:** a localização vira cidade pelo Nominatim, e a cidade vira o nome de lugar do Google pela Locations API do SerpApi, que é grátis. Sem localização, a busca vale para o Brasil todo.
+- **Cota:** o plano grátis dá 250 buscas por mês. A API guarda cada resposta por 6 horas e limita a 10 buscas por hora por cliente. Sem a chave, a resposta é `503 WEB_SEARCH_UNAVAILABLE`; com a cota esgotada, `429 WEB_SEARCH_QUOTA`.
+- **O que entra na lista:** o item vai com o título do Google e um `webPrice` (preço, loja, link, data), que aparece como "Na internet: R$ X em Loja". Ele é **só referência e não entra no ranking**. Os preços do Google são quase sempre de lojas online, e o veredito compara os mercados físicos perto da pessoa.
+- **Tela:** é um combobox. O campo controla a lista de resultados, as setas e o Enter escolhem, e o Esc fecha. Cada resultado mostra foto, nome, loja, preço e o ícone de carrinho.
+
+### D-069 · O veredito ordena só pelo preço da lista
+A pedido do produto, saíram o custo por km e o valor da hora: da tela, da conta, da API (`costPerKm`, `valuePerHour` e `travelCost`) e do banco (colunas removidas na migration `20261106000000_simple_verdict_web_prices`). Agora:
+- `totalCost` é o preço dos itens mais a mediana da região para os que a loja não tem;
+- entram as lojas dentro do raio escolhido;
+- em caso de empate, ganha a mais perto;
+- a distância de ida e volta continua aparecendo;
+- a divisão em duas lojas segue os mesmos limites (mais de R$ 10 e mais de 5%), agora só pelo preço.
+
 ## Publicação para testes
 
 ### D-068 · Vercel + Render + Neon, com a API atrás do próprio front

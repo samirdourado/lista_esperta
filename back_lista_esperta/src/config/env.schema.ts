@@ -79,6 +79,9 @@ export const envSchema = z
       .default('https://generativelanguage.googleapis.com/v1beta'),
     FIRECRAWL_API_KEY: z.string().optional(),
     FIRECRAWL_URL: z.url().default('https://api.firecrawl.dev'),
+    /** Google Shopping prices while typing the list (free plan at serpapi.com). */
+    SERPAPI_API_KEY: z.string().optional(),
+    SERPAPI_URL: z.url().default('https://serpapi.com'),
     /** Web Push (price alerts). Generate with `npx web-push generate-vapid-keys`. */
     VAPID_PUBLIC_KEY: z.string().optional(),
     VAPID_PRIVATE_KEY: z.string().optional(),

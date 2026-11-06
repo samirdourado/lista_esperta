@@ -11,12 +11,21 @@ const mocks = vi.hoisted(() => ({
   save: vi.fn(),
   load: vi.fn(),
   suggestions: [] as { id: string; canonicalName: string }[],
+  webSearch: vi.fn(),
+  web: { data: undefined as unknown, isPending: false, isError: false, isSuccess: false, error: null },
 }));
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push: mocks.push }) }));
 vi.mock("@/lib/shopping-lists/current", () => ({ useCurrentList: () => ({ load: mocks.load, save: mocks.save }) }));
 vi.mock("@/lib/merchant/queries", () => ({ useProductSearch: () => ({ data: mocks.suggestions }) }));
 vi.mock("@/lib/verdict/queries", () => ({
   useParseListPhoto: () => ({ mutate: vi.fn(), isPending: false, error: null }),
+}));
+vi.mock("@/lib/location/use-location", () => ({
+  useLocation: () => ({ status: "ready", point: { lat: -23.58, lng: -46.63 }, locate: vi.fn() }),
+}));
+vi.mock("@/lib/web-prices/queries", () => ({
+  useWebPriceSearch: () => ({ ...mocks.web, mutate: mocks.webSearch }),
+  webSearchError: () => "erro",
 }));
 
 const { ShoppingListEditor } = await import("./ShoppingListEditor");
@@ -30,6 +39,8 @@ beforeEach(() => {
   mocks.save.mockReset().mockResolvedValue({});
   mocks.load.mockReset().mockResolvedValue(undefined);
   mocks.suggestions = [];
+  mocks.webSearch.mockReset();
+  mocks.web = { data: undefined, isPending: false, isError: false, isSuccess: false, error: null };
 });
 
 describe("parseLine", () => {
@@ -68,6 +79,77 @@ describe("ShoppingListEditor", () => {
     await waitFor(() =>
       expect(mocks.save).toHaveBeenLastCalledWith([
         { freeText: "Leite UHT Integral Itambé 1 L", quantity: 1, productId: "p1" },
+      ]),
+    );
+  });
+
+  it("searches the cheapest prices on Google near the shopper and adds one with its price", async () => {
+    const user = userEvent.setup();
+    const { rerender } = render(wrap(<ShoppingListEditor />));
+    await user.type(screen.getByRole("combobox", { name: "Adicionar item" }), "2 leite integral");
+    await user.click(screen.getByRole("button", { name: "Pesquisar preços" }));
+    expect(mocks.webSearch).toHaveBeenCalledWith({ query: "leite integral", point: { lat: -23.58, lng: -46.63 } });
+
+    mocks.web = {
+      isPending: false,
+      isError: false,
+      isSuccess: true,
+      error: null,
+      data: {
+        query: "leite integral",
+        location: "São Paulo",
+        searchedAt: "2026-11-06T12:00:00.000Z",
+        offers: [
+          {
+            title: "Leite Italac 1L",
+            price: 4.79,
+            store: "Carrefour",
+            thumbnail: null,
+            url: "https://g.co/1",
+            delivery: null,
+            nearby: "Perto, 2 km",
+          },
+          {
+            title: "Leite Piracanjuba 1L",
+            price: 5.29,
+            store: "Atacadão",
+            thumbnail: null,
+            url: null,
+            delivery: "Frete grátis",
+            nearby: null,
+          },
+          {
+            title: "Leite Ninho 1L",
+            price: 6.99,
+            store: "Pão de Açúcar",
+            thumbnail: null,
+            url: null,
+            delivery: null,
+            nearby: null,
+          },
+        ],
+      },
+    };
+    rerender(wrap(<ShoppingListEditor />));
+    expect(screen.getByText(/Mais baratos no Google para/)).toHaveTextContent("São Paulo");
+    expect(screen.getAllByRole("option")).toHaveLength(3);
+    await user.click(screen.getByRole("option", { name: /Leite Piracanjuba 1L, R\$\s5,29 em Atacadão/ }));
+
+    expect(screen.getByText("Leite Piracanjuba 1L")).toBeInTheDocument();
+    expect(screen.getByText(/Na internet: R\$\s5,29 em Atacadão/)).toBeInTheDocument();
+    await waitFor(() =>
+      expect(mocks.save).toHaveBeenLastCalledWith([
+        {
+          freeText: "Leite Piracanjuba 1L",
+          quantity: 2,
+          webPrice: {
+            title: "Leite Piracanjuba 1L",
+            price: 5.29,
+            store: "Atacadão",
+            url: null,
+            seenAt: "2026-11-06T12:00:00.000Z",
+          },
+        },
       ]),
     );
   });

@@ -70,8 +70,6 @@ function PreferencesForm({ user }: { user: User }) {
     resolver: zodResolver(preferencesSchema),
     defaultValues: {
       displayName: user.displayName,
-      costPerKm: user.costPerKm,
-      valuePerHour: user.valuePerHour,
       defaultRadiusKm: user.defaultRadiusKm,
     },
   });
@@ -83,8 +81,6 @@ function PreferencesForm({ user }: { user: User }) {
       const saved = await update.mutateAsync(values);
       form.reset({
         displayName: saved.displayName,
-        costPerKm: saved.costPerKm,
-        valuePerHour: saved.valuePerHour,
         defaultRadiusKm: saved.defaultRadiusKm,
       });
     } catch (error) {
@@ -94,7 +90,7 @@ function PreferencesForm({ user }: { user: User }) {
 
   return (
     <form onSubmit={onSubmit} noValidate className="flex flex-col gap-5">
-      <h2 className="text-2xl font-bold">Seus dados e o custo de ir até a loja</h2>
+      <h2 className="text-2xl font-bold">Seus dados</h2>
       {errors.root?.message && <Notice tone="danger" title={errors.root.message} />}
       {isSubmitSuccessful && !isDirty && !errors.root && <Notice tone="success" title="Alterações salvas." />}
       <TextField
@@ -102,24 +98,6 @@ function PreferencesForm({ user }: { user: User }) {
         autoComplete="name"
         error={errors.displayName?.message}
         {...form.register("displayName")}
-      />
-      <TextField
-        label="Custo por km (R$)"
-        hint="Combustível e desgaste do carro. Usamos R$ 1,00 se você não mudar."
-        type="number"
-        inputMode="decimal"
-        step="0.05"
-        error={errors.costPerKm?.message}
-        {...form.register("costPerKm", number)}
-      />
-      <TextField
-        label="Quanto vale uma hora do seu tempo (R$)"
-        hint="Deixe 0 para considerar só o dinheiro."
-        type="number"
-        inputMode="decimal"
-        step="1"
-        error={errors.valuePerHour?.message}
-        {...form.register("valuePerHour", number)}
       />
       <TextField
         label="Distância padrão para buscar lojas (km)"

@@ -22,6 +22,7 @@ import { StorageModule } from './storage/storage.module.js';
 import { StoresModule } from './stores/stores.module.js';
 import { UsersModule } from './users/users.module.js';
 import { VerdictModule } from './verdict/verdict.module.js';
+import { WebPricesModule } from './web-prices/web-prices.module.js';
 
 @Module({
   imports: [
@@ -49,6 +50,7 @@ import { VerdictModule } from './verdict/verdict.module.js';
     VerdictModule,
     ShoppingListsModule,
     FlyersModule,
+    WebPricesModule,
     AlertsModule,
   ],
   providers: [

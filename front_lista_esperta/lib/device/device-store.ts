@@ -35,12 +35,10 @@ export async function getGuestId(): Promise<string> {
 
 export interface DevicePreferences {
   radiusKm: number;
-  costPerKm: number;
-  valuePerHour: number;
   lastLocation?: { lat: number; lng: number; at: string };
 }
 
-export const DEFAULT_PREFERENCES: DevicePreferences = { radiusKm: 5, costPerKm: 1, valuePerHour: 0 };
+export const DEFAULT_PREFERENCES: DevicePreferences = { radiusKm: 5 };
 
 export async function readPreferences(): Promise<DevicePreferences> {
   return { ...DEFAULT_PREFERENCES, ...(await readDevice<Partial<DevicePreferences>>("preferences")) };

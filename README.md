@@ -2,7 +2,7 @@
 
 > **Onde a minha lista inteira sai mais barata, perto de mim, hoje, contando o custo de ir até lá?**
 
-PWA que compara o custo total de uma lista de compras entre lojas físicas próximas (supermercado, farmácia, materiais de construção, pet shop…), somando os preços e o deslocamento. O cliente usa sem cadastro.
+PWA que mostra onde uma lista de compras inteira sai mais barata entre as lojas físicas próximas (supermercado, farmácia, materiais de construção, pet shop…). Ao montar a lista, o cliente também vê os menores preços do Google como referência. Usa sem cadastro.
 
 ## Estrutura
 
@@ -83,7 +83,7 @@ O front fica na Vercel, a API no plano free do Render e o banco no Neon. O naveg
    - *New → Blueprint* e escolha este repositório e a branch. O Render lê o `render.yaml`.
    - Preencha os valores pedidos:
      - `DATABASE_URL`: a string do Neon;
-     - `GEMINI_API_KEY`, `FIRECRAWL_API_KEY`, `ORS_API_KEY`, `VAPID_PUBLIC_KEY` e `VAPID_PRIVATE_KEY`: os mesmos do seu `back_lista_esperta/.env`.
+     - `GEMINI_API_KEY`, `FIRECRAWL_API_KEY`, `SERPAPI_API_KEY`, `ORS_API_KEY`, `VAPID_PUBLIC_KEY` e `VAPID_PRIVATE_KEY`: os mesmos do seu `back_lista_esperta/.env`.
    - Os segredos JWT são gerados pelo próprio Render.
    - O primeiro deploy compila e aplica as migrations. Confira em `https://<nome>.onrender.com/api/v1/health`.
 3. **Front na Vercel** (*Settings → Environment Variables*, depois *Redeploy*):
@@ -137,7 +137,7 @@ Para ver o PWA (service worker, offline, instalação): `cd front_lista_esperta 
 - Auth no Nest: cadastro e login (argon2id), access de 15 min e refresh de 7 dias em cookies httpOnly, rotação com detecção de reuso, logout que revoga.
 - Guards: `JwtAuthGuard` global com `@Public()`, `RolesGuard`, `StoreMemberGuard`, `OptionalJwtAuthGuard` + `X-Guest-Id` para visitantes. Rate limit por IP e por IP + guestId.
 - Listas no servidor só para quem tem conta, com filtro por dono, e `POST /shopping-lists/import` para a migração guest → conta.
-- Front: login, cadastro ("Quero economizar" / "Tenho uma loja"), minha conta (nome e custo de deslocamento), onboarding do lojista, `proxy.ts` protegendo `/merchant`, `/admin` e `/account`, client tipado pelo OpenAPI com TanStack Query, listas do visitante no IndexedDB e convite discreto para criar conta depois do veredito.
+- Front: login, cadastro ("Quero economizar" / "Tenho uma loja"), minha conta (nome e raio de busca), onboarding do lojista, `proxy.ts` protegendo `/merchant`, `/admin` e `/account`, client tipado pelo OpenAPI com TanStack Query, listas do visitante no IndexedDB e convite discreto para criar conta depois do veredito.
 
 **Fase 4 — lojas** ✅ (mapas 100% gratuitos, sem chave; ver `docs/DECISIONS.md` D-031)
 - Lojas reais do OpenStreetMap, importadas em segundo plano por área e guardadas por 30 dias, com deduplicação por CNPJ ou por proximidade (< 50 m) + nome parecido.
@@ -173,6 +173,11 @@ As distâncias são estimadas (linha reta × 1,3) até você colocar uma `ORS_AP
 - **Encartes:** no painel da loja, aba Encartes. O lojista cola o link (página ou PDF); o Firecrawl lê, o Gemini extrai produtos e preços, e eles entram como "Encarte da loja" até o fim das ofertas (D-064).
 - **Alertas de preço** (`/alerts`, para quem tem conta): "avise quando custar até R$ X perto de mim", com notificação pelo navegador (Web Push com chaves próprias, sem serviço pago) e o menor preço atual de cada alerta. Atalho "Avisar quando baixar" em cada item do veredito (D-065).
 - **Painel do admin** (`/admin`): reivindicações, lojas com CNPJ para conferir (com o registro da Receita lado a lado), produtos de notas e encartes para confirmar (aprovar já cria os preços que esperavam) e mesclagem de produtos duplicados, sem nunca misturar tamanhos ou marcas (D-066).
+
+**Ajustes depois da fase 8** (D-069 a D-071)
+- O veredito ordena só pelo **preço da lista** nas lojas dentro do raio; a distância aparece e desempata. Saíram o custo por km e o valor da hora.
+- **Preços do Google ao montar a lista:** digite o produto e toque em 🔍 Pesquisar. Aparecem os mais baratos do Google Shopping na sua cidade, com loja e preço; o botão com o carrinho adiciona à lista com o preço de referência. Precisa da `SERPAPI_API_KEY` (grátis, 250 buscas/mês em https://serpapi.com).
+- O tema claro é o padrão; o escuro fica no botão da lua.
 
 Para testar as notificações no computador: `cd front_lista_esperta && npm run build && npm start`, entre com uma conta, abra `/alerts` e toque em "Ligar notificações".
 

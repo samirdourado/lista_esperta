@@ -22,7 +22,7 @@ const barlowCondensed = Barlow_Condensed({
 
 export const metadata: Metadata = {
   title: { default: "Lista Esperta", template: "%s | Lista Esperta" },
-  description: "Descubra onde sua lista de compras inteira sai mais barata perto de você, contando o deslocamento.",
+  description: "Descubra onde sua lista de compras inteira sai mais barata perto de você.",
   applicationName: "Lista Esperta",
   appleWebApp: { capable: true, title: "Lista Esperta", statusBarStyle: "default" },
   formatDetection: { telephone: false },
@@ -39,11 +39,8 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  colorScheme: "light dark",
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
-    { media: "(prefers-color-scheme: dark)", color: "#111d3d" },
-  ],
+  colorScheme: "light",
+  themeColor: "#ffffff",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

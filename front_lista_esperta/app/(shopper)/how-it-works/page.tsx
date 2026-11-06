@@ -6,12 +6,11 @@ export const metadata: Metadata = { title: "Como calculamos" };
 /** Defaults of the API (back_lista_esperta: verdict and prices modules). */
 const PARAMS: [string, string][] = [
   ["Distância padrão", "até 5 km de você (você escolhe de 1 a 10 km)"],
-  ["Custo por km", "R$ 1,00 por km rodado, ida e volta (você pode mudar)"],
-  ["Valor do seu tempo", "zero por padrão; se você informar, entra na conta"],
   ["Item que a loja não tem", "conta o preço mediano das lojas por perto"],
   ["Duas lojas", "só sugerimos dividir se economizar mais de R$ 10 e mais de 5 %"],
   ["Lojas fechadas", "ficam de fora quando a loja informa o horário"],
-  ["Distâncias", "rotas de carro (OpenRouteService) ou estimativa em linha reta + 30 %"],
+  ["Empate de preço", "ganha a loja mais perto de você"],
+  ["Distâncias", "rotas de carro (OpenRouteService) ou estimativa em linha reta + 30 %, só para mostrar o trajeto"],
 ];
 
 const SOURCES: [string, string][] = [
@@ -19,6 +18,10 @@ const SOURCES: [string, string][] = [
   ["Loja", "o preço informado pelo lojista, marcado como “Preço informado pela loja”. Vale por 30 dias."],
   ["Encarte", "a oferta publicada pela loja, até a validade."],
   ["Clientes", "preço informado por quem viu na prateleira. Só entra quando não há nada melhor."],
+  [
+    "Internet (Google)",
+    "ao montar a lista você pode ver os menores preços em lojas online da sua cidade. Eles aparecem como referência e não entram no ranking.",
+  ],
 ];
 
 export default function HowItWorksPage() {
@@ -26,7 +29,7 @@ export default function HowItWorksPage() {
     <div className="mx-auto w-full max-w-2xl px-4 pt-8">
       <PageHeading
         title="Como calculamos"
-        lead="O resultado é a loja com o menor custo total para a sua lista inteira. A conta é pública e igual para todo mundo."
+        lead="O resultado é a loja perto de você onde a sua lista inteira sai mais barata. A conta é pública e igual para todo mundo."
       />
 
       <section aria-labelledby="formula" className="mt-10">
@@ -34,7 +37,7 @@ export default function HowItWorksPage() {
           A conta
         </h2>
         <p className="mt-3 rounded-md bg-surface-sunken px-4 py-3 font-medium">
-          custo total = preço dos itens + itens que faltam (pela mediana) + km × R$/km + tempo × valor da sua hora
+          total da lista = preço dos itens na loja + itens que ela não tem (pela mediana da região)
         </p>
         <dl className="mt-5 divide-y divide-line">
           {PARAMS.map(([term, value]) => (

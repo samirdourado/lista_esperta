@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { Prisma } from '../generated/prisma/client.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import {
   type ImportShoppingListsDto,
@@ -15,6 +16,9 @@ function itemRows(items: ShoppingListItemInputDto[]) {
     freeText: item.freeText,
     quantity: item.quantity ?? 1,
     productId: item.productId ?? null,
+    webPrice: item.webPrice
+      ? { ...item.webPrice, url: item.webPrice.url ?? null }
+      : Prisma.DbNull,
     position,
   }));
 }

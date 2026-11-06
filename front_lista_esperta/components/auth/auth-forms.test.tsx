@@ -26,8 +26,6 @@ const merchant = {
   email: "loja@example.com",
   role: "MERCHANT" as const,
   displayName: "Loja",
-  costPerKm: 1,
-  valuePerHour: 0,
   defaultRadiusKm: 5,
   storeIds: [],
 };

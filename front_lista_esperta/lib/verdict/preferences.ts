@@ -4,46 +4,34 @@ import { useCallback, useEffect, useState } from "react";
 import { DEFAULT_PREFERENCES, readPreferences, writePreferences } from "@/lib/device/device-store";
 import { useSession, useUpdateProfile } from "@/lib/session";
 
-export interface TravelPreferences {
+export interface SearchPreferences {
   radiusKm: number;
-  costPerKm: number;
-  valuePerHour: number;
 }
 
 /**
- * Travel preferences: from the account when signed in, from the device
- * otherwise (spec section 3: guests keep radius, R$/km and value of time locally).
+ * How far to look for stores: from the account when signed in, from the
+ * device otherwise. The verdict ranks by the list price alone (D-069).
  */
-export function useTravelPreferences() {
+export function useSearchPreferences() {
   const { data: user, isPending } = useSession();
   const update = useUpdateProfile();
-  const [device, setDevice] = useState<TravelPreferences | null>(null);
+  const [device, setDevice] = useState<SearchPreferences | null>(null);
 
   useEffect(() => {
     readPreferences()
-      .then((prefs) =>
-        setDevice({ radiusKm: prefs.radiusKm, costPerKm: prefs.costPerKm, valuePerHour: prefs.valuePerHour }),
-      )
-      .catch(() => setDevice({ radiusKm: DEFAULT_PREFERENCES.radiusKm, costPerKm: 1, valuePerHour: 0 }));
+      .then((prefs) => setDevice({ radiusKm: prefs.radiusKm }))
+      .catch(() => setDevice({ radiusKm: DEFAULT_PREFERENCES.radiusKm }));
   }, []);
 
-  const preferences: TravelPreferences | null = user
-    ? { radiusKm: user.defaultRadiusKm, costPerKm: user.costPerKm, valuePerHour: user.valuePerHour }
-    : isPending
-      ? null
-      : device;
+  const preferences: SearchPreferences | null = user ? { radiusKm: user.defaultRadiusKm } : isPending ? null : device;
 
   const save = useCallback(
-    async (patch: Partial<TravelPreferences>) => {
+    async (patch: Partial<SearchPreferences>) => {
       if (user) {
-        await update.mutateAsync({
-          ...(patch.radiusKm !== undefined ? { defaultRadiusKm: patch.radiusKm } : {}),
-          ...(patch.costPerKm !== undefined ? { costPerKm: patch.costPerKm } : {}),
-          ...(patch.valuePerHour !== undefined ? { valuePerHour: patch.valuePerHour } : {}),
-        });
+        if (patch.radiusKm !== undefined) await update.mutateAsync({ defaultRadiusKm: patch.radiusKm });
       } else {
         const next = await writePreferences(patch);
-        setDevice({ radiusKm: next.radiusKm, costPerKm: next.costPerKm, valuePerHour: next.valuePerHour });
+        setDevice({ radiusKm: next.radiusKm });
       }
     },
     [user, update],

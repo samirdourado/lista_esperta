@@ -87,8 +87,6 @@ model User {
   passwordHash    String   @map("password_hash")
   role            Role     @default(SHOPPER)
   displayName     String   @map("display_name")
-  costPerKm       Decimal  @default(1.00) @map("cost_per_km") @db.Decimal(6, 2)
-  valuePerHour    Decimal  @default(0) @map("value_per_hour") @db.Decimal(8, 2)
   defaultRadiusKm Decimal  @default(5) @map("default_radius_km") @db.Decimal(4, 1)
   createdAt       DateTime @default(now()) @map("created_at")
   updatedAt       DateTime @updatedAt @map("updated_at")
@@ -358,6 +356,8 @@ model ShoppingListItem {
   freeText  String  @map("free_text")
   quantity  Decimal @default(1) @db.Decimal(10, 3)
   position  Int     @default(0)
+  /// Reference price found on Google Shopping when the item was added (WebPriceDto).
+  webPrice  Json?   @map("web_price")
 
   list    ShoppingList @relation(fields: [listId], references: [id], onDelete: Cascade)
   product Product?     @relation(fields: [productId], references: [id], onDelete: SetNull)
