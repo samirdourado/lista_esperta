@@ -13,7 +13,6 @@ export type Verdict = Schemas["VerdictResponseDto"];
 export type RankedStore = Schemas["RankedStoreDto"];
 export type VerdictStore = Schemas["VerdictStoreDto"];
 export type PriceEvidence = Schemas["PriceEvidenceDto"];
-export type UnpricedStore = Schemas["UnpricedStoreDto"];
 
 export interface VerdictInput {
   origin: Point;

@@ -178,9 +178,9 @@ describe('Verdict (e2e)', () => {
     });
   });
 
-  it('lists the open shops in the radius that have no price yet, for the map', async () => {
+  it('only answers with stores that price at least one item of the list', async () => {
     await geo.create({
-      name: 'Quitanda Sem Preço',
+      name: 'Concessionária Sem Preço',
       source: 'OSM',
       lat: -23.5918,
       lng: -46.6346,
@@ -188,16 +188,11 @@ describe('Verdict (e2e)', () => {
     const res = await verdict({
       items: [{ productId: ids.milk, text: 'leite' }],
     }).expect(200);
-    const names = res.body.unpricedStores.map(
-      (s: { store: { name: string } }) => s.store.name,
+    const names = res.body.ranking.map(
+      (r: { store: { name: string } }) => r.store.name,
     );
-    expect(names).toContain('Quitanda Sem Preço');
-    // Priced, closed or out of the radius: not here.
-    expect(names).not.toContain('Mercado Perto');
-    expect(names).not.toContain('Fechado');
-    expect(names).not.toContain('Muito Longe');
-    expect(res.body.unpricedStores[0].distanceKm).toBeCloseTo(0.3, 1);
-    expect(res.body.params.storesWithoutPrices).toBe(names.length);
+    expect(names).not.toContain('Concessionária Sem Preço');
+    expect(res.body).not.toHaveProperty('unpricedStores');
   });
 
   it('matches typed sizes but never swaps one size for another', async () => {

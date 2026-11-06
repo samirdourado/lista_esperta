@@ -3,6 +3,7 @@ import request from 'supertest';
 import type { Cell } from '../src/common/geo-cell.js';
 import { ExternalServiceError } from '../src/integrations/http.js';
 import {
+  CEP_LOOKUP,
   CNPJ_LOOKUP,
   GEOCODING_PROVIDER,
   PLACES_PROVIDER,
@@ -99,9 +100,27 @@ const cnpjLookup = {
   find: (cnpj: string) => Promise.resolve(companies.get(cnpj) ?? null),
 };
 
+/** Made-up CEP for the test: any CEP is looked up the same way. */
+const cepLookup = {
+  find: (cep: string) =>
+    Promise.resolve(
+      cep === '01310930'
+        ? {
+            cep,
+            street: 'Avenida Paulista',
+            district: 'Bela Vista',
+            city: 'São Paulo',
+            state: 'SP',
+          }
+        : null,
+    ),
+};
+
 const geocoding = {
   mode: 'ok' as 'ok' | 'down',
+  queries: [] as string[],
   search(query: string): Promise<GeocodedPlace[]> {
+    this.queries.push(query);
     if (this.mode === 'down')
       return Promise.reject(new ExternalServiceError('nominatim', 503, 'down'));
     return Promise.resolve([
@@ -122,6 +141,7 @@ describe('Stores (e2e)', () => {
       overrides: [
         { token: PLACES_PROVIDER, value: places },
         { token: CNPJ_LOOKUP, value: cnpjLookup },
+        { token: CEP_LOOKUP, value: cepLookup },
         { token: GEOCODING_PROVIDER, value: geocoding },
       ],
     });
@@ -494,6 +514,29 @@ describe('Stores (e2e)', () => {
       await request(server())
         .get('/api/v1/geocoding/search?q=Rua%20Vergueiro')
         .expect(503);
+      geocoding.mode = 'ok';
+    });
+
+    it('finds a CEP by its street, with or without the dash', async () => {
+      geocoding.queries = [];
+      const res = await request(server())
+        .get('/api/v1/geocoding/search?q=01310-930')
+        .expect(200);
+      expect(geocoding.queries).toEqual(['Avenida Paulista, São Paulo, SP']);
+      expect(res.body).toEqual([
+        expect.objectContaining({
+          label: 'Avenida Paulista, Bela Vista, São Paulo - SP, 01310-930',
+          address: expect.objectContaining({
+            street: 'Avenida Paulista',
+            district: 'Bela Vista',
+            postcode: '01310-930',
+          }),
+        }),
+      ]);
+      const unknown = await request(server())
+        .get('/api/v1/geocoding/search?q=99999999')
+        .expect(200);
+      expect(unknown.body).toEqual([]);
     });
   });
 });

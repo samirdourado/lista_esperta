@@ -4,6 +4,21 @@ Registro de decisões tomadas onde a especificação era ambígua ou conflitava 
 
 ## Ajustes depois da fase 8
 
+### D-075 · Localização certa logo de cara, e só lojas com produtos da lista
+- **Pedida ao abrir:** "Ver onde comprar" já pede a localização. Não precisa tocar em botão se houver um lugar confiável salvo no aparelho: um CEP ou endereço digitado, ou um GPS com precisão de até 1 km.
+- **Várias leituras:** o app escuta o aparelho por até 15 s (`watchPosition`, alta precisão, sem cache) e fica com a leitura mais precisa. Para antes se ela chegar a 100 m. No celular, a primeira resposta costuma vir da rede, e o GPS vem segundos depois.
+- **Estimativa larga nunca é usada sozinha:** computadores sem GPS, e celulares com GPS desligado, só sabem a região pelo Wi-Fi ou pelo IP (±2,5 km no teste). Isso não basta para comparar lojas a poucos km.
+  - Com margem acima de 1 km, a tela pede o **CEP**, que fica salvo para as próximas vezes.
+  - Ela também oferece "Tentar a localização de novo" e "Usar a região aproximada mesmo assim".
+  - Uma estimativa nunca fica salva.
+- **Busca por CEP**, para qualquer CEP, sem nenhum valor fixo no código. O `GET /geocoding/search` reconhece 8 dígitos, com ou sem traço.
+  - Rua e bairro vêm da BrasilAPI (CEP v2).
+  - As coordenadas vêm do Nominatim, buscando "rua, cidade, UF" e, se não achar, "bairro, cidade, UF". A coordenada que a BrasilAPI devolve costuma ser o centro da cidade, por isso não é usada.
+  - Um CEP com um só resultado é aceito na hora.
+- **Só lojas com produtos da lista:** saiu o `unpricedStores` (D-073). O veredito e o mapa mostram só lojas que têm preço para ao menos um item.
+  - Cada loja mostra nome, endereço, distância e o preço da lista ali.
+  - As lojas do OpenStreetMap sem preço não aparecem mais, como a concessionária do teste.
+
 ### D-074 · Resultados do Google ficam abertos para adicionar vários
 Cada busca gasta 1 das 250 do mês. Por isso a caixa de resultados continua aberta depois de adicionar um item, para dar para escolher outros da mesma busca sem pesquisar de novo.
 - **Quando fecha:** só no ×, no Esc, ao apagar o texto do campo ou ao tocar fora dela.
@@ -14,7 +29,7 @@ Cada busca gasta 1 das 250 do mês. Por isso a caixa de resultados continua aber
 - **Distância:** um seletor deslizante de 0,5 a 10 km, em passos de 0,5. O número acompanha o dedo, e a busca só roda 0,4 s depois que a pessoa solta. Começa em 0,5 km e não em 0, porque um raio zero não encontra loja.
 - **Lista e mapa:** no desktop ficam lado a lado e, no celular, o mapa vem em cima.
   - **Mapa:** mostra o raio como um círculo tracejado e cada loja com preço com o total da lista em cima do ponto. Tocar num ponto destaca a loja na lista, e tocar na loja da lista destaca o ponto.
-- **Lojas sem preço:** o veredito passa a devolver as lojas abertas do raio que ainda não têm preço para nenhum item (`unpricedStores`, as 60 mais perto, e o total em `params.storesWithoutPrices`). Elas aparecem em cinza no mapa e numa lista recolhida.
+- **Lojas sem preço** (revertido em D-075): o veredito passa a devolver as lojas abertas do raio que ainda não têm preço para nenhum item (`unpricedStores`, as 60 mais perto, e o total em `params.storesWithoutPrices`). Elas aparecem em cinza no mapa e numa lista recolhida.
   - Sem isso, quem mora longe das lojas com preço via uma tela vazia. Era o caso do CEP 04760-040: as lojas demo ficam a cerca de 10 km dali, e as lojas reais da região, vindas do OpenStreetMap, ainda não têm preço.
 - **Localização:** "Usar minha localização" pede uma leitura nova (`maximumAge: 0`) e precisa (`enableHighAccuracy`). Antes o navegador podia devolver uma posição guardada ou estimada pelo IP.
   - O app mostra a rua e o bairro encontrados (Nominatim), para a pessoa conferir.

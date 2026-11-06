@@ -1,8 +1,12 @@
 import { Global, Module } from '@nestjs/common';
-import { BrasilApiCnpjLookup } from './brasil-api/brasil-api.provider.js';
+import {
+  BrasilApiCepLookup,
+  BrasilApiCnpjLookup,
+} from './brasil-api/brasil-api.provider.js';
 import { NominatimGeocodingProvider } from './nominatim/nominatim.provider.js';
 import { OverpassPlacesProvider } from './osm/overpass.provider.js';
 import {
+  CEP_LOOKUP,
   CNPJ_LOOKUP,
   GEOCODING_PROVIDER,
   PLACES_PROVIDER,
@@ -18,7 +22,8 @@ import {
     { provide: PLACES_PROVIDER, useClass: OverpassPlacesProvider },
     { provide: GEOCODING_PROVIDER, useClass: NominatimGeocodingProvider },
     { provide: CNPJ_LOOKUP, useClass: BrasilApiCnpjLookup },
+    { provide: CEP_LOOKUP, useClass: BrasilApiCepLookup },
   ],
-  exports: [PLACES_PROVIDER, GEOCODING_PROVIDER, CNPJ_LOOKUP],
+  exports: [PLACES_PROVIDER, GEOCODING_PROVIDER, CNPJ_LOOKUP, CEP_LOOKUP],
 })
 export class IntegrationsModule {}
