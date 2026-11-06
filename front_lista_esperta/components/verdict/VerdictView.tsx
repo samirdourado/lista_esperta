@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { SaveListsInvite } from "@/components/auth/SaveListsInvite";
 import { Notice } from "@/components/ui/Notice";
+import { brl } from "@/lib/format";
 import { PANEL_HREF } from "@/lib/panels";
 import type { ShoppingListItem } from "@/lib/shopping-lists/repository";
 import type { Verdict } from "@/lib/verdict/queries";
@@ -56,8 +57,13 @@ export function VerdictView({
           tone="warning"
           title={`${unpriced.length} ${unpriced.length === 1 ? "item ficou" : "itens ficaram"} de fora`}
         >
-          Nenhuma loja por perto tem preço para: {unpriced.map((item) => item.text).join(", ")}. A comparação vale para
-          o resto da lista.
+          Nenhuma loja por perto tem preço para:{" "}
+          {unpriced
+            .map((item) =>
+              item.webPrice ? `${item.text} (na internet a partir de ${brl(item.webPrice.price)})` : item.text,
+            )
+            .join(", ")}
+          . A comparação vale para o resto da lista.
         </Notice>
       )}
 

@@ -21,15 +21,18 @@ import type {
   WebPriceQueryDto,
   WebPriceResponseDto,
 } from './web-prices.dto.js';
+import {
+  normalizeQuery,
+  WebPricesRepository,
+} from './web-prices.repository.js';
 
 /** Most relevant results Google returns; the cheapest among them are shown. */
 const RELEVANT = 20;
 const SHOWN = 6;
-const SEARCH_TTL_MS = 6 * 60 * 60 * 1000;
 const PLACE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 const CACHE_MAX = 300;
 
-/** Small TTL cache: the free plan has 250 searches a month (D-070). */
+/** Small in-memory TTL cache for places (city lookups are cheap but rate-limited). */
 class TtlCache<T> {
   private readonly entries = new Map<string, { at: number; value: T }>();
   constructor(private readonly ttlMs: number) {}
@@ -79,7 +82,6 @@ export function pickCheapest(offers: WebShoppingOffer[]): WebOfferDto[] {
 @Injectable()
 export class WebPricesService {
   private readonly logger = new Logger(WebPricesService.name);
-  private readonly searches = new TtlCache<WebOfferDto[]>(SEARCH_TTL_MS);
   private readonly places = new TtlCache<{
     city: string | null;
     google: string | null;
@@ -88,6 +90,7 @@ export class WebPricesService {
   constructor(
     @Inject(WEB_SHOPPING) private readonly shopping: WebShoppingSearch,
     @Inject(GEOCODING_PROVIDER) private readonly geocoding: GeocodingProvider,
+    private readonly repo: WebPricesRepository,
   ) {}
 
   async search(
@@ -105,33 +108,51 @@ export class WebPricesService {
         ? await this.placeOf(input.lat, input.lng, now.getTime())
         : { city: null, google: null };
 
-    const key = `${query.toLowerCase()}|${place.google ?? ''}`;
-    let offers = this.searches.get(key, now.getTime());
-    if (!offers) {
-      try {
-        offers = pickCheapest(await this.shopping.search(query, place.google));
-      } catch (error) {
-        if (!(error instanceof ExternalServiceError)) throw error;
-        this.logger.warn(`Web price search failed: ${error.message}`);
-        if (error.status === 429)
-          throw new HttpException(
-            {
-              code: 'WEB_SEARCH_QUOTA',
-              message: 'The monthly web search quota is used up',
-            },
-            HttpStatus.TOO_MANY_REQUESTS,
-          );
-        throw new ServiceUnavailableException({
-          code: 'WEB_SEARCH_FAILED',
-          message: 'Web price search did not answer',
-        });
-      }
-      this.searches.set(key, offers, now.getTime());
+    // The same words in the same place, searched by anyone in the last 48 h:
+    // answer from the database and keep the monthly quota (D-076).
+    const key = normalizeQuery(query);
+    const saved = await this.repo.findFresh(key, place.google ?? '', now);
+    if (saved) {
+      return {
+        query,
+        location: place.city,
+        offers: pickCheapest(saved.offers),
+        searchedAt: saved.searchedAt.toISOString(),
+      };
     }
+
+    let found: WebShoppingOffer[];
+    try {
+      found = await this.shopping.search(query, place.google);
+    } catch (error) {
+      if (!(error instanceof ExternalServiceError)) throw error;
+      this.logger.warn(`Web price search failed: ${error.message}`);
+      if (error.status === 429)
+        throw new HttpException(
+          {
+            code: 'WEB_SEARCH_QUOTA',
+            message: 'The monthly web search quota is used up',
+          },
+          HttpStatus.TOO_MANY_REQUESTS,
+        );
+      throw new ServiceUnavailableException({
+        code: 'WEB_SEARCH_FAILED',
+        message: 'Web price search did not answer',
+      });
+    }
+    await this.repo.save({
+      query: key,
+      place: place.google ?? '',
+      city: place.city,
+      lat: input.lat,
+      lng: input.lng,
+      offers: found,
+      now,
+    });
     return {
       query,
       location: place.city,
-      offers,
+      offers: pickCheapest(found),
       searchedAt: now.toISOString(),
     };
   }

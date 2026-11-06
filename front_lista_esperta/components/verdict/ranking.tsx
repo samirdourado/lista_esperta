@@ -52,6 +52,27 @@ export function BestStore({ best }: { best: RankedStore }) {
   );
 }
 
+/**
+ * The lowest price seen on the internet around the person (D-076), else the
+ * one picked from Google when the item was added. Reference only.
+ */
+export function WebPriceNote({
+  verdictItem,
+  listItem,
+}: {
+  verdictItem?: Verdict["items"][number];
+  listItem?: ShoppingListItem;
+}) {
+  const price = verdictItem?.webPrice?.price ?? listItem?.webPrice?.price;
+  if (price === undefined) return null;
+  return (
+    <span className="block text-[0.85rem] text-ink-soft">
+      Na internet {verdictItem?.webPrice ? "a partir de " : ""}
+      {brl(price)}
+    </span>
+  );
+}
+
 /** What each item costs at a store and where the price comes from. */
 export function ItemLines({
   store,
@@ -80,9 +101,7 @@ export function ItemLines({
                   ? evidenceLabel(line.evidence)
                   : `Sem preço aqui: conta a mediana da região (${brl(resolved.regionalMedian ?? 0)})`}
               </span>
-              {item?.webPrice && (
-                <span className="block text-[0.85rem] text-ink-soft">Na internet: {brl(item.webPrice.price)}</span>
-              )}
+              <WebPriceNote verdictItem={resolved} listItem={item} />
               {resolved.productId && (
                 <Link
                   href={`/alerts?product=${resolved.productId}&name=${encodeURIComponent(resolved.productName ?? resolved.text)}`}

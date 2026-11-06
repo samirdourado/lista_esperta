@@ -195,6 +195,55 @@ describe('Verdict (e2e)', () => {
     expect(res.body).not.toHaveProperty('unpricedStores');
   });
 
+  it('shows the lowest price on the internet next to an item, never mixing products', async () => {
+    const search = (
+      query: string,
+      offers: { title: string; price: number; store: string }[],
+    ) =>
+      prisma.webSearch.create({
+        data: {
+          query,
+          place: 'Sao Paulo,State of Sao Paulo,Brazil',
+          city: 'São Paulo',
+          lat: Number(HERE.lat.toFixed(2)),
+          lng: Number(HERE.lng.toFixed(2)),
+          offers: {
+            create: offers.map((offer, position) => ({ ...offer, position })),
+          },
+        },
+      });
+    await search('sabao em po', [
+      { title: 'Sabão em Pó Omo 800g', price: 21.9, store: 'Carrefour' },
+      { title: 'Sabão em Pó Brilhante 1kg', price: 14.49, store: 'Atacadão' },
+    ]);
+    await search('doce de leite', [
+      { title: 'Doce de Leite Itambé 400g', price: 3.5, store: 'Dia' },
+    ]);
+
+    const res = await verdict({
+      items: [
+        { text: 'sabao em po' },
+        { text: 'leite' },
+        { text: 'sabao em po 1kg' },
+      ],
+    }).expect(200);
+    const [soap, milk, soapKilo] = res.body.items;
+    expect(soap.webPrice).toMatchObject({ price: 14.49, store: 'Atacadão' });
+    // "doce de leite" was searched, but it is not milk.
+    expect(milk.webPrice).toBeNull();
+    // The size typed must be the size sold.
+    expect(soapKilo.webPrice).toMatchObject({
+      title: 'Sabão em Pó Brilhante 1kg',
+    });
+    // Reference only: the ranking is the same as without it.
+    expect(
+      res.body.ranking.every(
+        (r: { totalCost: number; itemsCost: number; missingPenalty: number }) =>
+          Math.abs(r.totalCost - r.itemsCost - r.missingPenalty) < 0.01,
+      ),
+    ).toBe(true);
+  });
+
   it('matches typed sizes but never swaps one size for another', async () => {
     const res = await verdict({
       items: [{ text: 'arroz 5kg' }, { text: 'arroz 1kg' }],

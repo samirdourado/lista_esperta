@@ -426,3 +426,40 @@ model FlyerImport {
   @@index([storeId, createdAt(sort: Desc)])
   @@map("flyer_imports")
 }
+
+/// One Google Shopping search (SerpApi), kept so people in the same area reuse it (D-076).
+model WebSearch {
+  id         String     @id @default(uuid()) @db.Uuid
+  /// Normalized: lower case, single spaces.
+  query      String
+  /// SerpApi location; "" = the whole country.
+  place      String     @default("")
+  /// City shown to the person, e.g. "São Paulo".
+  city       String?
+  /// Where the person searched from (rounded), to reuse prices in the region.
+  lat        Float?
+  lng        Float?
+  searchedAt DateTime   @default(now()) @map("searched_at")
+  offers     WebOffer[]
+
+  @@index([query, place, searchedAt])
+  @@map("web_searches")
+}
+
+/// Every offer Google returned for a search. Reference prices: never in the ranking.
+model WebOffer {
+  id        String    @id @default(uuid()) @db.Uuid
+  searchId  String    @map("search_id") @db.Uuid
+  position  Int
+  title     String
+  price     Decimal   @db.Decimal(10, 2)
+  store     String
+  url       String?
+  thumbnail String?
+  delivery  String?
+  nearby    String?
+  search    WebSearch @relation(fields: [searchId], references: [id], onDelete: Cascade)
+
+  @@index([searchId])
+  @@map("web_offers")
+}
