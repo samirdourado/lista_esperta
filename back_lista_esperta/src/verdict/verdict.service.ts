@@ -12,6 +12,7 @@ import {
 } from '../stores/stores-geo.repository.js';
 import { computeVerdict, type EngineItem, type EngineStore } from './engine.js';
 import { isOpenAt } from './opening-hours.js';
+import { WebPricesRepository } from '../web-prices/web-prices.repository.js';
 import type {
   RankedStoreDto,
   ResolvedItemDto,
@@ -52,6 +53,7 @@ export class VerdictService {
     private readonly discovery: DiscoveryService,
     private readonly sponsored: SponsoredService,
     private readonly config: ConfigService<Env, true>,
+    private readonly webPrices: WebPricesRepository,
   ) {}
 
   async compute(
@@ -185,8 +187,24 @@ export class VerdictService {
         }),
       };
     });
+    // Shown beside each item; computed after the ranking and never fed to it.
+    const webPrices = await Promise.all(
+      resolved.map(async (item) => {
+        const found =
+          (await this.webPrices.cheapestFor(item.text, input.origin, now)) ??
+          (item.productName
+            ? await this.webPrices.cheapestFor(
+                item.productName,
+                input.origin,
+                now,
+              )
+            : null);
+        return found ? { ...found, seenAt: found.seenAt.toISOString() } : null;
+      }),
+    );
     const items: ResolvedItemDto[] = resolved.map((item) => ({
       ...item,
+      webPrice: webPrices[item.index],
       priced: Boolean(item.productId && result.medians.has(item.productId)),
       regionalMedian: item.productId
         ? (result.medians.get(item.productId) ?? null)

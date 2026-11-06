@@ -8,7 +8,8 @@ import {
   WEB_SHOPPING,
   type WebShoppingOffer,
 } from '../src/integrations/serpapi/serpapi.service.js';
-import { createTestApp, type TestApp } from './helpers.js';
+import { PrismaService } from '../src/prisma/prisma.service.js';
+import { createTestApp, resetDatabase, type TestApp } from './helpers.js';
 
 const offer = (
   position: number,
@@ -72,7 +73,8 @@ describe('Web prices (e2e)', () => {
     });
   });
 
-  beforeEach(() => {
+  beforeEach(async () => {
+    await resetDatabase(app);
     shopping.enabled = true;
     shopping.fail = null;
     shopping.searches = [];
@@ -119,7 +121,27 @@ describe('Web prices (e2e)', () => {
     expect(res.body.offers[0].nearby).toBe('Perto, 2 km');
   });
 
-  it('answers repeats from the cache, so the monthly quota lasts', async () => {
+  it('keeps every result Google returned, not only the ones shown', async () => {
+    await search({
+      q: 'leite integral',
+      lat: '-23.5812',
+      lng: '-46.6303',
+    }).expect(200);
+    const prisma = app.get(PrismaService);
+    const saved = await prisma.webSearch.findFirstOrThrow({
+      include: { offers: true },
+    });
+    expect(saved).toMatchObject({
+      query: 'leite integral',
+      place: 'Sao Paulo,State of Sao Paulo,Brazil',
+      city: 'São Paulo',
+      lat: -23.58,
+      lng: -46.63,
+    });
+    expect(saved.offers).toHaveLength(5);
+  });
+
+  it('answers repeats from the database, so the monthly quota lasts', async () => {
     await search({ q: 'café 500g', lat: '-23.58', lng: '-46.63' }).expect(200);
     await search({ q: 'Café 500g', lat: '-23.581', lng: '-46.631' }).expect(
       200,

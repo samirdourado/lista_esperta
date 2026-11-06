@@ -72,6 +72,14 @@ export class VerdictRequestDto {
   radiusKm?: number;
 }
 
+/** Lowest price seen on Google Shopping for the item: reference only (D-076). */
+export class WebReferenceDto {
+  @ApiProperty() price: number;
+  @ApiProperty({ example: 'Carrefour' }) store: string;
+  @ApiProperty() title: string;
+  @ApiProperty({ format: 'date-time' }) seenAt: string;
+}
+
 export class ResolvedItemDto {
   @ApiProperty() index: number;
   @ApiProperty() text: string;
@@ -86,6 +94,13 @@ export class ResolvedItemDto {
     description: 'Median of stores nearby',
   })
   regionalMedian: number | null;
+  @ApiProperty({
+    type: WebReferenceDto,
+    nullable: true,
+    description:
+      'Lowest price on the internet around the shopper; never in the ranking',
+  })
+  webPrice: WebReferenceDto | null;
 }
 
 export class PriceEvidenceDto {

@@ -33,6 +33,7 @@ const verdict: Verdict = {
       productName: "Leite UHT Integral 1 L",
       priced: true,
       regionalMedian: 5.5,
+      webPrice: { price: 4.85, store: "Zaffari Online", title: "Leite Integral 1l", seenAt: HOUR_AGO },
     },
     {
       index: 1,
@@ -42,8 +43,18 @@ const verdict: Verdict = {
       productName: "Arroz 5 kg",
       priced: true,
       regionalMedian: 26,
+      webPrice: null,
     },
-    { index: 2, text: "xpto", quantity: 1, productId: null, productName: null, priced: false, regionalMedian: null },
+    {
+      index: 2,
+      text: "xpto",
+      quantity: 1,
+      productId: null,
+      productName: null,
+      priced: false,
+      regionalMedian: null,
+      webPrice: { price: 9.9, store: "Loja Online", title: "Xpto", seenAt: HOUR_AGO },
+    },
   ],
   ranking: [
     {
@@ -132,7 +143,10 @@ describe("VerdictView", () => {
     expect(
       screen.getByRole("heading", { name: /Dividindo em duas lojas você economiza R\$\s?12,50/ }),
     ).toBeInTheDocument();
-    expect(screen.getByText(/Nenhuma loja por perto tem preço para: xpto/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Nenhuma loja por perto tem preço para: xpto \(na internet a partir de R\$\s9,90\)/),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/Na internet a partir de R\$\s4,85/)).toBeInTheDocument();
     expect(screen.getByText(/Distâncias estimadas/)).toBeInTheDocument();
     expect(screen.getByText(/1 lojas fechadas agora ficaram de fora/)).toBeInTheDocument();
   });

@@ -4,6 +4,18 @@ Registro de decisões tomadas onde a especificação era ambígua ou conflitava 
 
 ## Ajustes depois da fase 8
 
+### D-076 · Resultados do Google gravados no banco
+Cada pesquisa no Google Shopping grava **todos** os resultados, não só os 6 mostrados: produto, preço, loja online, link, foto e frete. Ficam em `web_searches` e `web_offers` (migration `20261106100000_web_offers`), com a cidade e a região de quem pesquisou, arredondada para cerca de 1 km.
+- **Cache compartilhado:** as mesmas palavras no mesmo lugar, pesquisadas por qualquer pessoa nas últimas 48 h, são respondidas pelo banco, sem gastar busca da cota de 250 por mês. Substitui o cache em memória de 6 h, que se perdia a cada reinício do Render.
+- **Referência no veredito:** cada item mostra "Na internet a partir de R$ X". É o menor preço da internet visto nos últimos 7 dias, em pesquisas feitas a até cerca de 30 km ou no Brasil todo. A regra é conservadora:
+  - alguém precisa ter pesquisado mais ou menos aquele item (pg_trgm sobre a pesquisa);
+  - as palavras do item precisam estar no título da oferta;
+  - o tamanho digitado precisa bater;
+  - acentos são ignorados.
+
+  Assim, "leite" não mostra o preço de "doce de leite".
+- **Fora do ranking:** esse preço é calculado depois do ranking e não entra nele. Os resultados são de lojas online, sem endereço, por isso não são ligados às lojas do mapa. Essa ligação, com o rótulo "Preço do site da rede", fica para uma decisão futura.
+
 ### D-075 · Localização certa logo de cara, e só lojas com produtos da lista
 - **Pedida ao abrir:** "Ver onde comprar" já pede a localização. Não precisa tocar em botão se houver um lugar confiável salvo no aparelho: um CEP ou endereço digitado, ou um GPS com precisão de até 1 km.
 - **Várias leituras:** o app escuta o aparelho por até 15 s (`watchPosition`, alta precisão, sem cache) e fica com a leitura mais precisa. Para antes se ela chegar a 100 m. No celular, a primeira resposta costuma vir da rede, e o GPS vem segundos depois.

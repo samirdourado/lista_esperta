@@ -6,12 +6,13 @@ import {
 import { RoutesService } from '../integrations/routes/routes.service.js';
 import { SponsoredService } from '../sponsored/sponsored.service.js';
 import { StoresModule } from '../stores/stores.module.js';
+import { WebPricesModule } from '../web-prices/web-prices.module.js';
 import { VerdictController } from './verdict.controller.js';
 import { VerdictRepository } from './verdict.repository.js';
 import { VerdictService } from './verdict.service.js';
 
 @Module({
-  imports: [StoresModule],
+  imports: [StoresModule, WebPricesModule],
   controllers: [VerdictController],
   providers: [
     VerdictService,

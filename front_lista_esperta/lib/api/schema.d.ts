@@ -772,6 +772,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/web-prices": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["WebPricesController_search"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/shopping-lists": {
         parameters: {
             query?: never;
@@ -830,22 +846,6 @@ export interface paths {
         get: operations["FlyersController_list"];
         put?: never;
         post: operations["FlyersController_import"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/web-prices": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["WebPricesController_search"];
-        put?: never;
-        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -1566,6 +1566,14 @@ export interface components {
             /** @default 5 */
             radiusKm: number;
         };
+        WebReferenceDto: {
+            price: number;
+            /** @example Carrefour */
+            store: string;
+            title: string;
+            /** Format: date-time */
+            seenAt: string;
+        };
         ResolvedItemDto: {
             index: number;
             text: string;
@@ -1576,6 +1584,8 @@ export interface components {
             priced: boolean;
             /** @description Median of stores nearby */
             regionalMedian: number | null;
+            /** @description Lowest price on the internet around the shopper; never in the ranking */
+            webPrice: components["schemas"]["WebReferenceDto"] | null;
         };
         VerdictStoreDto: {
             id: string;
@@ -1675,6 +1685,33 @@ export interface components {
             text: string;
             /** @example 1 */
             quantity: number;
+        };
+        WebOfferDto: {
+            /** @example Leite UHT Integral Italac 1L */
+            title: string;
+            /** @example 4.79 */
+            price: number;
+            /** @example Carrefour */
+            store: string;
+            thumbnail: string | null;
+            /** @description Google Shopping page */
+            url: string | null;
+            /** @example Frete grátis */
+            delivery: string | null;
+            /** @description Google's local hint, e.g. 'Perto, 2 km' */
+            nearby: string | null;
+        };
+        WebPriceResponseDto: {
+            query: string;
+            /**
+             * @description City Google used; null when the location was not known
+             * @example Sao Paulo
+             */
+            location: string | null;
+            /** @description Cheapest first */
+            offers: components["schemas"]["WebOfferDto"][];
+            /** Format: date-time */
+            searchedAt: string;
         };
         WebPriceDto: {
             /** @example Leite UHT Integral Italac 1L */
@@ -1780,33 +1817,6 @@ export interface components {
              * @example https://www.mercado.com.br/encarte-da-semana.pdf
              */
             url: string;
-        };
-        WebOfferDto: {
-            /** @example Leite UHT Integral Italac 1L */
-            title: string;
-            /** @example 4.79 */
-            price: number;
-            /** @example Carrefour */
-            store: string;
-            thumbnail: string | null;
-            /** @description Google Shopping page */
-            url: string | null;
-            /** @example Frete grátis */
-            delivery: string | null;
-            /** @description Google's local hint, e.g. 'Perto, 2 km' */
-            nearby: string | null;
-        };
-        WebPriceResponseDto: {
-            query: string;
-            /**
-             * @description City Google used; null when the location was not known
-             * @example Sao Paulo
-             */
-            location: string | null;
-            /** @description Cheapest first */
-            offers: components["schemas"]["WebOfferDto"][];
-            /** Format: date-time */
-            searchedAt: string;
         };
         PushPublicKeyDto: {
             /** @description VAPID public key; null when push is not configured */
@@ -3189,6 +3199,43 @@ export interface operations {
             };
         };
     };
+    WebPricesController_search: {
+        parameters: {
+            query: {
+                q: string;
+                lat?: number;
+                lng?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WebPriceResponseDto"];
+                };
+            };
+            /** @description WEB_SEARCH_QUOTA */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description WEB_SEARCH_UNAVAILABLE | WEB_SEARCH_FAILED */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     ShoppingListsController_findAll: {
         parameters: {
             query?: never;
@@ -3380,43 +3427,6 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["FlyerImportDto"];
                 };
-            };
-        };
-    };
-    WebPricesController_search: {
-        parameters: {
-            query: {
-                q: string;
-                lat?: number;
-                lng?: number;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["WebPriceResponseDto"];
-                };
-            };
-            /** @description WEB_SEARCH_QUOTA */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description WEB_SEARCH_UNAVAILABLE | WEB_SEARCH_FAILED */
-            503: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
             };
         };
     };
