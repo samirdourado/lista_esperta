@@ -221,6 +221,8 @@ function NewAlert({ defaultRadiusKm }: { defaultRadiusKm: number }) {
         <LocationPrompt
           status={location.status}
           intro="Para avisar sobre lojas perto de você, precisamos saber de onde você compra."
+          approximateM={location.approximate?.accuracyM}
+          onUseApproximate={location.acceptApproximate}
           onLocate={() => void location.locate()}
           onPick={(place) => location.setManual({ lat: place.lat, lng: place.lng }, place.label)}
         />

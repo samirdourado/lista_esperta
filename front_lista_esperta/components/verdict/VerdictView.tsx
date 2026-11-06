@@ -4,7 +4,7 @@ import { Notice } from "@/components/ui/Notice";
 import { PANEL_HREF } from "@/lib/panels";
 import type { ShoppingListItem } from "@/lib/shopping-lists/repository";
 import type { Verdict } from "@/lib/verdict/queries";
-import { BestStore, ItemLines, OtherStores, SplitCard, UnpricedStores } from "./ranking";
+import { BestStore, ItemLines, OtherStores, SplitCard } from "./ranking";
 import { SponsoredBlock } from "./SponsoredBlock";
 
 /** Lays out the neutral answer first and, apart from it, the sponsored block. */
@@ -28,12 +28,11 @@ export function VerdictView({
         <Notice tone="info" title="Ainda não temos preços desses itens perto de você">
           {verdict.params.pendingAreas > 0
             ? "Estamos buscando as lojas desta região. Tente de novo em um minuto."
-            : `Nenhuma loja em até ${verdict.params.radiusKm.toLocaleString("pt-BR")} km tem preço para a sua lista. Aumente a distância ou ajude enviando a nota de uma compra.`}
+            : `Nenhuma loja em até ${verdict.params.radiusKm.toLocaleString("pt-BR")} km tem preço para a sua lista. Aumente a distância no seletor acima ou envie a nota de uma compra feita por perto: cada nota coloca os preços daquela loja no mapa.`}
         </Notice>
         <Link href={PANEL_HREF.receipt} className="min-h-tap font-semibold text-brand underline underline-offset-4">
           Enviar uma nota fiscal
         </Link>
-        <UnpricedStores stores={verdict.unpricedStores} total={verdict.params.storesWithoutPrices} />
       </div>
     );
   }
@@ -63,7 +62,6 @@ export function VerdictView({
       )}
 
       <OtherStores ranking={others} selectedId={selectedId} onSelect={onSelect} />
-      <UnpricedStores stores={verdict.unpricedStores} total={verdict.params.storesWithoutPrices} />
 
       <p className="text-[0.85rem] text-muted">
         {verdict.params.routing === "ESTIMATE"

@@ -69,7 +69,7 @@ describe("LocationBar", () => {
 });
 
 describe("mapStores", () => {
-  it("labels priced stores with the list price and greys out shops without prices", () => {
+  it("puts on the map only the stores that price the list, with the list price", () => {
     const store = (id: string) => ({
       id,
       name: id,
@@ -79,12 +79,8 @@ describe("mapStores", () => {
       verificationStatus: "UNVERIFIED",
       openNow: null,
     });
-    const verdict = {
-      ranking: [{ store: store("a"), totalCost: 52.46 }],
-      unpricedStores: [{ store: store("q"), distanceKm: 0.3 }],
-    } as unknown as Verdict;
+    const verdict = { ranking: [{ store: store("a"), totalCost: 52.46 }] } as unknown as Verdict;
     expect(mapStores(verdict)).toEqual([
-      expect.objectContaining({ id: "q", muted: true }),
       expect.objectContaining({ id: "a", label: expect.stringMatching(/R\$\s52,46/) }),
     ]);
   });

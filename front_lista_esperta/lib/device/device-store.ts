@@ -35,7 +35,15 @@ export async function getGuestId(): Promise<string> {
 
 export interface DevicePreferences {
   radiusKm: number;
-  lastLocation?: { lat: number; lng: number; at: string };
+  /** Old entries have no source: treated as an unchecked guess (D-075). */
+  lastLocation?: {
+    lat: number;
+    lng: number;
+    at: string;
+    source?: "gps" | "address";
+    accuracyM?: number;
+    label?: string;
+  };
 }
 
 export const DEFAULT_PREFERENCES: DevicePreferences = { radiusKm: 5 };

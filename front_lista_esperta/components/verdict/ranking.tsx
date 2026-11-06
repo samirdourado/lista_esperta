@@ -4,7 +4,7 @@ import { VerificationNote, addressLine } from "@/components/stores/StoreSummary"
 import { cx } from "@/lib/cx";
 import { brl } from "@/lib/format";
 import type { ShoppingListItem } from "@/lib/shopping-lists/repository";
-import { evidenceLabel, type RankedStore, type UnpricedStore, type Verdict } from "@/lib/verdict/queries";
+import { evidenceLabel, type RankedStore, type Verdict } from "@/lib/verdict/queries";
 
 const km = (value: number) => `${value.toLocaleString("pt-BR", { maximumFractionDigits: 1 })} km`;
 const minutes = (value: number) =>
@@ -171,6 +171,9 @@ export function OtherStores({
               <span className="min-w-0">
                 <span className="mr-2 text-ink-soft tabular-nums">{position + 2}º</span>
                 <span className="font-medium">{entry.store.name}</span>
+                {addressLine(entry.store.address) && (
+                  <span className="block text-[0.9rem] text-ink-soft">{addressLine(entry.store.address)}</span>
+                )}
                 <span className="block text-[0.85rem] text-ink-soft">
                   {entry.found} de {entry.priced} itens ·{" "}
                   {entry.travelKm < 0.2 ? "a menos de 100 m" : `${km(entry.travelKm / 2)} de você`}
@@ -182,29 +185,5 @@ export function OtherStores({
         ))}
       </ol>
     </section>
-  );
-}
-
-/** Shops inside the radius nobody has priced yet: they show on the map in grey. */
-export function UnpricedStores({ stores, total = stores.length }: { stores: UnpricedStore[]; total?: number }) {
-  if (stores.length === 0) return null;
-  return (
-    <details className="rounded-md border border-line bg-surface px-4 py-1">
-      <summary className="min-h-tap cursor-pointer content-center font-medium">
-        {total} {total === 1 ? "loja" : "lojas"} no raio ainda sem preço
-      </summary>
-      <p className="text-[0.9rem] text-ink-soft">
-        Ninguém enviou nota nem a loja informou preços. Elas aparecem em cinza no mapa
-        {total > stores.length ? `; aqui estão as ${stores.length} mais perto.` : "."}
-      </p>
-      <ul className="mt-2 mb-3 divide-y divide-line">
-        {stores.map(({ store, distanceKm }) => (
-          <li key={store.id} className="flex justify-between gap-3 py-2 text-[0.95rem]">
-            <span className="min-w-0 truncate">{store.name}</span>
-            <span className="shrink-0 text-ink-soft tabular-nums">{km(distanceKm)}</span>
-          </li>
-        ))}
-      </ul>
-    </details>
   );
 }

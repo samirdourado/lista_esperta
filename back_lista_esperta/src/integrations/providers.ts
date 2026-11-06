@@ -40,3 +40,18 @@ export interface CnpjLookup {
   find(cnpj: string): Promise<CompanyRecord | null>;
 }
 export const CNPJ_LOOKUP = Symbol('CNPJ_LOOKUP');
+
+/** Street and district of a CEP (Correios). Coordinates come from the geocoder. */
+export interface CepAddress {
+  cep: string;
+  street: string | null;
+  district: string | null;
+  city: string;
+  state: string;
+}
+
+/** Today: BrasilAPI. Returns null when the CEP does not exist. */
+export interface CepLookup {
+  find(cep: string): Promise<CepAddress | null>;
+}
+export const CEP_LOOKUP = Symbol('CEP_LOOKUP');

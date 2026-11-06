@@ -2,7 +2,12 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type { Env } from '../../config/env.schema.js';
 import { ExternalServiceError, fetchJson } from '../http.js';
-import type { CnpjLookup, CompanyRecord } from '../providers.js';
+import type {
+  CepAddress,
+  CepLookup,
+  CnpjLookup,
+  CompanyRecord,
+} from '../providers.js';
 
 export interface BrasilApiCnpj {
   cnpj: string;
@@ -60,5 +65,45 @@ export class BrasilApiCnpjLookup implements CnpjLookup {
       throw new ExternalServiceError('brasilapi', status, `HTTP ${status}`);
     }
     return toCompanyRecord(body);
+  }
+}
+
+interface BrasilApiCep {
+  cep: string;
+  state: string;
+  city: string;
+  neighborhood?: string | null;
+  street?: string | null;
+}
+
+/**
+ * https://brasilapi.com.br/docs#tag/CEP-V2 — free, no key. Its coordinates are
+ * often just the city centre, so only the street and district are used (D-075).
+ */
+@Injectable()
+export class BrasilApiCepLookup implements CepLookup {
+  constructor(private readonly config: ConfigService<Env, true>) {}
+
+  async find(cep: string): Promise<CepAddress | null> {
+    const base = this.config.get('BRASILAPI_URL', { infer: true });
+    const { status, body } = await fetchJson<BrasilApiCep>(
+      'brasilapi',
+      `${base}/cep/v2/${cep}`,
+      {
+        timeoutMs: 10_000,
+        userAgent: this.config.get('HTTP_USER_AGENT', { infer: true }),
+      },
+    );
+    if (status === 404 || status === 400) return null;
+    if (!body) {
+      throw new ExternalServiceError('brasilapi', status, `HTTP ${status}`);
+    }
+    return {
+      cep: body.cep,
+      street: body.street || null,
+      district: body.neighborhood || null,
+      city: body.city,
+      state: body.state,
+    };
   }
 }

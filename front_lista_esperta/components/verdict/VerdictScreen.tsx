@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { LocationBar } from "@/components/location/LocationBar";
 import { LocationPrompt } from "@/components/location/LocationPrompt";
 import { StoreMap, type MapStore } from "@/components/map/StoreMap";
@@ -21,13 +21,10 @@ import { VerdictView } from "./VerdictView";
 
 const clampRadius = (value: number) => Math.min(MAX_RADIUS_KM, Math.max(MIN_RADIUS_KM, value));
 
-/** Priced stores show the list price; shops without prices are grey dots. */
+/** Only stores that price something on the list, each with the list price there. */
 export function mapStores(verdict: Verdict | undefined): MapStore[] {
   if (!verdict) return [];
-  return [
-    ...verdict.unpricedStores.map(({ store }) => ({ ...store, muted: true })),
-    ...verdict.ranking.map((entry) => ({ ...entry.store, label: brl(entry.totalCost) })),
-  ];
+  return verdict.ranking.map((entry) => ({ ...entry.store, label: brl(entry.totalCost) }));
 }
 
 /**
@@ -41,6 +38,15 @@ export function VerdictScreen() {
   const [items, setItems] = useState<ShoppingListItem[] | null>(null);
   const [changingPlace, setChangingPlace] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+
+  // Ask for the location as soon as the page opens, unless a trusted place is saved (D-075).
+  const { status, locate } = location;
+  const asked = useRef(false);
+  useEffect(() => {
+    if (status !== "idle" || asked.current) return;
+    asked.current = true;
+    void locate();
+  }, [status, locate]);
 
   useEffect(() => {
     let cancelled = false;
@@ -83,6 +89,11 @@ export function VerdictScreen() {
         <LocationPrompt
           status={location.status}
           intro="Para mostrar as lojas mais perto de você, precisamos saber de onde você sai."
+          approximateM={location.approximate?.accuracyM}
+          onUseApproximate={() => {
+            location.acceptApproximate();
+            setChangingPlace(false);
+          }}
           onLocate={async () => {
             if ((await location.locate()) === "ready") setChangingPlace(false);
           }}
