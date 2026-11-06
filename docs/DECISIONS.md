@@ -4,6 +4,12 @@ Registro de decisões tomadas onde a especificação era ambígua ou conflitava 
 
 ## Ajustes depois da fase 8
 
+### D-074 · Resultados do Google ficam abertos para adicionar vários
+Cada busca gasta 1 das 250 do mês. Por isso a caixa de resultados continua aberta depois de adicionar um item, para dar para escolher outros da mesma busca sem pesquisar de novo.
+- **Quando fecha:** só no ×, no Esc, ao apagar o texto do campo ou ao tocar fora dela.
+- **Item adicionado:** o carrinho vira um ✓ num círculo verde (`--success`). Tocar de novo não duplica, e o leitor de tela anuncia "Já está na lista".
+- **Nova busca:** as marcações recomeçam do zero.
+
 ### D-073 · Veredito com seletor de distância e mapa; localização mais precisa
 - **Distância:** um seletor deslizante de 0,5 a 10 km, em passos de 0,5. O número acompanha o dedo, e a busca só roda 0,4 s depois que a pessoa solta. Começa em 0,5 km e não em 0, porque um raio zero não encontra loja.
 - **Lista e mapa:** no desktop ficam lado a lado e, no celular, o mapa vem em cima.
