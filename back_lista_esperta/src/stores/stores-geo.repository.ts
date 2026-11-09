@@ -85,6 +85,51 @@ export class StoresGeoRepository {
     return rows[0].id;
   }
 
+  /**
+   * Stores of an outside directory, created on first sight (no duplicates:
+   * unique source + external id). Returns them by external id.
+   */
+  async ensureExternal(
+    source: 'PRECOMELHOR',
+    stores: { id: string; name: string; lat: number; lng: number }[],
+  ): Promise<
+    Map<string, { id: string; lat: number; lng: number; hasAddress: boolean }>
+  > {
+    const result = new Map<
+      string,
+      { id: string; lat: number; lng: number; hasAddress: boolean }
+    >();
+    if (stores.length === 0) return result;
+    for (const store of stores) {
+      await this.prisma.$executeRaw`
+        INSERT INTO stores (id, name, external_id, source, verification_status, location, updated_at)
+        VALUES (gen_random_uuid(), ${store.name}, ${store.id}, ${source}::"StoreSource",
+                'UNVERIFIED'::"VerificationStatus", ${point(store.lat, store.lng)}, now())
+        ON CONFLICT (source, external_id) DO NOTHING`;
+    }
+    const ids = Prisma.join(stores.map((store) => store.id));
+    const rows = await this.prisma.$queryRaw<
+      {
+        id: string;
+        externalId: string;
+        lat: number;
+        lng: number;
+        hasAddress: boolean;
+      }[]
+    >`
+      SELECT s.id, s.external_id AS "externalId", ST_Y(s.location::geometry) AS lat,
+             ST_X(s.location::geometry) AS lng, s.address IS NOT NULL AS "hasAddress"
+      FROM stores s
+      WHERE s.source = ${source}::"StoreSource" AND s.external_id IN (${ids})`;
+    for (const { externalId, ...row } of rows) result.set(externalId, row);
+    return result;
+  }
+
+  async setAddress(id: string, address: StoreAddress): Promise<void> {
+    await this.prisma.$executeRaw`
+      UPDATE stores SET address = ${json(address)}::jsonb, updated_at = now() WHERE id = ${id}::uuid`;
+  }
+
   async updateLocation(
     id: string,
     lat: number,

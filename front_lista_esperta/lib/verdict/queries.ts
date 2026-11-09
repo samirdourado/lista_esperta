@@ -33,13 +33,17 @@ export function useVerdict(input: VerdictInput | null) {
           text: item.freeText,
           quantity: item.quantity,
           ...(item.productId ? { productId: item.productId } : {}),
+          ...(item.webPrice?.ean ? { ean: item.webPrice.ean } : {}),
         })),
       };
       return unwrap(await api.POST("/api/v1/verdict", { body, headers: { "X-Guest-Id": await getGuestId() } }));
     },
     // Shops in a new area import in the background: ask again while they do.
     refetchInterval: (query) =>
-      (query.state.data?.params.pendingAreas ?? 0) > 0 && query.state.dataUpdateCount < 12 ? 10_000 : false,
+      (query.state.data?.params.pendingAreas ?? 0) + (query.state.data?.params.addressesPending ?? 0) > 0 &&
+      query.state.dataUpdateCount < 12
+        ? 10_000
+        : false,
     placeholderData: (previous) => previous,
     staleTime: 60_000,
   });
@@ -75,6 +79,8 @@ export function evidenceLabel(evidence: PriceEvidence, now = Date.now()): string
       return `visto há ${ago} · ${receipts}`;
     case "MERCHANT":
       return evidence.offer ? "Oferta informada pela loja" : "Preço informado pela loja";
+    case "PRECOMELHOR":
+      return `PreçoMelhor · há ${ago}`;
     case "FLYER":
       return `Encarte da loja · há ${ago}`;
     default:

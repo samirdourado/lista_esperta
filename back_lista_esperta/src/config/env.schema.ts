@@ -82,6 +82,9 @@ export const envSchema = z
     /** Google Shopping prices while typing the list (free plan at serpapi.com). */
     SERPAPI_API_KEY: z.string().optional(),
     SERPAPI_URL: z.url().default('https://serpapi.com'),
+    /** Prices by physical store (free, no key, attribution required: D-077). */
+    PRECOMELHOR_ENABLED: booleanString.default(true),
+    PRECOMELHOR_URL: z.url().default('https://www.precomelhor.com.br'),
     /** Web Push (price alerts). Generate with `npx web-push generate-vapid-keys`. */
     VAPID_PUBLIC_KEY: z.string().optional(),
     VAPID_PRIVATE_KEY: z.string().optional(),

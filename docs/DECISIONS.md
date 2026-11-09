@@ -4,6 +4,37 @@ Registro de decisões tomadas onde a especificação era ambígua ou conflitava 
 
 ## Ajustes depois da fase 8
 
+### D-078 · Veredito em sanfona
+O resultado é uma lista sanfona, com o mapa ao lado (pins das lojas, você e o raio).
+- **Cabeçalho de cada loja:** posição, nome, endereço, distância, "X de Y itens" e o preço dos itens encontrados ali.
+- **Ao abrir:** mostra a lista da pessoa naquela loja, com foto, nome do produto encontrado e preço. O que a loja não tem aparece em letra pequena vermelha: "Não encontrado neste supermercado".
+- **Qual fica aberta:** a primeira, ou a loja tocada no mapa. Tocar de novo fecha. É um botão com `aria-expanded` e `aria-controls`.
+- **Ordem:** pelo custo total, em que o item que falta conta pela mediana da região, como em D-069. O número em destaque é o que se paga ali.
+- **Sem loja que não tenha nada da lista.** O bloco "Patrocinado" continua à parte.
+
+### D-077 · Preços de lojas físicas pelo PreçoMelhor
+Avaliei três fontes:
+- **PreçoMelhor:** API pública, grátis e sem chave; uso comercial liberado com atribuição visível; cerca de 60 chamadas por minuto. Os dados vêm de notas fiscais e da comunidade. Escolhida.
+- **Zé do Precinho:** pago e só em Santa Catarina. Fora.
+- **Falcon Data Hub:** pede chave, não informa cobertura e não mostra localização das lojas. Fora.
+
+**Como entra:**
+- **Pesquisa da lista:** a lupa busca primeiro no PreçoMelhor (código de barras, foto e preço). Mostra primeiro o que é vendido a até 10 km e, sem isso, o preço mediano do país. O Google, pelo SerpApi, fica de reserva quando não há resultado.
+- **Veredito:** cada item é buscado pelo código de barras, quando veio da pesquisa, ou pelo texto, testando até 5 marcas. Um item digitado nunca vira outro produto ("leite" não vira doce de leite nem leite em pó), e o tamanho precisa bater.
+- **Filtros:** só preços dos últimos 30 dias e dentro do raio. Os dados têm erros, e alguns que vimos de verdade:
+  - Café Pilão 500 g com mediana de R$ 5,99 no país;
+  - feijão de 1 kg a R$ 239,99 em várias lojas.
+
+  Por isso um preço fora de 2,5× a mediana do mesmo produto na região (ou do país, se a região tiver poucos preços) é descartado. Para itens digitados, também cai o que estiver fora de 3× a mediana das marcas na região.
+- **Lojas:** as lojas do PreçoMelhor são criadas na tabela `stores` com a origem `PRECOMELHOR` (migration `20261109000000_precomelhor_stores`), uma vez por loja. O endereço é buscado em segundo plano pelo Nominatim (uma por segundo, até 15 por veredito), e a tela consulta de novo enquanto houver endereços pendentes (`addressesPending`).
+- **Preços:** não são copiados para o nosso histórico. São lidos na hora, com cache de 6 h em memória e limite de 50 chamadas por minuto. Nota fiscal e preço do lojista valem mais.
+- **Crédito:** "Preços de supermercados por PreçoMelhor" aparece no veredito, na pesquisa e em Como calculamos, como os termos exigem.
+- **Pendências:**
+  - O `robots.txt` deles bloqueia robôs em `/api/`, embora a página de desenvolvedores libere o uso, e não há termos de uso completos. Antes de abrir ao público, combinar com eles: os contatos estão no `robots.txt` deles.
+  - Algumas lojas parecem com posição errada na fonte ("ZONA SUL - Loja N" em São Paulo).
+
+**Firecrawl:** continua em uso nos encartes (D-064). No painel da loja, aba Encartes, o lojista cola o link (página ou PDF), o Firecrawl lê, o Gemini extrai os produtos e eles entram no veredito como "Encarte da loja".
+
 ### D-076 · Resultados do Google gravados no banco
 Cada pesquisa no Google Shopping grava **todos** os resultados, não só os 6 mostrados: produto, preço, loja online, link, foto e frete. Ficam em `web_searches` e `web_offers` (migration `20261106100000_web_offers`), com a cidade e a região de quem pesquisou, arredondada para cerca de 1 km.
 - **Cache compartilhado:** as mesmas palavras no mesmo lugar, pesquisadas por qualquer pessoa nas últimas 48 h, são respondidas pelo banco, sem gastar busca da cota de 250 por mês. Substitui o cache em memória de 6 h, que se perdia a cada reinício do Render.

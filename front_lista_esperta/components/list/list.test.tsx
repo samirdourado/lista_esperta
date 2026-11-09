@@ -99,6 +99,7 @@ describe("ShoppingListEditor", () => {
         query: "leite integral",
         location: "São Paulo",
         searchedAt: "2026-11-06T12:00:00.000Z",
+        source: "GOOGLE",
         offers: [
           {
             title: "Leite Italac 1L",

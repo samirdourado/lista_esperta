@@ -1,11 +1,14 @@
+"use client";
+
 import Link from "next/link";
+import { useState } from "react";
 import { SaveListsInvite } from "@/components/auth/SaveListsInvite";
 import { Notice } from "@/components/ui/Notice";
 import { brl } from "@/lib/format";
 import { PANEL_HREF } from "@/lib/panels";
 import type { ShoppingListItem } from "@/lib/shopping-lists/repository";
 import type { Verdict } from "@/lib/verdict/queries";
-import { BestStore, ItemLines, OtherStores, SplitCard } from "./ranking";
+import { PriceSourceCredit, SplitCard, StoreAccordion } from "./ranking";
 import { SponsoredBlock } from "./SponsoredBlock";
 
 /** Lays out the neutral answer first and, apart from it, the sponsored block. */
@@ -20,7 +23,9 @@ export function VerdictView({
   selectedId?: string | null;
   onSelect?: (id: string) => void;
 }) {
-  const [best, ...others] = verdict.ranking;
+  const best = verdict.ranking[0];
+  // Open by default: the store picked on the map or, at first, the cheapest.
+  const [closedId, setClosedId] = useState<string | null>(null);
   const unpriced = verdict.items.filter((item) => !item.priced);
 
   if (!best) {
@@ -38,19 +43,27 @@ export function VerdictView({
     );
   }
 
-  return (
-    <div className="flex flex-col gap-8">
-      <div data-store={best.store.id}>
-        <BestStore best={best} />
-      </div>
-      <SplitCard verdict={verdict} items={items} />
+  const current = selectedId ?? best.store.id;
 
-      <section aria-labelledby="best-items">
-        <h2 id="best-items" className="text-2xl font-bold">
-          Sua lista em {best.store.name}
-        </h2>
-        <ItemLines store={best} items={items} verdict={verdict} />
-      </section>
+  return (
+    <div className="flex flex-col gap-6">
+      <h2 className="text-2xl font-bold">Onde sua lista está mais barata</h2>
+      <StoreAccordion
+        ranking={verdict.ranking}
+        items={items}
+        verdict={verdict}
+        expandedId={closedId === current ? null : current}
+        onToggle={(id) => {
+          if (id === current && closedId !== id) {
+            setClosedId(id);
+            return;
+          }
+          setClosedId(null);
+          onSelect?.(id);
+        }}
+      />
+      <PriceSourceCredit ranking={verdict.ranking} />
+      <SplitCard verdict={verdict} items={items} />
 
       {unpriced.length > 0 && (
         <Notice
@@ -67,14 +80,12 @@ export function VerdictView({
         </Notice>
       )}
 
-      <OtherStores ranking={others} selectedId={selectedId} onSelect={onSelect} />
-
       <p className="text-[0.85rem] text-muted">
         {verdict.params.routing === "ESTIMATE"
           ? "Distâncias estimadas em linha reta com acréscimo para as ruas."
           : "Distâncias e tempos de carro calculados pelo OpenRouteService."}{" "}
-        {verdict.params.storesClosed > 0 && `${verdict.params.storesClosed} lojas fechadas agora ficaram de fora. `}O
-        ranking considera só o preço da lista.{" "}
+        {verdict.params.storesClosed > 0 && `${verdict.params.storesClosed} lojas fechadas agora ficaram de fora. `}
+        Lojas ordenadas pelo preço da lista; quem não tem um item conta a mediana da região para a comparação ser justa.{" "}
         <Link href={PANEL_HREF.howItWorks} className="underline underline-offset-4">
           Como calculamos
         </Link>

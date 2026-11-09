@@ -6,7 +6,14 @@ import {
   Logger,
   ServiceUnavailableException,
 } from '@nestjs/common';
+import { distanceKm } from '../common/geo.js';
 import { ExternalServiceError } from '../integrations/http.js';
+import {
+  pickCandidates,
+  plausiblePrices,
+  PRICE_DIRECTORY,
+  type PriceDirectory,
+} from '../integrations/precomelhor/precomelhor.service.js';
 import {
   GEOCODING_PROVIDER,
   type GeocodingProvider,
@@ -29,6 +36,11 @@ import {
 /** Most relevant results Google returns; the cheapest among them are shown. */
 const RELEVANT = 20;
 const SHOWN = 6;
+/** "Perto de você" in the product search. */
+const NEAR_KM = 10;
+const DIRECTORY_FRESH_DAYS = 30;
+/** Reference region when the person has not shared a location. */
+const SAO_PAULO = { lat: -23.5505, lng: -46.6333 };
 const PLACE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 const CACHE_MAX = 300;
 
@@ -76,6 +88,7 @@ export function pickCheapest(offers: WebShoppingOffer[]): WebOfferDto[] {
       url: offer.url,
       delivery: offer.delivery,
       nearby: offer.nearby,
+      ean: null,
     }));
 }
 
@@ -91,12 +104,15 @@ export class WebPricesService {
     @Inject(WEB_SHOPPING) private readonly shopping: WebShoppingSearch,
     @Inject(GEOCODING_PROVIDER) private readonly geocoding: GeocodingProvider,
     private readonly repo: WebPricesRepository,
+    @Inject(PRICE_DIRECTORY) private readonly directory: PriceDirectory,
   ) {}
 
   async search(
     input: WebPriceQueryDto,
     now = new Date(),
   ): Promise<WebPriceResponseDto> {
+    const fromDirectory = await this.searchDirectory(input, now);
+    if (fromDirectory) return fromDirectory;
     if (!this.shopping.enabled)
       throw new ServiceUnavailableException({
         code: 'WEB_SEARCH_UNAVAILABLE',
@@ -118,6 +134,7 @@ export class WebPricesService {
         location: place.city,
         offers: pickCheapest(saved.offers),
         searchedAt: saved.searchedAt.toISOString(),
+        source: 'GOOGLE',
       };
     }
 
@@ -154,6 +171,79 @@ export class WebPricesService {
       location: place.city,
       offers: pickCheapest(found),
       searchedAt: now.toISOString(),
+      source: 'GOOGLE',
+    };
+  }
+
+  /**
+   * Products with barcode, photo and a price from physical stores (D-077):
+   * the cheapest nearby when known, else the usual price in the country.
+   * Null sends the search to Google.
+   */
+  private async searchDirectory(
+    input: WebPriceQueryDto,
+    now: Date,
+  ): Promise<WebPriceResponseDto | null> {
+    if (!this.directory.enabled) return null;
+    const query = input.q.replace(/\s+/g, ' ').trim();
+    const point =
+      input.lat !== undefined && input.lng !== undefined
+        ? { lat: input.lat, lng: input.lng }
+        : null;
+    const since = now.getTime() - DIRECTORY_FRESH_DAYS * 86_400_000;
+    const products = pickCandidates(
+      query,
+      await this.directory.search(query),
+      SHOWN,
+    );
+    const offers = (
+      await Promise.all(
+        products.map(async (product): Promise<WebOfferDto | null> => {
+          const details = await this.directory.prices(product.ean);
+          const fresh = plausiblePrices(
+            details?.prices ?? [],
+            point ?? SAO_PAULO,
+          ).filter((row) => row.observedAt.getTime() >= since);
+          if (fresh.length === 0) return null;
+          const near = point
+            ? fresh.filter((row) => distanceKm(point, row) <= NEAR_KM)
+            : [];
+          const sorted = (near.length > 0 ? near : fresh)
+            .map((row) => row.price)
+            .sort((a, b) => a - b);
+          return {
+            title: product.name,
+            price:
+              near.length > 0
+                ? sorted[0]
+                : sorted[Math.floor(sorted.length / 2)],
+            store: 'PreçoMelhor',
+            thumbnail: product.imageUrl,
+            url: null,
+            delivery: null,
+            nearby: near.length > 0 ? 'Perto de você' : null,
+            ean: product.ean,
+          };
+        }),
+      )
+    )
+      .filter((offer): offer is WebOfferDto => offer !== null)
+      // Sold near the person first: those are the ones the verdict can find.
+      .sort(
+        (a, b) =>
+          Number(b.nearby !== null) - Number(a.nearby !== null) ||
+          a.price - b.price,
+      );
+    if (offers.length === 0) return null;
+    const place = point
+      ? await this.placeOf(point.lat, point.lng, now.getTime())
+      : { city: null };
+    return {
+      query,
+      location: place.city,
+      offers,
+      searchedAt: now.toISOString(),
+      source: 'PRECOMELHOR',
     };
   }
 

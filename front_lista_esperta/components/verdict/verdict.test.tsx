@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import type { ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
 import { evidenceLabel, type Verdict } from "@/lib/verdict/queries";
@@ -70,17 +71,21 @@ const verdict: Verdict = {
       lines: [
         {
           index: 0,
+          productName: "Leite Italac 1 L",
+          imageUrl: "https://img.example/leite.webp",
           unitPrice: 5.2,
           subtotal: 10.4,
           evidence: { source: "NFCE", observedAt: HOUR_AGO, receiptCount: 3, offer: false },
         },
         {
           index: 1,
+          productName: "Arroz Camil 5 kg",
+          imageUrl: null,
           unitPrice: 24.9,
           subtotal: 24.9,
           evidence: { source: "MERCHANT", observedAt: HOUR_AGO, receiptCount: 0, offer: false },
         },
-        { index: 2, unitPrice: null, subtotal: null, evidence: null },
+        { index: 2, unitPrice: null, subtotal: null, evidence: null, productName: null, imageUrl: null },
       ],
     },
     {
@@ -113,6 +118,7 @@ const verdict: Verdict = {
     routing: "ESTIMATE",
     storesConsidered: 2,
     storesClosed: 1,
+    addressesPending: 0,
     pendingAreas: 0,
   },
   sponsored: [{ storeId: "b", storeName: "Mercado Perto", title: "Leite em oferta", label: "Patrocinado" }],
@@ -129,16 +135,36 @@ function wrap(children: ReactNode) {
 }
 
 describe("VerdictView", () => {
-  it("answers with the cheapest store, its total and what is included", () => {
+  it("lists the stores as an accordion with name, address, distance and list price", () => {
     render(wrap(<VerdictView verdict={verdict} items={items} />));
-    expect(screen.getByRole("heading", { level: 2, name: "Atacado Médio" })).toBeInTheDocument();
-    expect(screen.getByRole("img", { name: "37 reais e 50 centavos" })).toBeInTheDocument();
-    expect(screen.getByText("2 de 2")).toBeInTheDocument();
-    expect(screen.getByText(/visto há 2 h · 3 notas fiscais/)).toBeInTheDocument();
-    expect(screen.getByText("Preço informado pela loja")).toBeInTheDocument();
+    const first = screen.getByRole("button", { name: /Atacado Médio/ });
+    expect(first).toHaveAttribute("aria-expanded", "true");
+    expect(first).toHaveTextContent("Rua A");
+    expect(first).toHaveTextContent("1,1 km");
+    expect(first).toHaveTextContent(/R\$\s?35,30/);
+    expect(first).toHaveTextContent("2 de 3 itens");
   });
 
-  it("suggests the split, lists items nobody prices and says the distances are estimated", () => {
+  it("opens to the list at that store: photo, name and price, and marks what it lacks", () => {
+    const { container } = render(wrap(<VerdictView verdict={verdict} items={items} />));
+    expect(screen.getAllByText(/Leite Italac 1 L/)[0]).toBeInTheDocument();
+    expect(container.querySelector('img[src="https://img.example/leite.webp"]')).toBeInTheDocument();
+    expect(screen.getAllByText(/visto há 2 h · 3 notas fiscais/)[0]).toBeInTheDocument();
+    expect(screen.getAllByText("Não encontrado neste supermercado")[0]).toHaveClass("text-danger");
+  });
+
+  it("opens another store and closes the open one", async () => {
+    const user = userEvent.setup();
+    const onSelect = vi.fn();
+    render(wrap(<VerdictView verdict={verdict} items={items} onSelect={onSelect} />));
+    await user.click(screen.getByRole("button", { name: /Mercado Perto/ }));
+    expect(onSelect).toHaveBeenCalledWith("b");
+    const first = screen.getByRole("button", { name: /Atacado Médio/ });
+    await user.click(first);
+    expect(first).toHaveAttribute("aria-expanded", "false");
+  });
+
+  it("suggests the split and lists items nobody prices", () => {
     render(wrap(<VerdictView verdict={verdict} items={items} />));
     expect(
       screen.getByRole("heading", { name: /Dividindo em duas lojas você economiza R\$\s?12,50/ }),
@@ -146,18 +172,22 @@ describe("VerdictView", () => {
     expect(
       screen.getByText(/Nenhuma loja por perto tem preço para: xpto \(na internet a partir de R\$\s9,90\)/),
     ).toBeInTheDocument();
-    expect(screen.getByText(/Na internet a partir de R\$\s4,85/)).toBeInTheDocument();
     expect(screen.getByText(/Distâncias estimadas/)).toBeInTheDocument();
-    expect(screen.getByText(/1 lojas fechadas agora ficaram de fora/)).toBeInTheDocument();
+  });
+
+  it("credits PreçoMelhor when its prices are on screen", () => {
+    const withDirectory: Verdict = JSON.parse(JSON.stringify(verdict));
+    withDirectory.ranking[0].lines[0].evidence!.source = "PRECOMELHOR";
+    render(wrap(<VerdictView verdict={withDirectory} items={items} />));
+    expect(screen.getByRole("link", { name: "PreçoMelhor" })).toHaveAttribute("href", "https://www.precomelhor.com.br");
   });
 
   it("keeps sponsored content in its own labelled block, outside the ranking", () => {
     render(wrap(<VerdictView verdict={verdict} items={items} />));
     const sponsored = screen.getByRole("complementary", { name: "Patrocinado" });
     expect(within(sponsored).getByText("Leite em oferta")).toBeInTheDocument();
-    const ranking = screen.getByRole("region", { name: "Outras lojas por perto" });
+    const ranking = screen.getByRole("list", { name: "Lojas com produtos da sua lista" });
     expect(within(ranking).queryByText("Leite em oferta")).not.toBeInTheDocument();
-    expect(within(ranking).getByText("2º")).toBeInTheDocument();
   });
 
   it("explains when no store nearby has prices yet", () => {

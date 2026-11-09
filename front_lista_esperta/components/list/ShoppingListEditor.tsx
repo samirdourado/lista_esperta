@@ -156,6 +156,7 @@ export function ShoppingListEditor() {
           store: offer.store,
           url: offer.url,
           seenAt: web.data.searchedAt,
+          ean: offer.ean,
         },
       },
     ]);
@@ -259,13 +260,14 @@ export function ShoppingListEditor() {
           </Button>
         </div>
         <p className="mt-1.5 text-[0.9rem] text-ink-soft">
-          Toque em <SearchIcon className="inline align-[-0.2em]" /> para ver os menores preços na internet.
+          Toque em <SearchIcon className="inline align-[-0.2em]" /> para buscar o produto com foto e preço.
         </p>
         {webQuery && (
           <div className="absolute inset-x-0 top-[calc(100%-1.75rem)] z-20 mt-1 max-h-[26rem] overflow-auto rounded-md border border-line bg-surface shadow-lg">
             <div className="flex items-start justify-between gap-2 border-b border-line px-3 py-2">
               <p className="text-[0.9rem] text-ink-soft">
-                Mais baratos no Google para <strong className="text-ink">{webQuery}</strong>
+                {web.data?.source === "GOOGLE" ? "Mais baratos no Google para" : "Produtos encontrados para"}{" "}
+                <strong className="text-ink">{webQuery}</strong>
                 {web.data &&
                   (web.data.location ? (
                     ` · ${web.data.location}`
@@ -307,14 +309,16 @@ export function ShoppingListEditor() {
             )}
             {web.isSuccess && offers.length === 0 && (
               <p role="status" className="px-3 py-4 text-ink-soft">
-                Nada encontrado no Google para “{webQuery}”. Tente outro nome ou toque em Adicionar.
+                Nada encontrado para “{webQuery}”. Tente outro nome ou toque em Adicionar.
               </p>
             )}
             {web.isSuccess && offers.length > 0 && (
               <>
                 <WebOffers id={listboxId} offers={offers} active={active} added={addedOffers} onChoose={chooseOffer} />
                 <p className="border-t border-line px-3 py-2 text-[0.8rem] text-muted">
-                  Preços de lojas online na sua região, só como referência. A comparação usa os mercados perto de você.
+                  {web.data?.source === "GOOGLE"
+                    ? "Preços de lojas online, só como referência. A comparação usa os mercados perto de você."
+                    : "Preços por PreçoMelhor. Depois de montar a lista, comparamos os mercados perto de você."}
                 </p>
               </>
             )}
