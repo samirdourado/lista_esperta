@@ -125,6 +125,7 @@ export class VerdictService {
           nationalMedian: product.nationalMedian,
           prices: product.prices.map((row) => ({
             ...row,
+            price: Math.round(row.price * 100) / 100,
             observedAt: new Date(row.observedAt),
           })),
         })),

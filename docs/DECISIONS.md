@@ -4,6 +4,32 @@ Registro de decisões tomadas onde a especificação era ambígua ou conflitava 
 
 ## Ajustes depois da fase 8
 
+### D-081 · O resultado não se recarrega sozinho; preços com muitas casas
+- **Sem recarga:** antes, o veredito era pedido de novo a cada 10 s enquanto havia regiões ou endereços pendentes, e também ao voltar para a aba. Agora uma resposta fica na tela até mudar a lista, o local ou o raio (`staleTime: Infinity`, sem polling, sem buscar de novo ao focar a aba ou ao voltar a conexão). No teste: 0 pedidos em 40 s parado, 1 ao mover o raio.
+- **Endereços:** um endereço que o servidor ainda está buscando aparece sozinho na linha da loja, pelo `/geocoding/reverse` com cache de 24 h, sem recarregar a lista.
+- **Casas decimais (correção de erro em produção):** a fonte manda preços unitários como 0,4745. A validação de no máximo 4 casas decimais fazia o veredito responder 400 para alguns produtos. O navegador agora arredonda para centavos, e a API aceita qualquer número e arredonda.
+
+### D-080 · Lista montada por um catálogo genérico
+A lista passa a ser montada com produtos genéricos, sem marca: "Arroz branco 5 kg", "Água com gás 1,5 L", "Café solúvel 200 g". A pesquisa de produto com foto e preço da internet saiu da tela da lista.
+- **Onde fica:** num arquivo do front (`lib/catalog/generic-products.ts`). É fixo, carrega na hora e funciona sem internet. São 6 categorias e 60 produtos com variações de tamanho e tipo. Se um dia o admin precisar editar, migra para o banco.
+- **Tela:**
+  - categorias em botões, com "Todas" como padrão;
+  - um campo "Buscar produto" que filtra enquanto se digita, pelo começo das palavras, sem acento e em todas as categorias;
+  - caixas de marcar, para escolher vários de uma vez, e o botão "Adicionar N itens à lista".
+- **Lista:** o que já está nela some das opções e volta se for removido. Um nome fora do catálogo ainda entra com "Adicionar “…” como escrito". A foto da lista continua.
+- **Nos mercados:** cada produto tem as palavras que o nome precisa conter (`query`), o que indica outro produto (`exclude`, por exemplo "integral" para arroz branco, e "com gás", "C/GAS" e "S/ GAS" para água sem gás) e as frases para a busca do PreçoMelhor (`search`).
+  - A busca deles olha quase só a primeira palavra e devolve só os 24 mais populares, por isso algumas frases precisam ser escolhidas à mão.
+  - Até 5 marcas por produto. Cada loja fica com a mais barata (D-077 e D-079).
+- **Cobertura medida em 10/11/2026:** 51 dos 60 produtos acham marcas. Ficam sem resultado:
+  - arroz parboilizado 5 kg;
+  - pão de forma;
+  - leite desnatado e semidesnatado;
+  - água 300 ml e 5 L, e água com gás 300 ml;
+  - refrigerante de cola zero;
+  - sabão em pó 1 kg.
+
+  Eles aparecem como "não encontrado" até haver preço por nota fiscal ou lojista.
+
 ### D-079 · O PreçoMelhor é lido pelo navegador
 No ar, o Cloudflare do PreçoMelhor bloqueia o Render: os logs mostraram `HTTP 403`, e o limite de 50 chamadas por minuto do servidor, dividido entre todos, também esgotava. Não tentei driblar a proteção. A API deles é feita para o navegador (CORS liberado, cerca de 60 chamadas por minuto por IP).
 - **O navegador busca:** o front (`lib/directory/`) chama `/api/search` e `/api/product/{ean}` direto do aparelho da pessoa, com as mesmas regras de escolha de produto do back (`pickCandidates`: tamanho, outro tipo de produto, acentos).

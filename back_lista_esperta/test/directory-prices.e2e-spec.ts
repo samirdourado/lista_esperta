@@ -192,7 +192,7 @@ describe('Prices from the store directory (e2e)', () => {
                 imageUrl: 'https://img.example/leite.webp',
                 nationalMedian: 5,
                 prices: [
-                  row('perto', 1, 4.79),
+                  row('perto', 1, 4.789999), // many decimals: accepted and rounded
                   row('caro', 2, 79.9), // data error: 16× the national median
                   row('antigo', 1, 3.5, 45),
                   row('longe', 12, 3.9),

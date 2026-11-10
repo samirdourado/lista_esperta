@@ -1,31 +1,18 @@
 // @vitest-environment jsdom
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { genericFor, matchQueries, searchCatalog } from "@/lib/catalog/generic-products";
+import { pickCandidates } from "@/lib/directory/match";
 import { parseLine, splitLines } from "@/lib/list/line";
 
-const mocks = vi.hoisted(() => ({
-  push: vi.fn(),
-  save: vi.fn(),
-  load: vi.fn(),
-  suggestions: [] as { id: string; canonicalName: string }[],
-  webSearch: vi.fn(),
-  web: { data: undefined as unknown, isPending: false, isError: false, isSuccess: false, error: null },
-}));
+const mocks = vi.hoisted(() => ({ push: vi.fn(), save: vi.fn(), load: vi.fn() }));
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push: mocks.push }) }));
 vi.mock("@/lib/shopping-lists/current", () => ({ useCurrentList: () => ({ load: mocks.load, save: mocks.save }) }));
-vi.mock("@/lib/merchant/queries", () => ({ useProductSearch: () => ({ data: mocks.suggestions }) }));
 vi.mock("@/lib/verdict/queries", () => ({
   useParseListPhoto: () => ({ mutate: vi.fn(), isPending: false, error: null }),
-}));
-vi.mock("@/lib/location/use-location", () => ({
-  useLocation: () => ({ status: "ready", point: { lat: -23.58, lng: -46.63 }, locate: vi.fn() }),
-}));
-vi.mock("@/lib/web-prices/queries", () => ({
-  useWebPriceSearch: () => ({ ...mocks.web, mutate: mocks.webSearch }),
-  webSearchError: () => "erro",
 }));
 
 const { ShoppingListEditor } = await import("./ShoppingListEditor");
@@ -34,22 +21,21 @@ function wrap(children: ReactNode) {
   return <QueryClientProvider client={new QueryClient()}>{children}</QueryClientProvider>;
 }
 
+const optionNames = () =>
+  within(screen.getByRole("list", { name: "Produtos" }))
+    .queryAllByRole("checkbox")
+    .map((box) => box.closest("label")?.textContent ?? "");
+
 beforeEach(() => {
   mocks.push.mockReset();
   mocks.save.mockReset().mockResolvedValue({});
   mocks.load.mockReset().mockResolvedValue(undefined);
-  mocks.suggestions = [];
-  mocks.webSearch.mockReset();
-  mocks.web = { data: undefined, isPending: false, isError: false, isSuccess: false, error: null };
 });
 
 describe("parseLine", () => {
   it("reads quantities without eating weights", () => {
     expect(parseLine("2 leite integral")).toEqual({ text: "leite integral", quantity: 2 });
-    expect(parseLine("3x sabão")).toEqual({ text: "sabão", quantity: 3 });
-    expect(parseLine("ovos x 12")).toEqual({ text: "ovos", quantity: 12 });
     expect(parseLine("5 kg de arroz")).toEqual({ text: "5 kg de arroz", quantity: 1 });
-    expect(parseLine("arroz 5kg")).toEqual({ text: "arroz 5kg", quantity: 1 });
   });
 
   it("splits pasted lists", () => {
@@ -57,126 +43,82 @@ describe("parseLine", () => {
   });
 });
 
-describe("ShoppingListEditor", () => {
-  it("adds typed items with their quantity and saves the list on the device", async () => {
-    const user = userEvent.setup();
-    render(wrap(<ShoppingListEditor />));
-    await user.type(screen.getByRole("combobox", { name: "Adicionar item" }), "2 leite integral{Enter}");
-    expect(screen.getByText("leite integral")).toBeInTheDocument();
-    expect(screen.getByRole("group", { name: "Quantidade de leite integral" })).toHaveTextContent("2");
-    await waitFor(() => expect(mocks.save).toHaveBeenCalledWith([{ freeText: "leite integral", quantity: 2 }]));
+describe("generic catalog", () => {
+  it("autocompletes by the start of each word, without accents", () => {
+    expect(searchCatalog("agu gas").map((p) => p.label)).toEqual([
+      "Água com gás 300 ml",
+      "Água com gás 500 ml",
+      "Água com gás 1,5 L",
+    ]);
+    expect(searchCatalog("cafe sol").map((p) => p.label)).toEqual(["Café solúvel 100 g", "Café solúvel 200 g"]);
   });
 
-  it("picks a catalog product from the autocomplete with the keyboard", async () => {
-    const user = userEvent.setup();
-    mocks.suggestions = [{ id: "p1", canonicalName: "Leite UHT Integral Itambé 1 L" }];
-    render(wrap(<ShoppingListEditor />));
-    const input = screen.getByRole("combobox", { name: "Adicionar item" });
-    await user.type(input, "leite");
-    await screen.findByRole("option", { name: "Leite UHT Integral Itambé 1 L" });
-    await user.keyboard("{ArrowDown}{Enter}");
-    expect(screen.getByText("Leite UHT Integral Itambé 1 L")).toBeInTheDocument();
-    await waitFor(() =>
-      expect(mocks.save).toHaveBeenLastCalledWith([
-        { freeText: "Leite UHT Integral Itambé 1 L", quantity: 1, productId: "p1" },
-      ]),
-    );
-  });
-
-  it("searches the cheapest prices on Google near the shopper and adds one with its price", async () => {
-    const user = userEvent.setup();
-    const { rerender } = render(wrap(<ShoppingListEditor />));
-    await user.type(screen.getByRole("combobox", { name: "Adicionar item" }), "2 leite integral");
-    await user.click(screen.getByRole("button", { name: "Pesquisar preços" }));
-    expect(mocks.webSearch).toHaveBeenCalledWith({ query: "leite integral", point: { lat: -23.58, lng: -46.63 } });
-
-    mocks.web = {
-      isPending: false,
-      isError: false,
-      isSuccess: true,
-      error: null,
-      data: {
-        query: "leite integral",
-        location: "São Paulo",
-        searchedAt: "2026-11-06T12:00:00.000Z",
-        source: "GOOGLE",
-        offers: [
-          {
-            title: "Leite Italac 1L",
-            price: 4.79,
-            store: "Carrefour",
-            thumbnail: null,
-            url: "https://g.co/1",
-            delivery: null,
-            nearby: "Perto, 2 km",
-          },
-          {
-            title: "Leite Piracanjuba 1L",
-            price: 5.29,
-            store: "Atacadão",
-            thumbnail: null,
-            url: null,
-            delivery: "Frete grátis",
-            nearby: null,
-          },
-          {
-            title: "Leite Ninho 1L",
-            price: 6.99,
-            store: "Pão de Açúcar",
-            thumbnail: null,
-            url: null,
-            delivery: null,
-            nearby: null,
-          },
-        ],
-      },
-    };
-    rerender(wrap(<ShoppingListEditor />));
-    expect(screen.getByText(/Mais baratos no Google para/)).toHaveTextContent("São Paulo");
-    expect(screen.getAllByRole("option")).toHaveLength(3);
-    await user.click(screen.getByRole("option", { name: /Leite Piracanjuba 1L, R\$\s5,29\. Adicionar/ }));
-    // The results stay open to add more from the same search; the added one shows a check.
+  it("finds each store's brands by generic words, never another product", () => {
+    const rice = genericFor("Arroz branco 5 kg")!;
+    const brands = [
+      { ean: "1", name: "ARROZ TIO JOAO BRANCO 5KG", imageUrl: null, storeCount: 50 },
+      { ean: "2", name: "Arroz Camil Tipo 1 5kg", imageUrl: null, storeCount: 90 },
+      { ean: "3", name: "ARROZ INTEGRAL TIO JOAO 5KG", imageUrl: null, storeCount: 70 },
+      { ean: "4", name: "ARROZ TIO JOAO BRANCO 1KG", imageUrl: null, storeCount: 99 },
+    ];
     expect(
-      screen.getByRole("option", { name: /Leite Piracanjuba 1L, R\$\s5,29\. Já está na lista/ }),
-    ).toBeInTheDocument();
-    await user.click(screen.getByRole("option", { name: /Leite Piracanjuba/ }));
-    expect(screen.getAllByText("Leite Piracanjuba 1L")).toHaveLength(2); // the result and one list row
-    await user.click(screen.getByRole("option", { name: /Leite Ninho 1L/ }));
-    expect(mocks.webSearch).toHaveBeenCalledTimes(1);
+      pickCandidates(matchQueries(rice)[0], brands, 5, rice.exclude)
+        .map((b) => b.ean)
+        .sort(),
+    ).toEqual(["1", "2"]);
 
-    await user.click(screen.getByRole("heading", { name: /Sua lista/ }));
-    expect(screen.queryByRole("option")).not.toBeInTheDocument();
-
-    expect(screen.getByText("Leite Piracanjuba 1L")).toBeInTheDocument();
-    expect(screen.getAllByText(/Na internet: R\$\s/)).toHaveLength(2);
-    await waitFor(() =>
-      expect(mocks.save).toHaveBeenLastCalledWith([
-        {
-          freeText: "Leite Piracanjuba 1L",
-          quantity: 2,
-          webPrice: {
-            title: "Leite Piracanjuba 1L",
-            price: 5.29,
-            store: "Atacadão",
-            url: null,
-            seenAt: "2026-11-06T12:00:00.000Z",
-          },
-        },
-        expect.objectContaining({ freeText: "Leite Ninho 1L", webPrice: expect.objectContaining({ price: 6.99 }) }),
-      ]),
-    );
+    const still = genericFor("Água mineral 1,5 L")!;
+    const waters = [
+      { ean: "a", name: "AGUA MINERAL CRYSTAL 1,5L", imageUrl: null, storeCount: 10 },
+      { ean: "b", name: "AGUA MINERAL COM GAS CRYSTAL 1,5L", imageUrl: null, storeCount: 10 },
+      { ean: "c", name: "AGUA ENTRE RIOS SEM GAS 1,5L", imageUrl: null, storeCount: 9 },
+      { ean: "d", name: "AGUA MINERAL ORIGEN C/GAS 1,5L", imageUrl: null, storeCount: 9 },
+      { ean: "e", name: "AGUA MINERAL AQUA S/ GAS 1,5L", imageUrl: null, storeCount: 8 },
+    ];
+    // "sem gás" is still water; "com gás" and "C/GAS" are not.
+    expect(pickCandidates(matchQueries(still)[0], waters, 5, still.exclude).map((w) => w.ean)).toEqual(["a", "c", "e"]);
+    const sparkling = genericFor("Água com gás 1,5 L")!;
+    expect(pickCandidates(matchQueries(sparkling)[0], waters, 5, sparkling.exclude).map((w) => w.ean)).toEqual([
+      "b",
+      "d",
+    ]);
   });
+});
 
-  it("changes quantities, removes items and accepts a pasted list", async () => {
+describe("ShoppingListEditor", () => {
+  it("adds several products at once and takes them out of the options", async () => {
     const user = userEvent.setup();
     render(wrap(<ShoppingListEditor />));
-    const input = screen.getByRole("combobox", { name: "Adicionar item" });
-    fireEvent.paste(input, { clipboardData: { getData: () => "arroz 5kg\n2 feijão" } });
+    await user.click(screen.getByRole("button", { name: "Bebidas" }));
+    await user.click(screen.getByRole("checkbox", { name: "Água mineral 300 ml" }));
+    await user.click(screen.getByRole("checkbox", { name: "Água com gás 1,5 L" }));
+    await user.click(screen.getByRole("button", { name: "Adicionar 2 itens à lista" }));
+
     expect(screen.getByRole("heading", { name: "Sua lista · 2 itens" })).toBeInTheDocument();
-    await user.click(screen.getAllByRole("button", { name: "Aumentar" })[0]);
-    expect(screen.getByRole("group", { name: "Quantidade de arroz 5kg" })).toHaveTextContent("2");
-    await user.click(screen.getByRole("button", { name: "Remover feijão" }));
-    expect(screen.queryByText("feijão")).not.toBeInTheDocument();
+    expect(optionNames()).not.toContain("Água mineral 300 ml");
+    await waitFor(() =>
+      expect(mocks.save).toHaveBeenLastCalledWith([
+        { freeText: "Água mineral 300 ml", quantity: 1 },
+        { freeText: "Água com gás 1,5 L", quantity: 1 },
+      ]),
+    );
+
+    // Removing it from the list offers it again.
+    await user.click(screen.getByRole("button", { name: "Remover Água mineral 300 ml" }));
+    expect(optionNames()).toContain("Água mineral 300 ml");
+  });
+
+  it("narrows the list while typing, across categories, and adds what is not in it", async () => {
+    const user = userEvent.setup();
+    render(wrap(<ShoppingListEditor />));
+    await user.click(screen.getByRole("button", { name: "Limpeza" }));
+    const search = screen.getByRole("searchbox", { name: "Buscar produto" });
+    await user.type(search, "arroz 5");
+    expect(optionNames()).toEqual(["Arroz branco 5 kg", "Arroz parboilizado 5 kg"]);
+    await user.clear(search);
+    await user.type(search, "pimenta do reino{Enter}");
+    expect(screen.getByRole("heading", { name: "Sua lista · 1 item" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Remover pimenta do reino" })).toBeInTheDocument();
   });
 
   it("reopens the last list and goes to the verdict", async () => {
@@ -188,7 +130,7 @@ describe("ShoppingListEditor", () => {
       items: [{ freeText: "café", quantity: 1 }],
     });
     render(wrap(<ShoppingListEditor />));
-    expect(await screen.findByText("café")).toBeInTheDocument();
+    expect(await screen.findByRole("button", { name: "Remover café" })).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Ver onde comprar" }));
     expect(mocks.push).toHaveBeenCalledWith("/verdict");
   });

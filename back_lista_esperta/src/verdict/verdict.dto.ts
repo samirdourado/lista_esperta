@@ -70,8 +70,9 @@ export class DirectoryStorePriceDto {
   @ApiProperty() @IsLatitude() lat: number;
   @ApiProperty() @IsLongitude() lng: number;
 
+  /** Sources send unit prices like 0.4745: rounded to cents when used. */
   @ApiProperty()
-  @IsNumber({ maxDecimalPlaces: 4 })
+  @IsNumber()
   @Min(0.01)
   @Max(100_000)
   price: number;

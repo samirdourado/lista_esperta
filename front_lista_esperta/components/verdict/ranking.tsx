@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useId } from "react";
 import { addressLine } from "@/components/stores/StoreSummary";
 import { cx } from "@/lib/cx";
+import { usePlaceName } from "@/lib/stores/queries";
 import { brl } from "@/lib/format";
 import type { ShoppingListItem } from "@/lib/shopping-lists/repository";
 import { evidenceLabel, type RankedStore, type Verdict } from "@/lib/verdict/queries";
@@ -12,6 +13,17 @@ const km = (value: number) => `${value.toLocaleString("pt-BR", { maximumFraction
 
 function distanceText(store: RankedStore): string {
   return store.travelKm < 0.2 ? "a menos de 100 m" : km(store.travelKm / 2);
+}
+
+/**
+ * A store whose address the server is still looking up: this line asks for
+ * it on its own, so the list never reloads to show it (D-081).
+ */
+function StoreAddressLookup({ lat, lng }: { lat: number; lng: number }) {
+  const place = usePlaceName({ lat, lng });
+  if (!place.data) return null;
+  const line = addressLine(place.data.address);
+  return line ? <span className="block text-[0.9rem] text-ink-soft">{line}</span> : null;
 }
 
 /** One item of the list at this store: found with photo and price, or clearly not found. */
@@ -87,6 +99,7 @@ export function StoreAccordion({
         const expanded = expandedId === entry.store.id;
         const panelId = `${baseId}-${position}`;
         const address = addressLine(entry.store.address);
+        const missingAddress = !address;
         return (
           <li
             key={entry.store.id}
@@ -107,7 +120,11 @@ export function StoreAccordion({
                 <span className="mt-0.5 shrink-0 text-ink-soft tabular-nums">{position + 1}º</span>
                 <span className="min-w-0 flex-1">
                   <span className="block text-[1.05rem] leading-snug font-semibold">{entry.store.name}</span>
-                  {address && <span className="block text-[0.9rem] text-ink-soft">{address}</span>}
+                  {address ? (
+                    <span className="block text-[0.9rem] text-ink-soft">{address}</span>
+                  ) : (
+                    missingAddress && <StoreAddressLookup lat={entry.store.lat} lng={entry.store.lng} />
+                  )}
                   <span className="block text-[0.85rem] text-ink-soft">
                     {distanceText(entry)} · {entry.found} de {items.length} {items.length === 1 ? "item" : "itens"}
                   </span>

@@ -38,6 +38,8 @@ export function useDirectoryPrices(items: ShoppingListItem[] | null, origin: Poi
     enabled: Boolean(items && items.length > 0 && origin),
     queryFn: () => readDirectory(items!, origin!).catch(() => []),
     staleTime: 30 * 60_000,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
     retry: false,
   });
 }
@@ -61,14 +63,12 @@ export function useVerdict(input: VerdictInput | null) {
       };
       return unwrap(await api.POST("/api/v1/verdict", { body, headers: { "X-Guest-Id": await getGuestId() } }));
     },
-    // Shops in a new area import in the background: ask again while they do.
-    refetchInterval: (query) =>
-      (query.state.data?.params.pendingAreas ?? 0) + (query.state.data?.params.addressesPending ?? 0) > 0 &&
-      query.state.dataUpdateCount < 12
-        ? 10_000
-        : false,
+    // An answer stays on screen until the list, the place or the radius
+    // changes (D-081): no polling, no refetch on focus or reconnect.
     placeholderData: (previous) => previous,
-    staleTime: 60_000,
+    staleTime: Infinity,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
   });
 }
 
