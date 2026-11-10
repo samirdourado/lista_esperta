@@ -6,6 +6,7 @@ import { unwrap } from "@/lib/api/errors";
 import type { components } from "@/lib/api/schema";
 import { getGuestId } from "@/lib/device/device-store";
 import type { Point } from "@/lib/location/use-location";
+import { readDirectory, type DirectoryItem } from "@/lib/directory/client";
 import type { ShoppingListItem } from "@/lib/shopping-lists/repository";
 
 type Schemas = components["schemas"];
@@ -18,6 +19,27 @@ export interface VerdictInput {
   origin: Point;
   items: ShoppingListItem[];
   radiusKm: number;
+  /** Store prices the browser read from PreçoMelhor (D-079). */
+  directory?: DirectoryItem[];
+}
+
+/**
+ * PreçoMelhor is read here, in the browser: its Cloudflare blocks our server.
+ * Keyed without the radius, so moving the slider does not read it again.
+ */
+export function useDirectoryPrices(items: ShoppingListItem[] | null, origin: Point | undefined) {
+  return useQuery({
+    queryKey: [
+      "directory",
+      items?.map((item) => item.webPrice?.ean ?? item.freeText.toLowerCase()),
+      origin && Number(origin.lat.toFixed(3)),
+      origin && Number(origin.lng.toFixed(3)),
+    ],
+    enabled: Boolean(items && items.length > 0 && origin),
+    queryFn: () => readDirectory(items!, origin!).catch(() => []),
+    staleTime: 30 * 60_000,
+    retry: false,
+  });
 }
 
 /** POST /verdict is stateless: the same input always means the same answer. */
@@ -29,6 +51,7 @@ export function useVerdict(input: VerdictInput | null) {
       const body = {
         origin: input!.origin,
         radiusKm: input!.radiusKm,
+        ...(input!.directory?.length ? { directory: input!.directory } : {}),
         items: input!.items.map((item) => ({
           text: item.freeText,
           quantity: item.quantity,

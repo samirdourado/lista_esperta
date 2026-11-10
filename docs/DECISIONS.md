@@ -4,6 +4,15 @@ Registro de decisões tomadas onde a especificação era ambígua ou conflitava 
 
 ## Ajustes depois da fase 8
 
+### D-079 · O PreçoMelhor é lido pelo navegador
+No ar, o Cloudflare do PreçoMelhor bloqueia o Render: os logs mostraram `HTTP 403`, e o limite de 50 chamadas por minuto do servidor, dividido entre todos, também esgotava. Não tentei driblar a proteção. A API deles é feita para o navegador (CORS liberado, cerca de 60 chamadas por minuto por IP).
+- **O navegador busca:** o front (`lib/directory/`) chama `/api/search` e `/api/product/{ean}` direto do aparelho da pessoa, com as mesmas regras de escolha de produto do back (`pickCandidates`: tamanho, outro tipo de produto, acentos).
+- **Só o necessário sai do navegador:** por item, os produtos com preços dos últimos 30 dias de lojas a até 50 km, mais a mediana do país. Uma lista de 3 itens deu cerca de 10 KB.
+- **A API confere tudo:** o `POST /verdict` recebe esses dados em `directory` (até 100 itens, 5 produtos por item e 300 preços por produto, com campos validados). A API refaz os filtros (raio, 30 dias, preços absurdos pela mediana regional ou do país) e usa o resultado só na resposta daquela pessoa. Nada entra no histórico de preços.
+- **Lojas:** são criadas como antes (origem `PRECOMELHOR`), e por isso dados enviados pelo navegador podem criar lojas. É um risco aceito para testes. Antes de abrir ao público, convém limitar ou combinar com o PreçoMelhor.
+- **Pesquisa da lista:** também roda no navegador. Só cai no Google, pela nossa API, quando o PreçoMelhor não acha nada.
+- **Servidor:** `PRECOMELHOR_ENABLED=false` no `render.yaml`, para o servidor não tentar e não encher o log. Rodando localmente, onde o acesso funciona, a API ainda busca sozinha quando o navegador não manda nada.
+
 ### D-078 · Veredito em sanfona
 O resultado é uma lista sanfona, com o mapa ao lado (pins das lojas, você e o raio).
 - **Cabeçalho de cada loja:** posição, nome, endereço, distância, "X de Y itens" e o preço dos itens encontrados ali.

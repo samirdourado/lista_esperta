@@ -1,6 +1,7 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { distanceKm } from '../common/geo.js';
 import {
+  type DirectoryProductPrices,
   pickCandidates,
   plausiblePrices,
   PRICE_DIRECTORY,
@@ -36,6 +37,12 @@ export interface DirectoryItem {
   index: number;
   text: string;
   ean?: string;
+}
+
+/** What the browser read from the directory for one list item (D-079). */
+export interface ProvidedItem {
+  index: number;
+  products: (DirectoryProductPrices & { nationalMedian?: number })[];
 }
 
 async function mapLimited<T, R>(
@@ -76,20 +83,24 @@ export class DirectoryPricesService {
     origin: { lat: number; lng: number },
     radiusKm: number,
     now: Date,
+    provided?: ProvidedItem[],
   ): Promise<{ prices: DirectoryPrice[]; addressesPending: number }> {
-    if (!this.directory.enabled) return { prices: [], addressesPending: 0 };
+    const byIndex = new Map(provided?.map((item) => [item.index, item]));
+    if (!provided && !this.directory.enabled)
+      return { prices: [], addressesPending: 0 };
     const since = now.getTime() - DIRECTORY_FRESH_DAYS * 86_400_000;
     const perItem = await mapLimited(items, async (item) => {
-      const eans = item.ean
-        ? [item.ean]
-        : pickCandidates(
-            item.text,
-            await this.directory.search(item.text),
-            TYPED_CANDIDATES,
-          ).map((product) => product.ean);
-      const products = await Promise.all(
-        eans.map((ean) => this.directory.prices(ean)),
-      );
+      // Sent by the browser (the directory blocks our server, D-079), or
+      // fetched here when the server can reach it (local development).
+      const products: (
+        | (DirectoryProductPrices & {
+            nationalMedian?: number;
+          })
+        | null
+      )[] = provided
+        ? (byIndex.get(item.index)?.products ?? [])
+        : await this.fetchProducts(item);
+      const eans = products.length;
       // Cheapest candidate per store.
       const byStore = new Map<
         string,
@@ -109,12 +120,16 @@ export class DirectoryPricesService {
         .map((row) => row.price)
         .sort((a, b) => a - b);
       const itemMedian =
-        eans.length > 1 && regional.length >= 4
+        eans > 1 && regional.length >= 4
           ? regional[Math.floor(regional.length / 2)]
           : null;
       for (const product of products) {
         if (!product) continue;
-        for (const row of plausiblePrices(product.prices, origin)) {
+        for (const row of plausiblePrices(
+          product.prices,
+          origin,
+          product.nationalMedian,
+        )) {
           if (row.observedAt.getTime() < since) continue;
           if (distanceKm(origin, row) > radiusKm) continue;
           if (
@@ -162,6 +177,19 @@ export class DirectoryPricesService {
       })),
       addressesPending: missing.length,
     };
+  }
+
+  private async fetchProducts(
+    item: DirectoryItem,
+  ): Promise<(DirectoryProductPrices | null)[]> {
+    const eans = item.ean
+      ? [item.ean]
+      : pickCandidates(
+          item.text,
+          await this.directory.search(item.text),
+          TYPED_CANDIDATES,
+        ).map((product) => product.ean);
+    return Promise.all(eans.map((ean) => this.directory.prices(ean)));
   }
 
   /** In the background, one at a time: the next poll of the verdict shows them. */

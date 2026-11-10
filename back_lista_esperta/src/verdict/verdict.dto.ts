@@ -5,6 +5,8 @@ import {
   ArrayMinSize,
   IsArray,
   IsDefined,
+  IsInt,
+  IsISO8601,
   IsLatitude,
   IsLongitude,
   IsNumber,
@@ -58,6 +60,67 @@ export class VerdictItemInputDto {
   quantity?: number;
 }
 
+export class DirectoryStorePriceDto {
+  @ApiProperty({ example: '201' })
+  @IsString()
+  @Matches(/^[\w-]{1,24}$/)
+  storeId: string;
+
+  @ApiProperty() @IsString() @Length(1, 160) storeName: string;
+  @ApiProperty() @IsLatitude() lat: number;
+  @ApiProperty() @IsLongitude() lng: number;
+
+  @ApiProperty()
+  @IsNumber({ maxDecimalPlaces: 4 })
+  @Min(0.01)
+  @Max(100_000)
+  price: number;
+
+  @ApiProperty({ format: 'date-time' }) @IsISO8601() observedAt: string;
+}
+
+export class DirectoryProductDto {
+  @ApiProperty() @Matches(/^\d{8,14}$/) ean: string;
+  @ApiProperty() @IsString() @Length(1, 300) name: string;
+
+  @ApiPropertyOptional({ nullable: true, type: String })
+  @IsOptional()
+  @IsString()
+  @Length(1, 500)
+  imageUrl?: string | null;
+
+  @ApiPropertyOptional({
+    description: 'Median of all its prices in the country',
+  })
+  @IsOptional()
+  @IsNumber()
+  @Min(0.01)
+  @Max(100_000)
+  nationalMedian?: number;
+
+  @ApiProperty({
+    type: [DirectoryStorePriceDto],
+    description: 'Prices within ~50 km',
+  })
+  @IsArray()
+  @ArrayMaxSize(300)
+  @ValidateNested({ each: true })
+  @Type(() => DirectoryStorePriceDto)
+  prices: DirectoryStorePriceDto[];
+}
+
+/** What the browser read from PreçoMelhor for one item of the list (D-079). */
+export class DirectoryItemDto {
+  @ApiProperty() @IsInt() @Min(0) @Max(99) index: number;
+
+  @ApiProperty({ type: [DirectoryProductDto] })
+  @IsArray()
+  @ArrayMaxSize(5)
+  @ValidateNested({ each: true })
+  @Type(() => DirectoryProductDto)
+  products: DirectoryProductDto[];
+}
+
 export class VerdictRequestDto {
   @ApiProperty({ type: PointDto })
   @IsDefined()
@@ -79,6 +142,18 @@ export class VerdictRequestDto {
   @Min(0.5)
   @Max(20)
   radiusKm?: number;
+
+  @ApiPropertyOptional({
+    type: [DirectoryItemDto],
+    description:
+      'Store prices the browser read from PreçoMelhor. Checked here (radius, date, outliers) and used only for this answer.',
+  })
+  @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(100)
+  @ValidateNested({ each: true })
+  @Type(() => DirectoryItemDto)
+  directory?: DirectoryItemDto[];
 }
 
 /** Lowest price seen on Google Shopping for the item: reference only (D-076). */

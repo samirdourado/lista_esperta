@@ -92,18 +92,25 @@ const PLAUSIBLE_FACTOR = 2.5;
  */
 export function plausiblePrices<
   T extends { price: number; lat: number; lng: number },
->(rows: T[], center: { lat: number; lng: number }): T[] {
+>(
+  rows: T[],
+  center: { lat: number; lng: number },
+  nationalMedian?: number,
+): T[] {
   const regional = rows
     .filter((row) => distanceKm(center, row) <= REGION_KM)
     .map((row) => row.price)
     .sort((a, b) => a - b);
   // Few prices around: the country's median still catches the absurd ones.
-  const basis =
+  const national = rows.map((row) => row.price).sort((a, b) => a - b);
+  const median =
     regional.length >= 3
-      ? regional
-      : rows.map((row) => row.price).sort((a, b) => a - b);
-  if (basis.length < 3) return rows;
-  const median = basis[Math.floor(basis.length / 2)];
+      ? regional[Math.floor(regional.length / 2)]
+      : (nationalMedian ??
+        (national.length >= 3
+          ? national[Math.floor(national.length / 2)]
+          : undefined));
+  if (median === undefined) return rows;
   return rows.filter(
     (row) =>
       row.price >= median / PLAUSIBLE_FACTOR &&
