@@ -1,5 +1,6 @@
 import type { Point } from "@/lib/location/use-location";
 import type { ShoppingListItem } from "@/lib/shopping-lists/repository";
+import { genericFor, matchQueries, searchPhrases, type GenericProduct } from "@/lib/catalog/generic-products";
 import { distanceKm, median, parseCoords, pickCandidates, type DirectoryProduct } from "./match";
 
 /**
@@ -11,6 +12,7 @@ const BASE = "https://www.precomelhor.com.br";
 /** Only what the comparison can use leaves the browser. */
 const REGION_KM = 50;
 const FRESH_DAYS = 30;
+/** Brands compared per generic item: each store keeps its cheapest one. */
 const TYPED_CANDIDATES = 5;
 const CONCURRENCY = 4;
 
@@ -125,14 +127,34 @@ export async function productPrices(ean: string, origin: Point | null): Promise<
   };
 }
 
+/**
+ * Brands for a list item: each search phrase in turn until one finds
+ * products that match (the directory's search ranks by popularity and
+ * returns only 24 results).
+ */
+async function candidatesFor(text: string, generic: GenericProduct | undefined): Promise<DirectoryProduct[]> {
+  const queries = generic ? matchQueries(generic) : [text];
+  for (const phrase of generic ? searchPhrases(generic) : [text]) {
+    const found = await searchProducts(phrase);
+    const picked = new Map<string, DirectoryProduct>();
+    for (const query of queries)
+      for (const product of pickCandidates(query, found, TYPED_CANDIDATES, generic?.exclude))
+        picked.set(product.ean, product);
+    if (picked.size > 0) return [...picked.values()].slice(0, TYPED_CANDIDATES);
+  }
+  return [];
+}
+
 /** For each item of the list: the barcode picked, or the brands matching what was typed. */
 export async function readDirectory(items: ShoppingListItem[], origin: Point): Promise<DirectoryItem[]> {
   const results = await Promise.all(
     items.slice(0, 100).map(async (item, index): Promise<DirectoryItem> => {
       try {
+        // A catalog product is searched by its generic words (D-080).
+        const generic = genericFor(item.freeText);
         const eans = item.webPrice?.ean
           ? [item.webPrice.ean]
-          : pickCandidates(item.freeText, await searchProducts(item.freeText), TYPED_CANDIDATES).map((p) => p.ean);
+          : (await candidatesFor(item.freeText, generic)).map((p) => p.ean);
         const products = await Promise.all(eans.map((ean) => productPrices(ean, origin).catch(() => null)));
         return { index, products: products.filter((p): p is DirectoryProductPrices => p !== null) };
       } catch {

@@ -70,7 +70,13 @@ const OTHER_PRODUCT = new Set(
 );
 
 /** The products that really are what the person typed (never another kind of product). */
-export function pickCandidates(text: string, products: DirectoryProduct[], limit: number): DirectoryProduct[] {
+export function pickCandidates(
+  text: string,
+  products: DirectoryProduct[],
+  limit: number,
+  exclude: string[] = [],
+): DirectoryProduct[] {
+  const banned = exclude.map((phrase) => ` ${normalizeText(phrase)} `);
   const typed = spaceSizes(text);
   const wanted = normalizeText(typed)
     .split(" ")
@@ -85,7 +91,9 @@ export function pickCandidates(text: string, products: DirectoryProduct[], limit
       const otherKind = words.some(
         (word) => !wanted.includes(word) && (OTHER_PRODUCT.has(word) || (isMilk && word === "po")),
       );
-      if (!hasAll || otherKind || !sameSize(typed, spaced)) return [];
+      const padded = ` ${words.join(" ")} `;
+      const excluded = banned.some((phrase) => padded.includes(phrase));
+      if (!hasAll || otherKind || excluded || !sameSize(typed, spaced)) return [];
       return [{ product, closeness: wanted.length / words.length }];
     })
     .sort(

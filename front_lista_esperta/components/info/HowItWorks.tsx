@@ -1,8 +1,8 @@
 /** "Como calculamos": the whole rule, short enough for a panel (D-069, D-070, D-072). */
 const STEPS = [
-  "Monte a lista: digite, cole, tire foto ou toque na lupa para escolher o produto com foto e preço.",
+  "Monte a lista: escolha os produtos por categoria ou pelo nome (dá para marcar vários de uma vez), ou tire foto de uma lista escrita.",
   "Toque em “Ver onde comprar” e diga de onde você sai: localização do celular ou um endereço.",
-  "Escolha até quantos km quer ir. Mostramos as lojas nesse raio que têm algum produto da sua lista, da mais barata para a mais cara. Toque numa loja para ver cada item, com foto e preço.",
+  "Escolha até quantos km quer ir. Buscamos cada produto nos mercados desse raio e, em cada loja, ficamos com a marca mais barata. As lojas aparecem da lista mais barata para a mais cara; toque numa para ver cada item, com foto e preço.",
 ];
 
 const RULES: [string, string][] = [
