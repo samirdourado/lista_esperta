@@ -9,6 +9,7 @@ import {
   IsString,
   IsUUID,
   Length,
+  Matches,
   Max,
   Min,
   ValidateNested,
@@ -51,6 +52,11 @@ export class WebPriceDto {
   @ApiProperty({ format: 'date-time' })
   @IsISO8601()
   seenAt: string;
+
+  @ApiPropertyOptional({ nullable: true, type: String })
+  @IsOptional()
+  @Matches(/^\d{8,14}$/)
+  ean?: string | null;
 }
 
 export class ShoppingListItemInputDto {

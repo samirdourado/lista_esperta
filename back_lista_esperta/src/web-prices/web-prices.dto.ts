@@ -50,6 +50,8 @@ export class WebOfferDto {
     description: "Google's local hint, e.g. 'Perto, 2 km'",
   })
   nearby: string | null;
+  @ApiProperty({ nullable: true, type: String, description: 'Barcode' })
+  ean: string | null;
 }
 
 export class WebPriceResponseDto {
@@ -64,4 +66,6 @@ export class WebPriceResponseDto {
   @ApiProperty({ type: [WebOfferDto], description: 'Cheapest first' })
   offers: WebOfferDto[];
   @ApiProperty({ format: 'date-time' }) searchedAt: string;
+  @ApiProperty({ enum: ['PRECOMELHOR', 'GOOGLE'] })
+  source: 'PRECOMELHOR' | 'GOOGLE';
 }

@@ -1,8 +1,8 @@
 /** "Como calculamos": the whole rule, short enough for a panel (D-069, D-070, D-072). */
 const STEPS = [
-  "Monte a lista: digite, cole, tire foto ou toque na lupa para ver os menores preços na internet.",
+  "Monte a lista: digite, cole, tire foto ou toque na lupa para escolher o produto com foto e preço.",
   "Toque em “Ver onde comprar” e diga de onde você sai: localização do celular ou um endereço.",
-  "Escolha até quantos km quer ir. Mostramos as lojas nesse raio, da lista mais barata para a mais cara, no mapa e na lista.",
+  "Escolha até quantos km quer ir. Mostramos as lojas nesse raio que têm algum produto da sua lista, da mais barata para a mais cara. Toque numa loja para ver cada item, com foto e preço.",
 ];
 
 const RULES: [string, string][] = [
@@ -19,6 +19,10 @@ const SOURCES: [string, string][] = [
   ["Loja", "o preço informado pelo lojista. Vale por 30 dias."],
   ["Encarte", "a oferta publicada pela loja, até a validade."],
   ["Clientes", "preço visto na prateleira. Só entra quando não há nada melhor."],
+  [
+    "PreçoMelhor",
+    "preços de supermercados físicos por código de barras, dos últimos 30 dias. Nota fiscal e preço do lojista valem mais.",
+  ],
   ["Internet", "os menores preços do Google em lojas online da sua cidade. Só como referência: não entram no ranking."],
 ];
 

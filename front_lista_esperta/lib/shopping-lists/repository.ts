@@ -5,6 +5,8 @@ export interface WebPrice {
   store: string;
   url?: string | null;
   seenAt: string;
+  /** Barcode, when it came from the product search: finds it in each store. */
+  ean?: string | null;
 }
 
 export interface ShoppingListItem {

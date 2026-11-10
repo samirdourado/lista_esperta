@@ -12,6 +12,7 @@ import {
   IsString,
   IsUUID,
   Length,
+  Matches,
   Max,
   Min,
   ValidateNested,
@@ -32,6 +33,14 @@ export class VerdictItemInputDto {
   @IsOptional()
   @IsUUID()
   productId?: string;
+
+  @ApiPropertyOptional({
+    example: '7896006716112',
+    description: 'Barcode, when picked from the product search',
+  })
+  @IsOptional()
+  @Matches(/^\d{8,14}$/)
+  ean?: string;
 
   @ApiProperty({ example: 'arroz 5kg', description: 'What the person typed' })
   @Transform(({ value }: { value: unknown }) =>
@@ -104,7 +113,9 @@ export class ResolvedItemDto {
 }
 
 export class PriceEvidenceDto {
-  @ApiProperty({ enum: ['NFCE', 'MERCHANT', 'FLYER', 'COMMUNITY'] })
+  @ApiProperty({
+    enum: ['NFCE', 'MERCHANT', 'FLYER', 'COMMUNITY', 'PRECOMELHOR'],
+  })
   source: string;
   @ApiProperty({ format: 'date-time' }) observedAt: string;
   @ApiProperty({ description: 'Receipts with this product here in 7 days' })
@@ -119,6 +130,13 @@ export class StoreLineDto {
   @ApiProperty({ nullable: true, type: Number }) subtotal: number | null;
   @ApiProperty({ type: PriceEvidenceDto, nullable: true })
   evidence: PriceEvidenceDto | null;
+  @ApiProperty({
+    nullable: true,
+    type: String,
+    description: 'Name of the product found at this store',
+  })
+  productName: string | null;
+  @ApiProperty({ nullable: true, type: String }) imageUrl: string | null;
 }
 
 export class VerdictStoreDto {
@@ -179,6 +197,8 @@ export class VerdictParamsDto {
   @ApiProperty() splitMinShare: number;
   @ApiProperty({ enum: ['OPENROUTESERVICE', 'ESTIMATE'] }) routing: string;
   @ApiProperty() storesConsidered: number;
+  @ApiProperty({ description: 'Store addresses still being looked up' })
+  addressesPending: number;
   @ApiProperty({ description: 'Stores left out because they are closed now' })
   storesClosed: number;
   @ApiProperty({ description: 'Map areas still importing shops' })

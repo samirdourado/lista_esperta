@@ -24,7 +24,7 @@ const clampRadius = (value: number) => Math.min(MAX_RADIUS_KM, Math.max(MIN_RADI
 /** Only stores that price something on the list, each with the list price there. */
 export function mapStores(verdict: Verdict | undefined): MapStore[] {
   if (!verdict) return [];
-  return verdict.ranking.map((entry) => ({ ...entry.store, label: brl(entry.totalCost) }));
+  return verdict.ranking.map((entry) => ({ ...entry.store, label: brl(entry.itemsCost) }));
 }
 
 /**

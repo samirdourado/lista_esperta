@@ -3,6 +3,10 @@ import {
   BrasilApiCepLookup,
   BrasilApiCnpjLookup,
 } from './brasil-api/brasil-api.provider.js';
+import {
+  PRICE_DIRECTORY,
+  PrecoMelhorService,
+} from './precomelhor/precomelhor.service.js';
 import { NominatimGeocodingProvider } from './nominatim/nominatim.provider.js';
 import { OverpassPlacesProvider } from './osm/overpass.provider.js';
 import {
@@ -23,7 +27,14 @@ import {
     { provide: GEOCODING_PROVIDER, useClass: NominatimGeocodingProvider },
     { provide: CNPJ_LOOKUP, useClass: BrasilApiCnpjLookup },
     { provide: CEP_LOOKUP, useClass: BrasilApiCepLookup },
+    { provide: PRICE_DIRECTORY, useClass: PrecoMelhorService },
   ],
-  exports: [PLACES_PROVIDER, GEOCODING_PROVIDER, CNPJ_LOOKUP, CEP_LOOKUP],
+  exports: [
+    PLACES_PROVIDER,
+    GEOCODING_PROVIDER,
+    CNPJ_LOOKUP,
+    CEP_LOOKUP,
+    PRICE_DIRECTORY,
+  ],
 })
 export class IntegrationsModule {}

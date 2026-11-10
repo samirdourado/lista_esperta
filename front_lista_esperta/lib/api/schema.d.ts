@@ -1002,7 +1002,7 @@ export interface components {
             defaultRadiusKm?: number;
         };
         /** @enum {string} */
-        StoreSource: "OSM" | "GOOGLE_PLACES" | "MERCHANT_REGISTERED" | "NFCE";
+        StoreSource: "OSM" | "GOOGLE_PLACES" | "MERCHANT_REGISTERED" | "NFCE" | "PRECOMELHOR";
         /** @enum {string} */
         VerificationStatus: "UNVERIFIED" | "PENDING" | "VERIFIED";
         AddressDto: {
@@ -1550,6 +1550,11 @@ export interface components {
              */
             productId?: string;
             /**
+             * @description Barcode, when picked from the product search
+             * @example 7896006716112
+             */
+            ean?: string;
+            /**
              * @description What the person typed
              * @example arroz 5kg
              */
@@ -1600,7 +1605,7 @@ export interface components {
         };
         PriceEvidenceDto: {
             /** @enum {string} */
-            source: "NFCE" | "MERCHANT" | "FLYER" | "COMMUNITY";
+            source: "NFCE" | "MERCHANT" | "FLYER" | "COMMUNITY" | "PRECOMELHOR";
             /** Format: date-time */
             observedAt: string;
             /** @description Receipts with this product here in 7 days */
@@ -1613,6 +1618,9 @@ export interface components {
             unitPrice: number | null;
             subtotal: number | null;
             evidence: components["schemas"]["PriceEvidenceDto"] | null;
+            /** @description Name of the product found at this store */
+            productName: string | null;
+            imageUrl: string | null;
         };
         RankedStoreDto: {
             store: components["schemas"]["VerdictStoreDto"];
@@ -1657,6 +1665,8 @@ export interface components {
             /** @enum {string} */
             routing: "OPENROUTESERVICE" | "ESTIMATE";
             storesConsidered: number;
+            /** @description Store addresses still being looked up */
+            addressesPending: number;
             /** @description Stores left out because they are closed now */
             storesClosed: number;
             /** @description Map areas still importing shops */
@@ -1700,6 +1710,8 @@ export interface components {
             delivery: string | null;
             /** @description Google's local hint, e.g. 'Perto, 2 km' */
             nearby: string | null;
+            /** @description Barcode */
+            ean: string | null;
         };
         WebPriceResponseDto: {
             query: string;
@@ -1712,6 +1724,8 @@ export interface components {
             offers: components["schemas"]["WebOfferDto"][];
             /** Format: date-time */
             searchedAt: string;
+            /** @enum {string} */
+            source: "PRECOMELHOR" | "GOOGLE";
         };
         WebPriceDto: {
             /** @example Leite UHT Integral Italac 1L */
@@ -1723,6 +1737,7 @@ export interface components {
             url?: string | null;
             /** Format: date-time */
             seenAt: string;
+            ean?: string | null;
         };
         ShoppingListItemResponseDto: {
             /** Format: uuid */

@@ -79,7 +79,7 @@ describe("mapStores", () => {
       verificationStatus: "UNVERIFIED",
       openNow: null,
     });
-    const verdict = { ranking: [{ store: store("a"), totalCost: 52.46 }] } as unknown as Verdict;
+    const verdict = { ranking: [{ store: store("a"), itemsCost: 52.46 }] } as unknown as Verdict;
     expect(mapStores(verdict)).toEqual([
       expect.objectContaining({ id: "a", label: expect.stringMatching(/R\$\s52,46/) }),
     ]);

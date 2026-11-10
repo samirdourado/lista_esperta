@@ -10,6 +10,7 @@ import {
   StoresGeoRepository,
   type StoreRow,
 } from '../stores/stores-geo.repository.js';
+import { DirectoryPricesService } from './directory-prices.service.js';
 import { computeVerdict, type EngineItem, type EngineStore } from './engine.js';
 import { isOpenAt } from './opening-hours.js';
 import { WebPricesRepository } from '../web-prices/web-prices.repository.js';
@@ -25,6 +26,15 @@ import {
   type CurrentPriceRow,
   VerdictRepository,
 } from './verdict.repository.js';
+
+/** The engine compares list items, whichever product each store sells for it. */
+const itemKey = (index: number) => `item-${index}`;
+
+type LinePrice = Omit<CurrentPriceRow, 'source' | 'productId'> & {
+  source: CurrentPriceRow['source'] | 'PRECOMELHOR';
+  productName?: string;
+  imageUrl?: string | null;
+};
 
 /** Stores routed and compared per verdict, closest first (keeps the route matrix small). */
 const MAX_ROUTED_STORES = 30;
@@ -54,6 +64,7 @@ export class VerdictService {
     private readonly sponsored: SponsoredService,
     private readonly config: ConfigService<Env, true>,
     private readonly webPrices: WebPricesRepository,
+    private readonly directoryPrices: DirectoryPricesService,
   ) {}
 
   async compute(
@@ -80,6 +91,7 @@ export class VerdictService {
           : await this.repo.matchText(item.text);
         return {
           index,
+          ean: item.ean,
           text: item.text,
           quantity: item.quantity ?? 1,
           productId: product?.id ?? null,
@@ -99,16 +111,26 @@ export class VerdictService {
       input.origin.lng,
       radiusKm,
     );
+    // Prices of physical stores from the directory; creates their stores first.
+    const directory = await this.directoryPrices.forItems(
+      resolved,
+      input.origin,
+      radiusKm,
+      now,
+    );
     const nearby = await this.geo.findNearby(
       input.origin.lat,
       input.origin.lng,
       radiusKm,
+      1000,
     );
     const prices = await this.repo.currentPrices(
       nearby.map((s) => s.id),
       productIds,
     );
-    const withPrices = new Set(prices.map((p) => p.storeId));
+    const withPrices = new Set(
+      [...prices, ...directory.prices].map((p) => p.storeId),
+    );
     let storesClosed = 0;
     const candidates = nearby
       .filter((store) => withPrices.has(store.id))
@@ -131,24 +153,38 @@ export class VerdictService {
         lng: Number(store.lng),
       })),
     );
-    const priceByStore = new Map<
-      string,
-      Map<string, (typeof prices)[number]>
-    >();
-    for (const price of prices) {
-      if (!priceByStore.has(price.storeId))
-        priceByStore.set(price.storeId, new Map());
-      priceByStore.get(price.storeId)!.set(price.productId, price);
+    // Compared per list item: a store may sell another brand of the same item.
+    const priceByStore = new Map<string, Map<string, LinePrice>>();
+    const setPrice = (storeId: string, key: string, price: LinePrice) => {
+      if (!priceByStore.has(storeId)) priceByStore.set(storeId, new Map());
+      priceByStore.get(storeId)!.set(key, price);
+    };
+    for (const row of directory.prices) {
+      setPrice(row.storeId, itemKey(row.itemIndex), {
+        ...row,
+        source: 'PRECOMELHOR',
+        offer: false,
+        receiptCount: 0,
+      });
+    }
+    // Receipts and the merchant's own prices win over the directory.
+    for (const item of resolved) {
+      for (const price of prices) {
+        if (price.productId === item.productId)
+          setPrice(price.storeId, itemKey(item.index), price);
+      }
     }
     const engineStores: EngineStore[] = candidates.map(({ store }) => ({
       id: store.id,
       km: matrix.fromOrigin.get(store.id)!.km,
       minutes: matrix.fromOrigin.get(store.id)!.minutes,
-      prices: priceByStore.get(store.id) ?? new Map<string, CurrentPriceRow>(),
+      prices: priceByStore.get(store.id) ?? new Map<string, LinePrice>(),
     }));
-    const engineItems: EngineItem[] = resolved.map(
-      ({ index, productId, quantity }) => ({ index, productId, quantity }),
-    );
+    const engineItems: EngineItem[] = resolved.map(({ index, quantity }) => ({
+      index,
+      productId: itemKey(index),
+      quantity,
+    }));
     const result = computeVerdict(
       engineItems,
       engineStores,
@@ -161,15 +197,15 @@ export class VerdictService {
     const ranking: RankedStoreDto[] = result.ranking.map((totals) => {
       const { store, openNow } = byId.get(totals.storeId)!;
       const storePrices =
-        priceByStore.get(store.id) ?? new Map<string, CurrentPriceRow>();
+        priceByStore.get(store.id) ?? new Map<string, LinePrice>();
       return {
         store: storeDto(store, openNow),
         ...totals,
         lines: resolved.map((item) => {
-          const price = item.productId
-            ? storePrices.get(item.productId)
-            : undefined;
+          const price = storePrices.get(itemKey(item.index));
           return {
+            productName: price?.productName ?? item.productName,
+            imageUrl: price?.imageUrl ?? null,
             index: item.index,
             unitPrice: price?.price ?? null,
             subtotal: price
@@ -205,10 +241,8 @@ export class VerdictService {
     const items: ResolvedItemDto[] = resolved.map((item) => ({
       ...item,
       webPrice: webPrices[item.index],
-      priced: Boolean(item.productId && result.medians.has(item.productId)),
-      regionalMedian: item.productId
-        ? (result.medians.get(item.productId) ?? null)
-        : null,
+      priced: result.medians.has(itemKey(item.index)),
+      regionalMedian: result.medians.get(itemKey(item.index)) ?? null,
     }));
     const plan = result.split;
     const split: SplitDto | null = plan
@@ -248,6 +282,7 @@ export class VerdictService {
         routing: matrix.source,
         storesConsidered: candidates.length,
         storesClosed,
+        addressesPending: directory.addressesPending,
         pendingAreas,
       },
       sponsored,

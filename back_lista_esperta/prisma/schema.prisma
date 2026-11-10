@@ -26,6 +26,8 @@ enum StoreSource {
   GOOGLE_PLACES
   MERCHANT_REGISTERED
   NFCE
+  /// Physical stores listed by PreçoMelhor (D-077).
+  PRECOMELHOR
 }
 
 enum DiscoveryStatus {

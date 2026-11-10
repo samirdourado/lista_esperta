@@ -1,123 +1,139 @@
+"use client";
+
 import Link from "next/link";
-import { PriceTag } from "@/components/PriceTag";
-import { VerificationNote, addressLine } from "@/components/stores/StoreSummary";
+import { useId } from "react";
+import { addressLine } from "@/components/stores/StoreSummary";
 import { cx } from "@/lib/cx";
 import { brl } from "@/lib/format";
 import type { ShoppingListItem } from "@/lib/shopping-lists/repository";
 import { evidenceLabel, type RankedStore, type Verdict } from "@/lib/verdict/queries";
 
 const km = (value: number) => `${value.toLocaleString("pt-BR", { maximumFractionDigits: 1 })} km`;
-const minutes = (value: number) =>
-  value < 60 ? `${Math.round(value)} min` : `${Math.floor(value / 60)} h ${Math.round(value % 60)} min`;
 
-/** The answer: the store nearby where the whole list costs least (D-069). */
-export function BestStore({ best }: { best: RankedStore }) {
+function distanceText(store: RankedStore): string {
+  return store.travelKm < 0.2 ? "a menos de 100 m" : km(store.travelKm / 2);
+}
+
+/** One item of the list at this store: found with photo and price, or clearly not found. */
+function ItemRow({
+  store,
+  index,
+  item,
+  verdict,
+}: {
+  store: RankedStore;
+  index: number;
+  item?: ShoppingListItem;
+  verdict: Verdict;
+}) {
+  const line = store.lines[index];
+  const resolved = verdict.items[index];
+  const quantity = item?.quantity && item.quantity > 1 ? `${item.quantity}× ` : "";
+  const name = line?.productName ?? resolved?.productName ?? resolved?.text ?? item?.freeText ?? "";
+  const found = line?.subtotal !== null && line?.subtotal !== undefined;
+
   return (
-    <section aria-labelledby="best-store">
-      <p className="text-ink-soft">Compre tudo em</p>
-      <h2 id="best-store" className="mt-1 font-display text-[clamp(2.2rem,9vw,3.2rem)] leading-none font-bold">
-        {best.store.name}
-      </h2>
-      <p className="mt-1 text-[0.95rem] text-ink-soft">{addressLine(best.store.address) ?? ""}</p>
-      <div className="mt-5 text-[clamp(3.4rem,16vw,4.8rem)] leading-none">
-        <PriceTag value={best.totalCost} land />
-      </div>
-      <p className="mt-3 text-ink-soft">
-        {best.missing.length > 0
-          ? "Total da lista nesta loja, com a média da região para o que ela não tem."
-          : "Total da sua lista nesta loja."}
-      </p>
-      <dl className="mt-5 grid grid-cols-3 gap-x-4 gap-y-3 border-y border-line py-4">
-        <div>
-          <dt className="text-[0.9rem] text-ink-soft">Itens</dt>
-          <dd className="text-xl font-bold">
-            {best.found} de {best.priced}
-          </dd>
-        </div>
-        <div>
-          <dt className="text-[0.9rem] text-ink-soft">Produtos</dt>
-          <dd className="text-xl font-bold">{brl(best.itemsCost)}</dd>
-        </div>
-        <div>
-          <dt className="text-[0.9rem] text-ink-soft">Distância</dt>
-          <dd className="text-xl font-bold">{km(best.travelKm / 2)}</dd>
-          <dd className="text-[0.85rem] text-ink-soft">{minutes(best.travelMinutes / 2)} de carro</dd>
-        </div>
-      </dl>
-      <div className="mt-2 flex flex-wrap gap-x-3">
-        <VerificationNote status={best.store.verificationStatus} />
-        {best.store.openNow === null && <span className="text-[0.85rem] text-muted">Horário não informado</span>}
-      </div>
-    </section>
+    <li className="flex items-center gap-3 py-2.5">
+      {line?.imageUrl ? (
+        // Product photos come from the price source, on several hosts.
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={line.imageUrl}
+          alt=""
+          loading="lazy"
+          referrerPolicy="no-referrer"
+          className="size-12 shrink-0 rounded-sm bg-white object-contain"
+        />
+      ) : (
+        <span aria-hidden="true" className="size-12 shrink-0 rounded-sm bg-surface-sunken" />
+      )}
+      <span className="min-w-0 flex-1">
+        <span className={cx("line-clamp-2 leading-snug", !found && "text-ink-soft")}>
+          {quantity}
+          {found ? name : (resolved?.text ?? name)}
+        </span>
+        {found && line.evidence ? (
+          <span className="block text-[0.8rem] text-ink-soft">{evidenceLabel(line.evidence)}</span>
+        ) : (
+          <span className="block text-[0.8rem] font-medium text-danger">Não encontrado neste supermercado</span>
+        )}
+      </span>
+      {found && <span className="shrink-0 font-semibold tabular-nums">{brl(line.subtotal!)}</span>}
+    </li>
   );
 }
 
 /**
- * The lowest price seen on the internet around the person (D-076), else the
- * one picked from Google when the item was added. Reference only.
+ * The stores as an accordion, cheapest list first (D-078). The header carries
+ * the store and the price; opening it shows the person's list at that store.
  */
-export function WebPriceNote({
-  verdictItem,
-  listItem,
-}: {
-  verdictItem?: Verdict["items"][number];
-  listItem?: ShoppingListItem;
-}) {
-  const price = verdictItem?.webPrice?.price ?? listItem?.webPrice?.price;
-  if (price === undefined) return null;
-  return (
-    <span className="block text-[0.85rem] text-ink-soft">
-      Na internet {verdictItem?.webPrice ? "a partir de " : ""}
-      {brl(price)}
-    </span>
-  );
-}
-
-/** What each item costs at a store and where the price comes from. */
-export function ItemLines({
-  store,
+export function StoreAccordion({
+  ranking,
   items,
   verdict,
+  expandedId,
+  onToggle,
 }: {
-  store: RankedStore;
+  ranking: RankedStore[];
   items: ShoppingListItem[];
   verdict: Verdict;
+  expandedId: string | null;
+  onToggle: (id: string) => void;
 }) {
+  const baseId = useId();
   return (
-    <ul className="divide-y divide-line">
-      {store.lines.map((line) => {
-        const item = items[line.index];
-        const resolved = verdict.items[line.index];
-        if (!resolved?.priced) return null;
+    <ol aria-label="Lojas com produtos da sua lista" className="flex flex-col gap-2">
+      {ranking.map((entry, position) => {
+        const expanded = expandedId === entry.store.id;
+        const panelId = `${baseId}-${position}`;
+        const address = addressLine(entry.store.address);
         return (
-          <li key={line.index} className="flex items-start justify-between gap-3 py-2.5">
-            <span className="min-w-0">
-              <span className="block">
-                {item?.quantity && item.quantity > 1 ? `${item.quantity}× ` : ""}
-                {resolved.productName ?? resolved.text}
-              </span>
-              <span className="text-[0.85rem] text-ink-soft">
-                {line.evidence
-                  ? evidenceLabel(line.evidence)
-                  : `Sem preço aqui: conta a mediana da região (${brl(resolved.regionalMedian ?? 0)})`}
-              </span>
-              <WebPriceNote verdictItem={resolved} listItem={item} />
-              {resolved.productId && (
-                <Link
-                  href={`/alerts?product=${resolved.productId}&name=${encodeURIComponent(resolved.productName ?? resolved.text)}`}
-                  className="block text-[0.85rem] font-medium text-brand underline-offset-4 hover:underline"
-                >
-                  Avisar quando baixar
-                </Link>
-              )}
-            </span>
-            <span className={line.subtotal === null ? "shrink-0 text-muted tabular-nums" : "shrink-0 tabular-nums"}>
-              {line.subtotal === null ? "—" : brl(line.subtotal)}
-            </span>
+          <li
+            key={entry.store.id}
+            data-store={entry.store.id}
+            className={cx(
+              "overflow-hidden rounded-md border bg-surface",
+              expanded ? "border-brand ring-2 ring-brand/30" : "border-line",
+            )}
+          >
+            <h3>
+              <button
+                type="button"
+                aria-expanded={expanded}
+                aria-controls={panelId}
+                onClick={() => onToggle(entry.store.id)}
+                className="flex w-full items-start gap-3 px-4 py-3 text-left font-sans text-base leading-normal font-normal tracking-normal normal-case hover:bg-surface-sunken/60"
+              >
+                <span className="mt-0.5 shrink-0 text-ink-soft tabular-nums">{position + 1}º</span>
+                <span className="min-w-0 flex-1">
+                  <span className="block text-[1.05rem] leading-snug font-semibold">{entry.store.name}</span>
+                  {address && <span className="block text-[0.9rem] text-ink-soft">{address}</span>}
+                  <span className="block text-[0.85rem] text-ink-soft">
+                    {distanceText(entry)} · {entry.found} de {items.length} {items.length === 1 ? "item" : "itens"}
+                  </span>
+                </span>
+                <span className="shrink-0 text-right">
+                  <span className="block text-xl font-bold tabular-nums">{brl(entry.itemsCost)}</span>
+                  <span
+                    aria-hidden="true"
+                    className={cx("inline-block text-ink-soft transition-transform", expanded && "rotate-180")}
+                  >
+                    ▾
+                  </span>
+                </span>
+              </button>
+            </h3>
+            <div id={panelId} hidden={!expanded} className="border-t border-line px-4">
+              <ul className="divide-y divide-line">
+                {items.map((item, index) => (
+                  <ItemRow key={index} store={entry} index={index} item={item} verdict={verdict} />
+                ))}
+              </ul>
+            </div>
           </li>
         );
       })}
-    </ul>
+    </ol>
   );
 }
 
@@ -127,7 +143,7 @@ export function SplitCard({ verdict, items }: { verdict: Verdict; items: Shoppin
   if (!split) return null;
   return (
     <section aria-labelledby="split" className="rounded-md border-2 border-brand bg-brand-soft/40 p-4">
-      <h2 id="split" className="text-2xl font-bold">
+      <h2 id="split" className="text-xl font-bold">
         Dividindo em duas lojas você economiza {brl(split.savings)}
       </h2>
       <p className="mt-1 text-ink-soft">
@@ -157,52 +173,22 @@ export function SplitCard({ verdict, items }: { verdict: Verdict; items: Shoppin
   );
 }
 
-/** The rest of the ranking, cheapest list first. Tapping one shows it on the map. */
-export function OtherStores({
-  ranking,
-  selectedId,
-  onSelect,
-}: {
-  ranking: RankedStore[];
-  selectedId?: string | null;
-  onSelect?: (id: string) => void;
-}) {
-  if (ranking.length === 0) return null;
+/** Required by the source: visible credit whenever its prices are on screen. */
+export function PriceSourceCredit({ ranking }: { ranking: RankedStore[] }) {
+  const used = ranking.some((entry) => entry.lines.some((line) => line.evidence?.source === "PRECOMELHOR"));
+  if (!used) return null;
   return (
-    <section aria-labelledby="others">
-      <h2 id="others" className="text-2xl font-bold">
-        Outras lojas por perto
-      </h2>
-      <ol className="mt-2 flex flex-col gap-2">
-        {ranking.map((entry, position) => (
-          <li key={entry.store.id} data-store={entry.store.id}>
-            <button
-              type="button"
-              onClick={() => onSelect?.(entry.store.id)}
-              aria-pressed={selectedId === entry.store.id}
-              className={cx(
-                "flex w-full flex-wrap items-baseline justify-between gap-2 rounded-md border bg-surface px-4 py-3 text-left",
-                selectedId === entry.store.id
-                  ? "border-brand ring-2 ring-brand/30"
-                  : "border-line hover:border-line-strong",
-              )}
-            >
-              <span className="min-w-0">
-                <span className="mr-2 text-ink-soft tabular-nums">{position + 2}º</span>
-                <span className="font-medium">{entry.store.name}</span>
-                {addressLine(entry.store.address) && (
-                  <span className="block text-[0.9rem] text-ink-soft">{addressLine(entry.store.address)}</span>
-                )}
-                <span className="block text-[0.85rem] text-ink-soft">
-                  {entry.found} de {entry.priced} itens ·{" "}
-                  {entry.travelKm < 0.2 ? "a menos de 100 m" : `${km(entry.travelKm / 2)} de você`}
-                </span>
-              </span>
-              <span className="text-lg font-bold tabular-nums">{brl(entry.totalCost)}</span>
-            </button>
-          </li>
-        ))}
-      </ol>
-    </section>
+    <p className="text-[0.85rem] text-ink-soft">
+      Preços de supermercados por{" "}
+      <Link
+        href="https://www.precomelhor.com.br"
+        target="_blank"
+        rel="noopener"
+        className="font-medium underline underline-offset-4"
+      >
+        PreçoMelhor
+      </Link>
+      .
+    </p>
   );
 }
