@@ -15,7 +15,7 @@ import { useLocation } from "@/lib/location/use-location";
 import { useCurrentList } from "@/lib/shopping-lists/current";
 import type { ShoppingListItem } from "@/lib/shopping-lists/repository";
 import { useSearchPreferences } from "@/lib/verdict/preferences";
-import { useVerdict, type Verdict } from "@/lib/verdict/queries";
+import { useDirectoryPrices, useVerdict, type Verdict } from "@/lib/verdict/queries";
 import { MAX_RADIUS_KM, MIN_RADIUS_KM, RadiusSlider } from "./RadiusSlider";
 import { VerdictView } from "./VerdictView";
 
@@ -59,9 +59,10 @@ export function VerdictScreen() {
   }, [load]);
 
   const radiusKm = preferences ? clampRadius(preferences.radiusKm) : null;
+  const directory = useDirectoryPrices(changingPlace ? null : items, location.point);
   const input =
-    items && items.length > 0 && location.point && radiusKm && !changingPlace
-      ? { origin: location.point, items, radiusKm }
+    items && items.length > 0 && location.point && radiusKm && !changingPlace && directory.data !== undefined
+      ? { origin: location.point, items, radiusKm, directory: directory.data ?? [] }
       : null;
   // The hook keeps the last answer on screen while a new radius loads.
   const verdict = useVerdict(input);
@@ -136,7 +137,9 @@ export function VerdictScreen() {
           {verdict.isPending && (
             <div aria-busy="true">
               <p role="status" className="text-ink-soft">
-                Comparando sua lista nas lojas por perto…
+                {directory.isPending
+                  ? "Buscando os preços nos mercados perto de você…"
+                  : "Comparando sua lista nas lojas por perto…"}
               </p>
               <Skeleton className="mt-4 h-16 w-3/4" />
               <Skeleton className="mt-6 h-28 w-64" />

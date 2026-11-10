@@ -117,6 +117,18 @@ export class VerdictService {
       input.origin,
       radiusKm,
       now,
+      input.directory?.map((item) => ({
+        index: item.index,
+        products: item.products.map((product) => ({
+          name: product.name,
+          imageUrl: product.imageUrl ?? null,
+          nationalMedian: product.nationalMedian,
+          prices: product.prices.map((row) => ({
+            ...row,
+            observedAt: new Date(row.observedAt),
+          })),
+        })),
+      })),
     );
     const nearby = await this.geo.findNearby(
       input.origin.lat,

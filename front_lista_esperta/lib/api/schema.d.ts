@@ -1565,11 +1565,36 @@ export interface components {
              */
             quantity: number;
         };
+        DirectoryStorePriceDto: {
+            /** @example 201 */
+            storeId: string;
+            storeName: string;
+            lat: number;
+            lng: number;
+            price: number;
+            /** Format: date-time */
+            observedAt: string;
+        };
+        DirectoryProductDto: {
+            ean: string;
+            name: string;
+            imageUrl?: string | null;
+            /** @description Median of all its prices in the country */
+            nationalMedian?: number;
+            /** @description Prices within ~50 km */
+            prices: components["schemas"]["DirectoryStorePriceDto"][];
+        };
+        DirectoryItemDto: {
+            index: number;
+            products: components["schemas"]["DirectoryProductDto"][];
+        };
         VerdictRequestDto: {
             origin: components["schemas"]["PointDto"];
             items: components["schemas"]["VerdictItemInputDto"][];
             /** @default 5 */
             radiusKm: number;
+            /** @description Store prices the browser read from PreçoMelhor. Checked here (radius, date, outliers) and used only for this answer. */
+            directory?: components["schemas"]["DirectoryItemDto"][];
         };
         WebReferenceDto: {
             price: number;

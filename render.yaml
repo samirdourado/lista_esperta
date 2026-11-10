@@ -24,6 +24,9 @@ services:
         value: https://frontlistaesperta.vercel.app
       - key: TRUST_PROXY_HOPS
         value: "2"
+      # PreçoMelhor's Cloudflare blocks datacenter IPs: browsers read it (D-079).
+      - key: PRECOMELHOR_ENABLED
+        value: "false"
       - key: JWT_ACCESS_SECRET
         generateValue: true
       - key: JWT_REFRESH_SECRET

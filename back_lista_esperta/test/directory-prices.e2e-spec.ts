@@ -171,6 +171,60 @@ describe('Prices from the store directory (e2e)', () => {
     expect(await prisma.priceObservation.count()).toBe(0);
   });
 
+  it('uses the store prices the browser read, checked here first', async () => {
+    const row = (id: string, km: number, price: number, age = 1) => ({
+      ...shop(id, km, price, age),
+      observedAt: daysAgo(age).toISOString(),
+    });
+    const res = await request(app.getHttpServer())
+      .post('/api/v1/verdict')
+      .send({
+        origin: HERE,
+        radiusKm: 5,
+        items: [{ text: 'Leite Italac 1L', ean: '7890000000077' }],
+        directory: [
+          {
+            index: 0,
+            products: [
+              {
+                ean: '7890000000077',
+                name: 'Leite Italac 1L',
+                imageUrl: 'https://img.example/leite.webp',
+                nationalMedian: 5,
+                prices: [
+                  row('perto', 1, 4.79),
+                  row('caro', 2, 79.9), // data error: 16× the national median
+                  row('antigo', 1, 3.5, 45),
+                  row('longe', 12, 3.9),
+                ],
+              },
+            ],
+          },
+        ],
+      })
+      .expect(200);
+    expect(
+      res.body.ranking.map((r: { store: { name: string } }) => r.store.name),
+    ).toEqual(['Mercado perto']);
+    expect(res.body.ranking[0].lines[0]).toMatchObject({
+      productName: 'Leite Italac 1L',
+      unitPrice: 4.79,
+      evidence: { source: 'PRECOMELHOR' },
+    });
+
+    // Malformed data is refused.
+    await request(app.getHttpServer())
+      .post('/api/v1/verdict')
+      .send({
+        origin: HERE,
+        items: [{ text: 'leite' }],
+        directory: [
+          { index: 0, products: [{ ean: 'x', name: 'y', prices: [] }] },
+        ],
+      })
+      .expect(400);
+  });
+
   it('shows products with barcode in the list search, without Google', async () => {
     const res = await request(app.getHttpServer())
       .get('/api/v1/web-prices')
