@@ -4,6 +4,11 @@ Registro de decisões tomadas onde a especificação era ambígua ou conflitava 
 
 ## Ajustes depois da fase 8
 
+### D-081 · O resultado não se recarrega sozinho; preços com muitas casas
+- **Sem recarga:** antes, o veredito era pedido de novo a cada 10 s enquanto havia regiões ou endereços pendentes, e também ao voltar para a aba. Agora uma resposta fica na tela até mudar a lista, o local ou o raio (`staleTime: Infinity`, sem polling, sem buscar de novo ao focar a aba ou ao voltar a conexão). No teste: 0 pedidos em 40 s parado, 1 ao mover o raio.
+- **Endereços:** um endereço que o servidor ainda está buscando aparece sozinho na linha da loja, pelo `/geocoding/reverse` com cache de 24 h, sem recarregar a lista.
+- **Casas decimais (correção de erro em produção):** a fonte manda preços unitários como 0,4745. A validação de no máximo 4 casas decimais fazia o veredito responder 400 para alguns produtos. O navegador agora arredonda para centavos, e a API aceita qualquer número e arredonda.
+
 ### D-080 · Lista montada por um catálogo genérico
 A lista passa a ser montada com produtos genéricos, sem marca: "Arroz branco 5 kg", "Água com gás 1,5 L", "Café solúvel 200 g". A pesquisa de produto com foto e preço da internet saiu da tela da lista.
 - **Onde fica:** num arquivo do front (`lib/catalog/generic-products.ts`). É fixo, carrega na hora e funciona sem internet. São 6 categorias e 60 produtos com variações de tamanho e tipo. Se um dia o admin precisar editar, migra para o banco.

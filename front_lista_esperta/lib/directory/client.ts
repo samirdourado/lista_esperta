@@ -104,7 +104,8 @@ export async function productPrices(ean: string, origin: Point | null): Promise<
   const since = Date.now() - FRESH_DAYS * 86_400_000;
   const all = (body.prices ?? []).flatMap((row) => {
     const point = parseCoords(row.store_coords);
-    const price = Number(row.promo_price ?? row.price);
+    // Cents: the source sometimes sends unit prices like 0.4745.
+    const price = Math.round(Number(row.promo_price ?? row.price) * 100) / 100;
     const observed = new Date(row.update_date ?? "");
     if (!point || row.store_id === undefined || !row.store_name || !(price > 0)) return [];
     if (Number.isNaN(observed.getTime()) || observed.getTime() < since) return [];

@@ -32,9 +32,7 @@ export function VerdictView({
     return (
       <div className="flex flex-col gap-4">
         <Notice tone="info" title="Ainda não temos preços desses itens perto de você">
-          {verdict.params.pendingAreas > 0
-            ? "Estamos buscando as lojas desta região. Tente de novo em um minuto."
-            : `Nenhuma loja em até ${verdict.params.radiusKm.toLocaleString("pt-BR")} km tem preço para a sua lista. Aumente a distância no seletor acima ou envie a nota de uma compra feita por perto: cada nota coloca os preços daquela loja no mapa.`}
+          {`Nenhuma loja em até ${verdict.params.radiusKm.toLocaleString("pt-BR")} km tem preço para a sua lista. Aumente a distância no seletor acima ou envie a nota de uma compra feita por perto: cada nota coloca os preços daquela loja no mapa.`}
         </Notice>
         <Link href={PANEL_HREF.receipt} className="min-h-tap font-semibold text-brand underline underline-offset-4">
           Enviar uma nota fiscal
